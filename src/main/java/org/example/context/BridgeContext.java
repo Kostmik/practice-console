@@ -18,14 +18,20 @@ public class BridgeContext {
     public double npPrime = 1.2; // для веса балласта
     public double nk = 1.15;     // для временной нагрузки
 
-    // Результаты расчетов
-    public Double dynamicCoeff;  // Динамический коэффициент (1+μ)
+    // === ХАРАКТЕРИСТИКИ МАТЕРИАЛОВ (Раздел 5) ===
+    public double Rb;          // Расчетное сопротивление бетона сжатию, МПа
+    public double Rbt;         // Расчетное сопротивление бетона растяжению, МПа
+    public double Eb;          // Модуль упругости бетона, МПа
+    public double nPrime;      // Условное отношение модулей упругости арматуры и бетона (n')
 
-    // Постоянные нагрузки для плиты
-    public Double ppSlab;  // Нагрузка от веса плиты, кН/м
-    public Double pbSlab;  // Нагрузка от веса балласта, кН/м
+    public double Rs;          // Расчетное сопротивление арматуры растяжению, МПа
+    public double Es = 206000; // Модуль упругости арматуры, МПа (2.06 * 10^5)
+    public String rebarType;   // Тип арматуры (для вывода)
 
-    // Постоянные нагрузки для главной балки
-    public Double ppBeam;  // Нагрузка от веса ПС, кН/м
-    public Double pbBeam;  // Нагрузка от веса балласта, кН/м
+    // Результаты расчетов (Раздел 6)
+    public Double dynamicCoeff;
+    public Double ppSlab;
+    public Double pbSlab;
+    public Double ppBeam;
+    public Double pbBeam;
 }

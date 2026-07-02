@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.calculator.LoadsCalculator;
+import org.example.calculator.MaterialCalculator;
 import org.example.context.BridgeContext;
 import org.example.model.TrackType;
 
@@ -15,8 +16,10 @@ public class Main {
             System.out.println("\n╔══════════════════════════════════════════════════════════╗");
             System.out.println("║  КАЛЬКУЛЯТОР ГРУЗОПОДЪЁМНОСТИ Ж/Б МОСТОВ (РЖД 249/р)     ║");
             System.out.println("╚══════════════════════════════════════════════════════════╝");
-            System.out.println("\n1. Рассчитать постоянные нагрузки (п. 6.1 - 6.3)");
-            System.out.println("2. Рассчитать динамический коэффициент (п. 6.4)");
+
+            System.out.println("\n1. Рассчитать характеристики материалов (Раздел 5)");
+            System.out.println("2. Рассчитать постоянные нагрузки (п. 6.1 - 6.3, 6.5)");
+            System.out.println("3. Рассчитать динамический коэффициент (п. 6.4)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -32,9 +35,12 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    calculatePermanentLoads(sc, ctx);
+                    calculateMaterials(sc, ctx);
                     break;
                 case 2:
+                    calculatePermanentLoads(sc, ctx);
+                    break;
+                case 3:
                     calculateDynamicCoeff(sc, ctx);
                     break;
                 default:
@@ -65,12 +71,27 @@ public class Main {
         int trackChoice = sc.nextInt();
         ctx.trackType = (trackChoice == 2) ? TrackType.CONTINUOUS : TrackType.LINKED;
 
-        System.out.print("Шпалы деревянные? (0 - нет, ж/б; 1 - да, деревянные): ");
-        boolean woodenSleepers = sc.nextInt() == 1;
+        System.out.println("Тип шпал:");
+        System.out.println(" 1 - железобетонные");
+        System.out.println(" 2 - деревянные");
+        System.out.print("Выберите (1/2): ");
+        boolean woodenSleepers = sc.nextInt() == 2;
         LoadsCalculator.setBallastDensity(ctx, woodenSleepers);
 
         System.out.print("Фактическая прочность бетона R (МПа) [например, 23.0]: ");
         ctx.concreteStrengthR = sc.nextDouble();
+    }
+
+    private static void calculateMaterials(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- ХАРАКТЕРИСТИКИ АРМАТУРЫ ---");
+        System.out.println("Тип рабочей арматуры:");
+        System.out.println("  1 - Гладкая (А240, Rs = 190 МПа)");
+        System.out.println("  2 - Периодического профиля (А400, Rs = 240 МПа)");
+        System.out.print("Выберите (1/2): ");
+        int rebarChoice = sc.nextInt();
+
+        System.out.println();
+        MaterialCalculator.printMaterialsReport(ctx, rebarChoice);
     }
 
     private static void calculatePermanentLoads(Scanner sc, BridgeContext ctx) {
@@ -98,10 +119,23 @@ public class Main {
     private static void calculateDynamicCoeff(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЁТ ДИНАМИЧЕСКОГО КОЭФФИЦИЕНТА (1+μ) ---");
 
-        // Считаем для ГЛАВНОЙ БАЛКИ
-        LoadsCalculator.printDynamicCoeffReport(ctx, ctx.spanLength, "ГЛАВНАЯ БАЛКА");
+        // Считаем для ГЛАВНОЙ БАЛКИ (всегда по формуле с λ = l)
+        LoadsCalculator.printDynamicCoeffReport(ctx, ctx.spanLength, "ГЛАВНАЯ БАЛКА", false);
 
-        // Считаем для ПЛИТЫ БАЛЛАСТНОГО КОРЫТА
-        LoadsCalculator.printDynamicCoeffReport(ctx, 2.0, "ПЛИТА БАЛЛАСТНОГО КОРЫТА");
+        // Для плиты даём выбор
+        System.out.println("\nДля ПЛИТЫ БАЛЛАСТНОГО КОРЫТА выберите режим расчёта:");
+        System.out.println("  1 - Максимальное значение (как в Приложении 4, λ → 0)");
+        System.out.println("  2 - Расчёт по формуле с вводом λ");
+        System.out.print("Выберите (1/2): ");
+        int slabChoice = sc.nextInt();
+
+        if (slabChoice == 1) {
+            LoadsCalculator.printDynamicCoeffReport(ctx, 0.0, "ПЛИТА БАЛЛАСТНОГО КОРЫТА", true);
+        } else {
+            System.out.print("Введите длину загружения λ для плиты (м) [например, 2.0]: ");
+            double lambdaSlab = sc.nextDouble();
+            if (lambdaSlab <= 0) lambdaSlab = 2.0;
+            LoadsCalculator.printDynamicCoeffReport(ctx, lambdaSlab, "ПЛИТА БАЛЛАСТНОГО КОРЫТА", false);
+        }
     }
 }
