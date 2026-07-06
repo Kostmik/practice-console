@@ -23,6 +23,7 @@ public class Main {
             System.out.println("4. Рассчитать доли временной нагрузки (п. 6.6 - 6.7)");
             System.out.println("5. Рассчитать плиту балластного корыта на прочность (п. 7.2)");
             System.out.println("6. Рассчитать монолитный участок плиты (формула 8.2 - 8.3)");
+            System.out.println("7. Рассчитать внешнюю консоль плиты (формула 8.1)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -53,6 +54,9 @@ public class Main {
                     break;
                 case 6:
                     calculateSlabMonolithic(sc, ctx);
+                    break;
+                case 7:
+                    calculateSlabCantilever(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -320,6 +324,89 @@ public class Main {
         // Вывод отчета
         SlabMonolithicCalculator.printReport(
             ctx, designYear, l0, etaM, rebarType, j, loadType, alpha, k
+        );
+    }
+
+    private static void calculateSlabCantilever(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- РАСЧЕТ ВНЕШНЕЙ КОНСОЛИ ПЛИТЫ (ФОРМУЛА 8.1) ---");
+
+        System.out.println("\n[1. Исходные данные]");
+        System.out.print("Год выпуска норм проектирования (например, 1931): ");
+        int designYear = sc.nextInt();
+
+        System.out.println("Тип арматуры:");
+        System.out.println("  1 - Гладкая (А240)");
+        System.out.println("  2 - Периодического профиля (А400)");
+        System.out.print("Выберите (1/2): ");
+        int rebarChoice = sc.nextInt();
+
+        RebarType rebarType;
+        if (rebarChoice == 1) {
+            rebarType = RebarType.SMOOTH;
+        } else {
+            rebarType = RebarType.RIBBED;
+        }
+
+        System.out.print("Тип нагрузки (Н7 или Н8): ");
+        String loadType = sc.next();
+
+        System.out.print("Положение вершины линии влияния α (0.0 или 0.5): ");
+        double alpha = sc.nextDouble();
+
+        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов): ");
+        double j = sc.nextDouble();
+
+        System.out.println("\n[2. Параметры, вводимые пользователем]");
+        System.out.print("Длина распределения временной нагрузки l0 (м) [например, 3.4]: ");
+        double l0 = sc.nextDouble();
+
+        System.out.print("Коэффициент надежности по назначению ηM (например, 1.1): ");
+        double etaM = sc.nextDouble();
+
+        System.out.print("Расстояние от ребра до точки приложения нагрузки Δ (м): ");
+        double delta = sc.nextDouble();
+
+        System.out.print("Расстояние от ребра до расчетного сечения Z (м): ");
+        double Z = sc.nextDouble();
+
+        System.out.print("Длина внешней консоли lk (м): ");
+        double lk = sc.nextDouble();
+
+        System.out.print("Нагрузка от веса перил P0 (кН): ");
+        double P0 = sc.nextDouble();
+
+        System.out.print("Расстояние до центра тяжести перил lt (м): ");
+        double lt = sc.nextDouble();
+
+        System.out.print("Изгибающий момент от постоянных нагрузок Mp (кН·м): ");
+        double Mp = sc.nextDouble();
+
+        // Проверка: есть ли толщина плиты в контексте
+        if (ctx.slabHeight <= 0) {
+            System.out.print("Толщина плиты h_slab (м) [например, 0.26]: ");
+            ctx.slabHeight = sc.nextDouble();
+        }
+        if (ctx.B <= 0) {
+            System.out.print("Расстояние между наружными гранями ребер B (м) [например, 2.4]: ");
+            ctx.B = sc.nextDouble();
+        }
+        if (ctx.ls <= 0) {
+            System.out.print("Длина шпалы ls (м) [например, 2.7]: ");
+            ctx.ls = sc.nextDouble();
+        }
+
+        System.out.println();
+
+        // Расчет
+        double k = SlabCantileverCalculator.calculate(
+            ctx, designYear, l0, etaM, rebarType, j,
+            loadType, alpha, delta, Z, lk, P0, lt, Mp
+        );
+
+        // Вывод отчета
+        SlabCantileverCalculator.printReport(
+            ctx, designYear, l0, etaM, rebarType, j,
+            loadType, alpha, delta, Z, lk, P0, lt, Mp, k
         );
     }
 }
