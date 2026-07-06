@@ -1,10 +1,8 @@
 package org.example;
 
-import org.example.calculator.LoadsCalculator;
-import org.example.calculator.MaterialCalculator;
-import org.example.calculator.ShareCalculator;
-import org.example.calculator.SlabCalculator;
+import org.example.calculator.*;
 import org.example.context.BridgeContext;
+import org.example.model.RebarType;
 import org.example.model.TrackType;
 
 import java.util.Scanner;
@@ -24,6 +22,7 @@ public class Main {
             System.out.println("3. Рассчитать динамический коэффициент (п. 6.4)");
             System.out.println("4. Рассчитать доли временной нагрузки (п. 6.6 - 6.7)");
             System.out.println("5. Рассчитать плиту балластного корыта на прочность (п. 7.2)");
+            System.out.println("6. Рассчитать монолитный участок плиты (формула 8.2 - 8.3)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -51,6 +50,9 @@ public class Main {
                     break;
                 case 5:
                     calculateSlabStrength(sc, ctx);
+                    break;
+                case 6:
+                    calculateSlabMonolithic(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -225,5 +227,99 @@ public class Main {
 
         System.out.println();
         SlabCalculator.calculateAndPrintReport(ctx);
+    }
+
+    private static void calculateBetaOnly(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- РАСЧЕТ КОЭФФИЦИЕНТА β (ФОРМУЛА 8.3) ---");
+
+        System.out.println("\n[1. Исходные данные]");
+        System.out.print("Год выпуска норм проектирования (например, 1931): ");
+        ctx.designYear = sc.nextInt();
+
+        System.out.println("Тип арматуры:");
+        System.out.println("  1 - Гладкая (А240)");
+        System.out.println("  2 - Периодического профиля (А400)");
+        System.out.print("Выберите (1/2): ");
+        int rebarChoice = sc.nextInt();
+
+        System.out.print("Рассчетную ширину плиту b (м) [например, 1.0]: ");
+        ctx.b = sc.nextDouble();
+
+        System.out.print("Длина распределения временной нагрузки (м) [например, 3.4]: ");
+        ctx.l_o = sc.nextDouble();
+
+        System.out.print("Коэффициент надежности по назначению [например, 1.1]: ");
+        ctx.l_o = sc.nextDouble();
+
+        RebarType rebarType;
+        if (rebarChoice == 1) {
+            rebarType = RebarType.SMOOTH;
+        } else {
+            rebarType = RebarType.RIBBED;
+        }
+
+        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов, 0.904 - с дефектами): ");
+        ctx.j = sc.nextDouble();
+
+        // Расчет β
+        ctx.beta = BetaCalculator.calculateBeta(ctx.designYear, rebarType, ctx.j);
+
+        // Вывод отчета
+        BetaCalculator.printBetaReport(ctx.designYear, rebarType, ctx.j);
+    }
+
+    private static void calculateSlabMonolithic(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- РАСЧЕТ МОНОЛИТНОГО УЧАСТКА ПЛИТЫ (ФОРМУЛА 8.2) ---");
+
+        System.out.println("\n[1. Исходные данные]");
+        System.out.print("Год выпуска норм проектирования (например, 1931): ");
+        int designYear = sc.nextInt();
+
+        System.out.println("Тип арматуры:");
+        System.out.println("  1 - Гладкая (А240)");
+        System.out.println("  2 - Периодического профиля (А400)");
+        System.out.print("Выберите (1/2): ");
+        int rebarChoice = sc.nextInt();
+
+        RebarType rebarType;
+        if (rebarChoice == 1) {
+            rebarType = RebarType.SMOOTH;
+        } else {
+            rebarType = RebarType.RIBBED;
+        }
+
+        System.out.print("Тип нагрузки (Н7 или Н8): ");
+        String loadType = sc.next();
+
+        System.out.print("Положение вершины линии влияния α (0.0 или 0.5): ");
+        double alpha = sc.nextDouble();
+
+        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов): ");
+        double j = sc.nextDouble();
+
+        System.out.println("\n[2. Параметры, вводимые пользователем]");
+        System.out.print("Длина распределения временной нагрузки l0 (м) [например, 3.4]: ");
+        double l0 = sc.nextDouble();
+
+        System.out.print("Коэффициент надежности по назначению ηM (например, 1.1): ");
+        double etaM = sc.nextDouble();
+
+        // Проверка: есть ли толщина плиты в контексте
+        if (ctx.slabHeight <= 0) {
+            System.out.print("Толщина плиты h_slab (м) [например, 0.26]: ");
+            ctx.slabHeight = sc.nextDouble();
+        }
+
+        System.out.println();
+
+        // Расчет
+        double k = SlabMonolithicCalculator.calculate(
+            ctx, designYear, l0, etaM, rebarType, j, loadType, alpha
+        );
+
+        // Вывод отчета
+        SlabMonolithicCalculator.printReport(
+            ctx, designYear, l0, etaM, rebarType, j, loadType, alpha, k
+        );
     }
 }

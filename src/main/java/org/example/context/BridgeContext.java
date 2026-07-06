@@ -1,5 +1,6 @@
 package org.example.context;
 
+import org.example.model.RebarType;
 import org.example.model.TrackType;
 
 public class BridgeContext {
@@ -77,4 +78,11 @@ public class BridgeContext {
     public double K_monolithic;              // Класс монолитного участка
     public double k_external_cantilever;     // Допускаемая нагрузка для внешней консоли, кН/м
     public double K_external_cantilever;     // Класс внешней консоли
+
+
+    public double b;
+    public double l_o;
+    public double j;
+    public int designYear;
+    public double beta;
 }
