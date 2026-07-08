@@ -24,6 +24,7 @@ public class Main {
             System.out.println("5. Рассчитать плиту балластного корыта на прочность (п. 7.2)");
             System.out.println("6. Рассчитать монолитный участок плиты (формула 8.2 - 8.3)");
             System.out.println("7. Рассчитать внешнюю консоль плиты (формула 8.1)");
+            System.out.println("8. Рассчитать главную балку (формула 8.4)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -57,6 +58,9 @@ public class Main {
                     break;
                 case 7:
                     calculateSlabCantilever(sc, ctx);
+                    break;
+                case 8:
+                    calculateBeam(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -407,6 +411,66 @@ public class Main {
         SlabCantileverCalculator.printReport(
             ctx, designYear, l0, etaM, rebarType, j,
             loadType, alpha, delta, Z, lk, P0, lt, Mp, k
+        );
+    }
+
+    /**
+     * Метод для расчета главной балки по формуле 8.4
+     */
+    private static void calculateBeam(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- РАСЧЕТ ГЛАВНОЙ БАЛКИ (ФОРМУЛА 8.4) ---");
+
+        System.out.println("\n[1. Исходные данные]");
+        System.out.print("Год выпуска норм проектирования (например, 1931): ");
+        int designYear = sc.nextInt();
+
+        System.out.println("Тип арматуры:");
+        System.out.println("  1 - Гладкая (А240)");
+        System.out.println("  2 - Периодического профиля (А400)");
+        System.out.print("Выберите (1/2): ");
+        int rebarChoice = sc.nextInt();
+
+        RebarType rebarType;
+        if (rebarChoice == 1) {
+            rebarType = RebarType.SMOOTH;
+        } else {
+            rebarType = RebarType.RIBBED;
+        }
+
+        System.out.print("Тип нагрузки (Н7 или Н8): ");
+        String loadType = sc.next();
+
+        System.out.print("Положение вершины линии влияния α (0.0 или 0.5): ");
+        double alpha = sc.nextDouble();
+
+        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов): ");
+        double j = sc.nextDouble();
+
+        System.out.println("\n[2. Параметры для балки]");
+        System.out.print("Доля временной нагрузки на балку εM (из Раздела 6): ");
+        double epsilon = sc.nextDouble();
+
+        System.out.print("Количество главных балок m: ");
+        int m = sc.nextInt();
+
+        System.out.print("Вес пролетного строения на балку pp (кН/м): ");
+        double pp = sc.nextDouble();
+
+        System.out.print("Вес балласта на балку pb (кН/м): ");
+        double pb = sc.nextDouble();
+
+        System.out.println();
+
+        // Расчет
+        double k = BeamCalculator.calculate(
+            ctx, designYear, rebarType, j, loadType, alpha,
+            epsilon, m, pp, pb
+        );
+
+        // Вывод отчета
+        BeamCalculator.printReport(
+            ctx, designYear, rebarType, j, loadType, alpha,
+            epsilon, m, pp, pb, k
         );
     }
 }
