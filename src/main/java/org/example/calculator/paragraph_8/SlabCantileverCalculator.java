@@ -1,4 +1,4 @@
-package org.example.calculator;
+package org.example.calculator.paragraph_8;
 
 import org.example.context.BridgeContext;
 import org.example.model.RebarType;
@@ -6,21 +6,21 @@ import org.example.model.TrackType;
 import org.example.util.Interpolation;
 
 /**
- * Класс для расчета монолитного участка плиты балластного корыта
- * по формуле 8.2 (Раздел 8 Руководства)
+ * Класс для расчета внешней консоли плиты балластного корыта
+ * по формуле 8.1 (Раздел 8 Руководства)
  *
- * k = (0.95 * l0) / (ηM * nk * b) *
- *     [β * (8.75 * Kc * (1+μ₁) * b + p₁) - np * pp - np' * pb]
+ * k = (0.95 * l0) / (ηM * nk * b * (Δ - Z)²) *
+ *     [β * (A * Kc * (1+μ₁) * b * (0.5*ls + hb - 0.5*B)² + p₁*lk² + 2*P₀*lt) - 2*Mp]
  */
-public class SlabMonolithicCalculator {
+public class SlabCantileverCalculator {
 
     // =====================================================================
     // КОНСТАНТЫ
     // =====================================================================
 
-    private static final double A = 8.75;
-    private static final double GAMMA_RC = 24.5;
-    private static final double GAMMA_BALLAST = 20.0;
+    private static final double A = 8.75;             // Коэффициент для системы СИ (в формуле 8.1)
+    private static final double GAMMA_RC = 24.5;     // Удельный вес ж/б, кН/м³ (п. 6.1)
+    private static final double GAMMA_BALLAST = 20.0; // Удельный вес балласта с частями пути, кН/м³ (п. 6.1)
 
     // Табличные данные для Приложения 9
     private static final double[] X_POINTS = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 15.0, 18.0, 20.0};
@@ -33,6 +33,26 @@ public class SlabMonolithicCalculator {
     // ОСНОВНОЙ МЕТОД РАСЧЕТА
     // =====================================================================
 
+    /**
+     * Расчет допускаемой временной нагрузки для внешней консоли плиты
+     * по формуле 8.1
+     *
+     * @param ctx контекст моста
+     * @param designYear год выпуска норм проектирования
+     * @param l0 длина распределения временной нагрузки, м (вводит пользователь)
+     * @param etaM коэффициент надежности по назначению (вводит пользователь)
+     * @param rebarType тип арматуры
+     * @param j относительное изменение площади арматуры
+     * @param loadType тип нагрузки ("Н7" или "Н8")
+     * @param alpha положение вершины линии влияния (0.0 или 0.5)
+     * @param delta расстояние от ребра до точки приложения нагрузки, м
+     * @param Z расстояние от ребра до расчетного сечения, м
+     * @param lk длина внешней консоли плиты, м
+     * @param P0 нагрузка от веса перил, кН
+     * @param lt расстояние до центра тяжести перил, м
+     * @param Mp изгибающий момент от постоянных нагрузок, кН·м
+     * @return допускаемая временная нагрузка k, кН/м
+     */
     public static double calculate(
         BridgeContext ctx,
         int designYear,
@@ -41,35 +61,54 @@ public class SlabMonolithicCalculator {
         RebarType rebarType,
         double j,
         String loadType,
-        double alpha
+        double alpha,
+        double delta,
+        double Z,
+        double lk,
+        double P0,
+        double lt,
+        double Mp
     ) {
-        double b = 1.0;
-        double nk = ctx.nk;
-        double np = ctx.np;
-        double npPrime = ctx.npPrime;
+        // Константы из BridgeContext
+        double b = 1.0;                    // Расчетная ширина плиты (всегда 1 м)
+        double nk = ctx.nk;                // 1.15 (п. 6.5)
 
-        // 1. β (формула 8.3)
+        // ===== 1. ВЫЧИСЛЯЕМ β (формула 8.3) =====
         double beta = BetaCalculator.calculateBeta(designYear, rebarType, j);
 
-        // 2. Kc (Приложение 9)
+        // ===== 2. ВЫЧИСЛЯЕМ Kc (Приложение 9) =====
         double Kc = getHistoricalLoadClass(loadType, ctx.spanLength, alpha);
 
-        // 3. (1+μ₁) (Приложение 10) — уже возвращает готовое значение!
+        // ===== 3. ВЫЧИСЛЯЕМ (1+μ₁) (Приложение 10) =====
         double mu1 = getDesignDynamicCoefficient(
             designYear, ctx.spanLength, ctx.ballastThickness, ctx.trackType
         );
 
-        // 4. Постоянные нагрузки
+        // ===== 4. ВЫЧИСЛЯЕМ ПОСТОЯННЫЕ НАГРУЗКИ =====
+        // Нагрузка от веса плиты на консоли: pp = h_slab * γ_rc
         double pp = ctx.slabHeight * GAMMA_RC;
+
+        // Нагрузка от веса балласта на консоли: pb = h_b * γ_b
         double pb = ctx.ballastThickness * GAMMA_BALLAST;
+
+        // Суммарная постоянная нагрузка на консоль: p₁ = pp + pb
         double p1 = pp + pb;
 
-        // 5. Формула 8.2
-        double bracket1 = beta * (A * Kc * mu1 * b + p1);  // ← mu1 уже (1+μ₁)!
-        double bracket2 = np * pp + npPrime * pb;
-        double bracket = bracket1 - bracket2;
+        // ===== 5. ВЫЧИСЛЯЕМ ПО ФОРМУЛЕ 8.1 =====
+        // Часть 1: A * Kc * (1+μ₁) * b * (0.5*ls + hb - 0.5*B)²
+        double term1 = A * Kc * mu1 * b * Math.pow(0.5 * ctx.ls + ctx.ballastThickness - 0.5 * ctx.B, 2);
 
-        double denominator = etaM * nk * b;
+        // Часть 2: p₁ * lk²
+        double term2 = p1 * Math.pow(lk, 2);
+
+        // Часть 3: 2 * P₀ * lt
+        double term3 = 2 * P0 * lt;
+
+        // Сумма в скобках: β * (term1 + term2 + term3) - 2 * Mp
+        double bracket = beta * (term1 + term2 + term3) - 2 * Mp;
+
+        // Знаменатель: (0.95 * l0) / (ηM * nk * b * (Δ - Z)²)
+        double denominator = etaM * nk * b * Math.pow(delta - Z, 2);
         double numerator = 0.95 * l0;
 
         double k = (numerator / denominator) * bracket;
@@ -77,7 +116,7 @@ public class SlabMonolithicCalculator {
     }
 
     // =====================================================================
-    // ПРИЛОЖЕНИЕ 9
+    // ПРИЛОЖЕНИЕ 9 — с использованием Interpolation
     // =====================================================================
 
     private static double getHistoricalLoadClass(String loadType, double spanLength, double alpha) {
@@ -120,7 +159,7 @@ public class SlabMonolithicCalculator {
             if (spanLength <= 5.0) {
                 return 1.30;
             } else if (spanLength <= 20.0) {
-                return 1.20;  // ← для l=10.8 м → 1.20
+                return 1.20;
             } else {
                 return 1.10;
             }
@@ -134,7 +173,7 @@ public class SlabMonolithicCalculator {
     }
 
     // =====================================================================
-    // МЕТОД ВЫВОДА ОТЧЕТА — ИСПРАВЛЕН!
+    // МЕТОД ВЫВОДА ОТЧЕТА
     // =====================================================================
 
     public static void printReport(
@@ -146,12 +185,16 @@ public class SlabMonolithicCalculator {
         double j,
         String loadType,
         double alpha,
+        double delta,
+        double Z,
+        double lk,
+        double P0,
+        double lt,
+        double Mp,
         double k
     ) {
         double b = 1.0;
         double nk = ctx.nk;
-        double np = ctx.np;
-        double npPrime = ctx.npPrime;
 
         double beta = BetaCalculator.calculateBeta(designYear, rebarType, j);
         double Kc = getHistoricalLoadClass(loadType, ctx.spanLength, alpha);
@@ -165,8 +208,8 @@ public class SlabMonolithicCalculator {
         double p1 = pp + pb;
 
         System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ МОНОЛИТНОГО УЧАСТКА ПЛИТЫ БАЛЛАСТНОГО КОРЫТА");
-        System.out.println(" ФОРМУЛА 8.2");
+        System.out.println(" РАСЧЕТ ВНЕШНЕЙ КОНСОЛИ ПЛИТЫ БАЛЛАСТНОГО КОРЫТА");
+        System.out.println(" ФОРМУЛА 8.1");
         System.out.println("============================================================");
 
         System.out.println("\n[1. Исходные данные]");
@@ -175,10 +218,18 @@ public class SlabMonolithicCalculator {
         System.out.printf("   Расчетный пролет: %.2f м%n", ctx.spanLength);
         System.out.printf("   Толщина балласта: %.2f м%n", ctx.ballastThickness);
         System.out.printf("   Толщина плиты: %.2f м%n", ctx.slabHeight);
+        System.out.printf("   Расстояние между ребрами B: %.2f м%n", ctx.B);
+        System.out.printf("   Длина шпалы ls: %.2f м%n", ctx.ls);
         System.out.printf("   Тип арматуры: %s%n", rebarType.getDisplayName());
         System.out.printf("   j (отн. изменение площади): %.3f%n", j);
         System.out.printf("   l0 (длина распределения): %.2f м%n", l0);
         System.out.printf("   ηM (коэф. надежности): %.2f%n", etaM);
+        System.out.printf("   Δ (расстояние от ребра): %.2f м%n", delta);
+        System.out.printf("   Z (расстояние до сечения): %.2f м%n", Z);
+        System.out.printf("   lk (длина консоли): %.2f м%n", lk);
+        System.out.printf("   P0 (вес перил): %.2f кН%n", P0);
+        System.out.printf("   lt (расстояние до перил): %.2f м%n", lt);
+        System.out.printf("   Mp (момент от пост. нагрузок): %.2f кН·м%n", Mp);
         System.out.printf("   α (положение вершины): %.1f%n", alpha);
 
         System.out.println("\n[2. Вычисленные коэффициенты]");
@@ -192,46 +243,48 @@ public class SlabMonolithicCalculator {
         System.out.println("   2.3. Класс нагрузки Kc (Приложение 9):");
         System.out.printf("        Kc = %.2f%n", Kc);
         System.out.println("   2.4. Динамический коэффициент (Приложение 10):");
-        System.out.printf("        (1+μ₁) = %.3f  ← ИСПРАВЛЕНО! (было 2.200)%n", mu1);  // ← mu1, а не 1+mu1!
+        System.out.printf("        (1+μ₁) = %.3f%n", mu1);
 
         System.out.println("\n[3. Постоянные нагрузки]");
         System.out.printf("   3.1. Вес плиты: pp = h_slab × γ_rc = %.2f × %.1f = %.2f кН/м%n",
             ctx.slabHeight, GAMMA_RC, pp);
         System.out.printf("   3.2. Вес балласта: pb = h_b × γ_b = %.2f × %.1f = %.2f кН/м%n",
             ctx.ballastThickness, GAMMA_BALLAST, pb);
-        System.out.printf("   3.3. Суммарная: p₁ = pp + pb = %.2f + %.2f = %.2f кН/м%n",
+        System.out.printf("   3.3. Суммарная на консоли: p₁ = pp + pb = %.2f + %.2f = %.2f кН/м%n",
             pp, pb, p1);
 
         System.out.println("\n[4. Коэффициенты надежности (константы)]");
         System.out.printf("   nₖ = %.2f (к временной нагрузке, п. 6.5)%n", nk);
-        System.out.printf("   n_p = %.2f (для ж/б, п. 6.3)%n", np);
-        System.out.printf("   n'_p = %.2f (для балласта, п. 6.3)%n", npPrime);
         System.out.printf("   b = %.1f м (расчетная ширина плиты)%n", b);
-        System.out.printf("   A = %.2f (коэф. системы СИ)%n", A);
+        System.out.printf("   A = %.1f (коэф. системы СИ, формула 8.1)%n", A);
 
-        System.out.println("\n[5. Расчет по формуле 8.2]");
-        System.out.println("   k = (0.95·l₀)/(ηM·nₖ·b) × [β·(8.75·Kc·(1+μ₁)·b + p₁) - nₚ·pₚ - n'ₚ·p_b]");
+        System.out.println("\n[5. Расчет по формуле 8.1]");
+        System.out.println("   k = (0.95·l₀)/(ηM·nₖ·b·(Δ-Z)²) ×");
+        System.out.println("       [β·(A·Kc·(1+μ₁)·b·(0.5·ls+hb-0.5·B)² + p₁·lk² + 2·P₀·lt) - 2·Mp]");
 
-        // ИСПРАВЛЕНО: используем mu1 как есть!
-        double stepA = A * Kc * mu1 * b;
-        double stepB = stepA + p1;
-        double stepC = beta * stepB;
-        double stepD = np * pp + npPrime * pb;
-        double stepE = stepC - stepD;
-        double stepF = (0.95 * l0) / (etaM * nk * b);
-        double result = stepF * stepE;
+        // Пошаговый расчет
+        double step1 = A * Kc * mu1 * b * Math.pow(0.5 * ctx.ls + ctx.ballastThickness - 0.5 * ctx.B, 2);
+        double step2 = p1 * Math.pow(lk, 2);
+        double step3 = 2 * P0 * lt;
+        double step4 = beta * (step1 + step2 + step3);
+        double step5 = step4 - 2 * Mp;
+        double step6 = (0.95 * l0) / (etaM * nk * b * Math.pow(delta - Z, 2));
+        double result = step6 * step5;
 
         System.out.println("\n   Пошаговый расчет:");
-        System.out.printf("   1) 8.75·Kc·(1+μ₁)·b = 8.75 × %.2f × %.3f × %.1f = %.2f%n",
-            Kc, mu1, b, stepA);  // ← mu1, а не 1+mu1!
-        System.out.printf("   2) + p₁ = %.2f + %.2f = %.2f%n", stepA, p1, stepB);
-        System.out.printf("   3) β × (...) = %.3f × %.2f = %.2f%n", beta, stepB, stepC);
-        System.out.printf("   4) nₚ·pₚ + n'ₚ·p_b = %.1f × %.2f + %.1f × %.2f = %.2f%n",
-            np, pp, npPrime, pb, stepD);
-        System.out.printf("   5) [...] = %.2f - %.2f = %.2f%n", stepC, stepD, stepE);
-        System.out.printf("   6) (0.95·l₀)/(ηM·nₖ·b) = (0.95 × %.2f) / (%.2f × %.2f × %.1f) = %.4f%n",
-            l0, etaM, nk, b, stepF);
-        System.out.printf("   7) k = %.4f × %.2f = %.2f кН/м%n", stepF, stepE, result);
+        System.out.printf("   1) (0.5·ls+hb-0.5·B) = (0.5×%.2f + %.2f - 0.5×%.2f) = %.3f м%n",
+            ctx.ls, ctx.ballastThickness, ctx.B,
+            0.5 * ctx.ls + ctx.ballastThickness - 0.5 * ctx.B);
+        System.out.printf("   2) A·Kc·(1+μ₁)·b·(...)² = %.1f × %.2f × %.3f × %.1f × %.3f² = %.2f%n",
+            A, Kc, mu1, b, 0.5 * ctx.ls + ctx.ballastThickness - 0.5 * ctx.B, step1);
+        System.out.printf("   3) p₁·lk² = %.2f × %.2f² = %.2f%n", p1, lk, step2);
+        System.out.printf("   4) 2·P₀·lt = 2 × %.2f × %.2f = %.2f%n", P0, lt, step3);
+        System.out.printf("   5) β·(...) = %.3f × (%.2f + %.2f + %.2f) = %.2f%n",
+            beta, step1, step2, step3, step4);
+        System.out.printf("   6) - 2·Mp = %.2f - 2×%.2f = %.2f%n", step4, Mp, step5);
+        System.out.printf("   7) (0.95·l₀)/(ηM·nₖ·b·(Δ-Z)²) = (0.95×%.2f)/(%.2f×%.2f×%.1f×(%.2f-%.2f)²) = %.4f%n",
+            l0, etaM, nk, b, delta, Z, step6);
+        System.out.printf("   8) k = %.4f × %.2f = %.2f кН/м%n", step6, step5, result);
 
         System.out.println("\n[6. Результат]");
         System.out.printf("   >>> k = %.2f кН/м <<<%n", result);

@@ -1,6 +1,11 @@
 package org.example;
 
 import org.example.calculator.*;
+import org.example.calculator.paragraph_8.BeamCalculator;
+import org.example.calculator.paragraph_8.BetaCalculator;
+import org.example.calculator.paragraph_8.SlabCantileverCalculator;
+import org.example.calculator.paragraph_8.SlabMonolithicCalculator;
+import org.example.calculator.paragraph_9.PrestressedBeamCalculator;
 import org.example.context.BridgeContext;
 import org.example.model.RebarType;
 import org.example.model.TrackType;
@@ -25,6 +30,7 @@ public class Main {
             System.out.println("6. Рассчитать монолитный участок плиты (формула 8.2 - 8.3)");
             System.out.println("7. Рассчитать внешнюю консоль плиты (формула 8.1)");
             System.out.println("8. Рассчитать главную балку (формула 8.4)");
+            System.out.println("9. Рассчитать главную балку с напрягаемой арматурой (Раздел 9)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -61,6 +67,9 @@ public class Main {
                     break;
                 case 8:
                     calculateBeam(sc, ctx);
+                    break;
+                case 9:
+                    calculatePrestressedBeam(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -447,16 +456,16 @@ public class Main {
         double j = sc.nextDouble();
 
         System.out.println("\n[2. Параметры для балки]");
-        System.out.print("Доля временной нагрузки на балку εM (из Раздела 6): ");
+        System.out.print("Доля временной нагрузки на балку εM (из Раздела 6) [например, 0.565]: ");
         double epsilon = sc.nextDouble();
 
-        System.out.print("Количество главных балок m: ");
+        System.out.print("Количество главных балок m [например, 2]: ");
         int m = sc.nextInt();
 
-        System.out.print("Вес пролетного строения на балку pp (кН/м): ");
+        System.out.print("Вес пролетного строения на балку pp (кН/м) [например, 34.0]: ");
         double pp = sc.nextDouble();
 
-        System.out.print("Вес балласта на балку pb (кН/м): ");
+        System.out.print("Вес балласта на балку pb (кН/м) [например, 20.6]: ");
         double pb = sc.nextDouble();
 
         System.out.println();
@@ -473,4 +482,241 @@ public class Main {
             epsilon, m, pp, pb, k
         );
     }
+
+    private static void calculatePrestressedBeam(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- РАСЧЕТ ГЛАВНОЙ БАЛКИ С НАПРЯГАЕМОЙ АРМАТУРОЙ (РАЗДЕЛ 9) ---");
+        System.out.println("\n[1. Исходные данные и материалы]");
+        System.out.println("Тип арматуры: 1 - Гладкая (А240), 2 - Периодического профиля (А400)");
+        System.out.print("Выберите (1/2): ");
+        int rebarChoice = sc.nextInt();
+        RebarType rebarType = (rebarChoice == 1) ? RebarType.SMOOTH : RebarType.RIBBED;
+
+        System.out.print("Расчетное сопротивление бетона Rb (МПа) [например, 16.5]: ");
+        double Rb = sc.nextDouble();
+        System.out.print("Расчетное сопротивление напрягаемой арматуры Rp (МПа) [например, 1060]: ");
+        double Rp = sc.nextDouble();
+
+        System.out.print("Предварительное напряжение в растянутой зоне σ_p2 (МПа) [например, 800]: ");
+        double sigmaP2 = sc.nextDouble();
+        System.out.print("Предварительное напряжение в сжатой зоне σ'_p2 (МПа) [например, 600]: ");
+        double sigmaP2s = sc.nextDouble();
+
+        System.out.println("\n[2. Геометрия сечения]");
+        System.out.print("Ширина ребра b (м) [например, 0.26]: ");
+        double b = sc.nextDouble();
+        System.out.print("Ширина плиты bf (м) [например, 2.45]: ");
+        double bf = sc.nextDouble();
+        System.out.print("Толщина плиты hf (м) [например, 0.185]: ");
+        double hf = sc.nextDouble();
+        System.out.print("Рабочая высота сечения h0 (м) [например, 1.42]: ");
+        double h0 = sc.nextDouble();
+
+        System.out.println("\n[3. Армирование]");
+        System.out.print("Площадь ненапрягаемой растянутой арматуры As (м²) [например, 0.001]: ");
+        double As = sc.nextDouble();
+        System.out.print("Площадь напрягаемой растянутой арматуры Ap (м²) [например, 0.00658]: ");
+        double Ap = sc.nextDouble();
+        System.out.print("Площадь сжатой ненапрягаемой арматуры As' (м²) [если нет, 0]: ");
+        double As_s = sc.nextDouble();
+        System.out.print("Площадь сжатой напрягаемой арматуры Ap' (м²) [если нет, 0]: ");
+        double Ap_s = sc.nextDouble();
+
+        System.out.print("Расстояние до центра тяжести сжатой арматуры as' (м) [например, 0.038]: ");
+        double as = sc.nextDouble();
+        System.out.print("Расстояние до центра тяжести сжатой напрягаемой арматуры ap' (м) [например, 0.08]: ");
+        double ap = sc.nextDouble();
+
+        System.out.println("\n[4. Нагрузки и линии влияния (для изгиба)]");
+        System.out.print("Доля временной нагрузки на балку εM (из Раздела 6) [например, 0.5]: ");
+        double epsilonM = sc.nextDouble();
+        System.out.print("Площадь линии влияния изгибающего момента Ω (м²) [например, 40.5]: ");
+        double Omega = sc.nextDouble();
+        System.out.print("Вес пролетного строения на балку pp (кН/м) [например, 31.6]: ");
+        double pp = sc.nextDouble();
+        System.out.print("Вес балласта на балку pb (кН/м) [например, 19.6]: ");
+        double pb = sc.nextDouble();
+
+        System.out.println("\n[5. Нагрузки и линии влияния (для поперечной силы)]");
+        System.out.print("Доля временной нагрузки на балку εQ (из Раздела 6) [например, 0.5]: ");
+        double epsilonQ = sc.nextDouble();
+        System.out.print("Площадь линии влияния поперечной силы Ωk (м²) [например, 6.93]: ");
+        double OmegaK = sc.nextDouble();
+        System.out.print("Поперечная сила от постоянных нагрузок Qp (кН) [например, 396.4]: ");
+        double Qp = sc.nextDouble();
+
+        System.out.println("\n[6. Параметры для поперечной силы (формула 9.7)]");
+        System.out.print("Сумма площадей отогнутых пучков ΣA_pi (м²) [если нет, 0]: ");
+        double sumApi = sc.nextDouble();
+        System.out.print("Синус угла наклона отогнутых пучков sin α [если нет, 0]: ");
+        double sinAlpha = sc.nextDouble();
+        System.out.print("Площадь поперечного сечения хомутов A_sw (м²) [например, 0.000308]: ");
+        double Asw = sc.nextDouble();
+        System.out.print("Длина проекции наклонного сечения c (м) [например, 2.0]: ");
+        double c = sc.nextDouble();
+        System.out.print("Шаг хомутов s (м) [например, 0.1]: ");
+        double s = sc.nextDouble();
+        System.out.print("Поперечная сила, воспринимаемая бетоном Q_b (кН) [например, 1182.2]: ");
+        double Qb = sc.nextDouble();
+
+        // ====================================================================
+        // НОВЫЙ БЛОК: ВВОД ДАННЫХ ДЛЯ РАСЧЕТА НА ВЫНОСЛИВОСТЬ (Раздел 9.3)
+        // ====================================================================
+        System.out.println("\n[7. Параметры для расчета на выносливость (Раздел 9.3)]");
+        System.out.print("Высота балки h (м) [например, 1.55]: ");
+        double h = sc.nextDouble();
+        System.out.print("Расстояние от нейтральной оси до растянутой грани hc (м) [например, 0.883]: ");
+        double hc = sc.nextDouble();
+        System.out.print("Приведенный момент инерции I_red (м⁴) [например, 0.320]: ");
+        double Ired = sc.nextDouble();
+        System.out.print("Отношение модулей упругости n' = Ep/Eb [например, 5.14]: ");
+        double nPrime = sc.nextDouble();
+        System.out.print("Расстояние до центра тяжести растянутой арматуры au (м) [например, 0.08]: ");
+        double au = sc.nextDouble();
+        System.out.print("Асимметрия цикла напряжений для бетона ρ_b [например, 0.623]: ");
+        double rhoB = sc.nextDouble();
+        System.out.print("Асимметрия цикла напряжений для арматуры ρ_p [например, 0.928]: ");
+        double rhoP = sc.nextDouble();
+        System.out.print("Коэффициент уменьшения динамики Θ [например, 0.931]: ");
+        double ThetaFatigue = sc.nextDouble();
+        System.out.print("Динамический коэффициент для выносливости (1+μ_0) [например, 1.175]: ");
+        double mu0Fatigue = sc.nextDouble();
+
+        // ===== ХАРАКТЕРИСТИКИ МАТЕРИАЛОВ =====
+        double Rs = rebarType.getRs();
+        double Rsc = Rs;
+        double Rpc = 500.0; // По п. 9.1.1 (формула 9.4) Рпс всегда принимается равным 500 МПа
+
+        // ===== 1. ГРАНИЧНАЯ ВЫСОТА СЖАТОЙ ЗОНЫ (ф. 9.1) =====
+        double xiY = PrestressedBeamCalculator.calculateXiY(Rb, Rp, sigmaP2, Rpc);
+
+        // ===== 2. ОПРЕДЕЛЕНИЕ ВЫСОТЫ СЖАТОЙ ЗОНЫ x =====
+        double xWeb = PrestressedBeamCalculator.calculateXWithWeb(
+            Rs, As, Rp, Ap, Rsc, As_s, sigmaP2s, Ap_s, Rb, bf, b, hf);
+        double xFlange = PrestressedBeamCalculator.calculateXWithFlange(
+            Rs, As, Rp, Ap, Rsc, As_s, sigmaP2s, Ap_s, Rb, bf);
+
+        double xCalc;
+        boolean isInWeb;
+
+        if (xFlange <= hf) {
+            xCalc = xFlange;
+            isInWeb = false;
+        } else {
+            xCalc = xWeb;
+            isInWeb = true;
+        }
+
+        if (xCalc > xiY * h0) {
+            System.out.println("\n[!] ВНИМАНИЕ: x > ξ_y * h0. Принимаем x = ξ_y * h0 (разрушение по сжатому бетону).");
+            xCalc = xiY * h0;
+        }
+
+        // ===== 3. ПРЕДЕЛЬНЫЙ ИЗГИБАЮЩИЙ МОМЕНТ (ф. 9.2 или 9.5) =====
+        double sigmaPc = PrestressedBeamCalculator.calculateSigmaPc(Rpc, sigmaP2s);
+        double M;
+        if (isInWeb) {
+            M = PrestressedBeamCalculator.calculateMomentWithWeb(
+                Rb, b, xCalc, h0, bf, hf, Rsc, As_s, as, sigmaPc, Ap_s, ap);
+        } else {
+            M = PrestressedBeamCalculator.calculateMomentWithFlange(
+                Rb, bf, xCalc, h0, Rsc, As_s, as, sigmaPc, Ap_s, ap);
+        }
+
+        // ===== 4. РАСЧЕТ ПО ИЗГИБУ (ф. 7.20) =====
+        double Mp = (1.1 * pp + 1.2 * pb) * Omega;
+        double k_M = (M - Mp) / (1.15 * epsilonM * Omega);
+
+        // ===== 5. РАСЧЕТ ПО ПОПЕРЕЧНОЙ СИЛЕ (ф. 9.7 и 7.25) =====
+        double Q = PrestressedBeamCalculator.calculateShearForce(
+            Rp, sumApi, sinAlpha, Rs, Asw, c, s, Qb);
+        double k_Q = (Q - Qp) / (1.15 * epsilonQ * OmegaK);
+
+        // ===== 6. ГРУЗОПОДЪЕМНОСТЬ ПО ПРОЧНОСТИ =====
+        double kStrength = Math.min(k_M, k_Q);
+        double kc = PrestressedBeamCalculator.getStandardLoad(ctx.spanLength, 0.5);
+        double mu = LoadsCalculator.calculateDynamicCoeff(ctx, ctx.spanLength);
+        double K_M = k_M / (kc * mu);
+        double K_Q = k_Q / (kc * mu);
+        double KStrength = Math.min(K_M, K_Q);
+
+        // ====================================================================
+        // 7. РАСЧЕТ ПО ВЫНОСЛИВОСТИ (Раздел 9.3, формулы 7.40 и 7.41)
+        // ====================================================================
+
+        // Высота сжатой зоны с учетом растянутой зоны бетона (ф. 9.14)
+        double xPrime = h - hc;
+
+        // Определение коэффициентов ε_ρ по таблицам 5.1 и 5.3
+        double epsRhoB;
+        if (rhoB <= 0.1) epsRhoB = 1.00;
+        else if (rhoB <= 0.2) epsRhoB = 1.06;
+        else if (rhoB <= 0.3) epsRhoB = 1.10;
+        else if (rhoB <= 0.4) epsRhoB = 1.15;
+        else if (rhoB <= 0.5) epsRhoB = 1.20;
+        else epsRhoB = 1.24; // 0.6 и более
+
+        double epsRhoP;
+        if (rhoP <= 0.75) epsRhoP = 0.78;
+        else if (rhoP <= 0.8) epsRhoP = 0.82;
+        else if (rhoP <= 0.85) epsRhoP = 0.87;
+        else if (rhoP <= 0.9) epsRhoP = 0.91;
+        else if (rhoP <= 1.0) epsRhoP = 0.91 + (rhoP - 0.9) / 0.1 * 0.09; // интерполяция
+        else epsRhoP = 1.0;
+
+        // Расчетные сопротивления на выносливость
+        double Rbf = 0.6 * epsRhoB * Rb; // ф. 5.1
+        double Rpf = epsRhoP * Rp;       // ф. 9.8
+
+        // Момент от постоянных нагрузок для выносливости (коэф. надежности n_p = 1.0)
+        double MpFatigue = (1.0 * pp + 1.0 * pb) * Omega;
+
+        // Допускаемая нагрузка по выносливости бетона (адаптация ф. 7.40)
+        double kFatB = (1.0 / (ThetaFatigue * epsilonM * Omega)) *
+            ((Rbf * 1000 * Ired) / xPrime - MpFatigue);
+
+        // Допускаемая нагрузка по выносливости арматуры (адаптация ф. 7.41)
+        double leverArmP = h - au - xPrime; // Расстояние от центра тяжести сжатой зоны до арматуры
+        double kFatP = (1.0 / (ThetaFatigue * epsilonM * Omega)) *
+            ((Rpf * 1000 * Ired) / (nPrime * leverArmP) - MpFatigue);
+
+        // Итоговые показатели по выносливости
+        double kFatigue = Math.min(kFatB, kFatP);
+        double KFatigue = kFatigue / (kc * mu0Fatigue);
+
+        // ====================================================================
+        // ИТОГОВЫЙ РАСЧЕТ И ВЫВОД ОТЧЕТА
+        // ====================================================================
+        double kFinal = Math.min(kStrength, kFatigue);
+        double KFinal = Math.min(KStrength, KFatigue);
+
+        System.out.println("\n============================================================");
+        System.out.println(" РЕЗУЛЬТАТЫ РАСЧЕТА (РАЗДЕЛ 9)");
+        System.out.println("============================================================");
+        System.out.println("\n[А. Расчет по прочности]");
+        System.out.printf("Граничная относительная высота ξ_y: %.3f%n", xiY);
+        System.out.printf("Высота сжатой зоны x: %.4f м (Граница в %s)%n", xCalc, isInWeb ? "ребре" : "плите");
+        System.out.printf("Предельный момент M: %.2f кН·м%n", M);
+        System.out.printf("Допускаемая нагрузка по изгибу k_M: %.2f кН/м (Класс K_M = %.2f)%n", k_M, K_M);
+        System.out.printf("Предельная поперечная сила Q: %.2f кН%n", Q);
+        System.out.printf("Допускаемая нагрузка по срезу k_Q: %.2f кН/м (Класс K_Q = %.2f)%n", k_Q, K_Q);
+        System.out.printf(">>> k по прочности: %.2f кН/м (Класс K = %.2f) <<<%n", kStrength, KStrength);
+
+        System.out.println("\n------------------------------------------------------------");
+        System.out.println("[Б. Расчет по выносливости (Раздел 9.3)]");
+        System.out.printf("Высота сжатой зоны с учетом растянутой зоны x': %.4f м%n", xPrime);
+        System.out.printf("Коэффициент ε_ρb (бетон): %.2f | ε_ρp (арматура): %.3f%n", epsRhoB, epsRhoP);
+        System.out.printf("R_bf (бетон на выносливость): %.2f МПа%n", Rbf);
+        System.out.printf("R_pf (арматура на выносливость): %.2f МПа%n", Rpf);
+        System.out.printf("Mp (момент от пост. нагрузок для выносливости): %.2f кН·м%n", MpFatigue);
+        System.out.printf("Допускаемая нагрузка по выносливости бетона k_fat_b: %.2f кН/м%n", kFatB);
+        System.out.printf("Допускаемая нагрузка по выносливости арматуры k_fat_p: %.2f кН/м%n", kFatP);
+        System.out.printf(">>> k по выносливости: %.2f кН/м (Класс K_fat = %.2f) <<<%n", kFatigue, KFatigue);
+
+        System.out.println("\n============================================================");
+        System.out.printf(" >>> ИТОГОВАЯ ДОПУСКАЕМАЯ НАГРУЗКА k = %.2f кН/м <<<%n", kFinal);
+        System.out.printf(" >>> ИТОГОВЫЙ КЛАСС ГЛАВНОЙ БАЛКИ: K = %.2f <<<%n", KFinal);
+        System.out.println("============================================================\n");
+    }
+
+
 }

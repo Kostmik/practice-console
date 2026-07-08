@@ -1,4 +1,4 @@
-package org.example.calculator;
+package org.example.calculator.paragraph_8;
 
 import org.example.context.BridgeContext;
 import org.example.model.RebarType;
