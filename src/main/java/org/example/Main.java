@@ -11,6 +11,8 @@ import org.example.model.RebarType;
 import org.example.model.TrackType;
 import org.example.calculator.paragraph_10.BoardInput;
 import org.example.calculator.paragraph_10.LongitudinalBoardCalculator;
+import org.example.calculator.paragraph_11.CurvedSpanInput;
+import org.example.calculator.paragraph_11.CurvedSpanCalculator;
 
 import java.util.Scanner;
 
@@ -34,6 +36,7 @@ public class Main {
             System.out.println("8. Рассчитать главную балку (формула 8.4)");
             System.out.println("9. Рассчитать главную балку с напрягаемой арматурой (Раздел 9)");
             System.out.println("10. Рассчитать продольный борт (Раздел 10)");
+            System.out.println("11. Рассчитать долю нагрузки на балку на кривой (Раздел 11)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -76,6 +79,9 @@ public class Main {
                     break;
                 case 10:
                     calculateBoard(sc, ctx);
+                    break;
+                case 11:
+                    calculateCurvedSpan(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -723,7 +729,7 @@ public class Main {
         System.out.printf(" >>> ИТОГОВЫЙ КЛАСС ГЛАВНОЙ БАЛКИ: K = %.2f <<<%n", KFinal);
         System.out.println("============================================================\n");
     }
-    
+
     private static void calculateBoard(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЁТ ПРОДОЛЬНОГО БОРТА (Раздел 10) ---");
         System.out.println("(материалы берутся из Раздела 5 — сначала выполните пункт 1)");
@@ -785,6 +791,49 @@ public class Main {
         }
 
         LongitudinalBoardCalculator.calculateAndReport(in);
+    }
+
+    private static void calculateCurvedSpan(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- ПРОЛЁТ НА КРИВОЙ (Раздел 11) ---");
+        System.out.println("(пролёт, c, Es/Eb, As, балласт, шпала берутся из ранее введённых данных)");
+
+        CurvedSpanInput in = new CurvedSpanInput();
+
+        // --- из BridgeContext ---
+        in.l  = ctx.spanLength;
+        in.c  = ctx.distanceBetweenBeams;
+        in.Eb = ctx.Eb;
+        in.Es = ctx.Es;
+        in.As = ctx.As_tensile;
+        in.hb = ctx.ballastThickness;
+        in.ls = ctx.ls;
+        in.as = ctx.as_tensile;
+        if (in.l  <= 0) { System.out.print("Расчётный пролёт l (м): "); in.l  = sc.nextDouble(); }
+        if (in.c  <= 0) { System.out.print("Расстояние между осями балок c (м): "); in.c = sc.nextDouble(); }
+        if (in.Eb <= 0) { System.out.print("Модуль упругости бетона Eb (МПа): "); in.Eb = sc.nextDouble(); }
+        if (in.As <= 0) { System.out.print("Площадь растянутой арматуры As (м²): "); in.As = sc.nextDouble(); }
+
+        // --- геометрия сечения ---
+        System.out.print("Ширина ребра (стенки) балки b (м): ");        in.b  = sc.nextDouble();
+        System.out.print("Параметр l_k для c1 = l_k + 0,5b (м): ");      in.lk = sc.nextDouble();
+        System.out.print("Полная высота балки h (м): ");                 in.h  = sc.nextDouble();
+        System.out.print("Средняя толщина плиты между рёбрами h1 (м): ");in.h1 = sc.nextDouble();
+        System.out.print("Средняя толщина плиты консоли h2 (м): ");      in.h2 = sc.nextDouble();
+        System.out.print("Высота рельса hp (м): ");                      in.hp = sc.nextDouble();
+        System.out.print("Высота шпалы hs (м): ");                       in.hs = sc.nextDouble();
+        System.out.print("Высота приложения нагрузки ht (м) [обычно 2.2]: "); in.ht = sc.nextDouble();
+
+        // --- кривая и путь ---
+        System.out.print("Радиус кривой R (м): ");                       in.R  = sc.nextDouble();
+        System.out.print("Наибольшая скорость v (км/ч): ");              in.v  = sc.nextDouble();
+        System.out.print("Возвышение наружного рельса Δh (м): ");        in.cantElevation = sc.nextDouble();
+        System.out.print("Расстояние между осями головок рельсов b0 (м): "); in.b0 = sc.nextDouble();
+        System.out.print("Смещение оси пути l' (участок 0,25l…0,75l, м): ");  in.lPrime = sc.nextDouble();
+        System.out.print("Смещение оси пути l'' (участки у опор, м): ");      in.lDoublePrime = sc.nextDouble();
+        System.out.print("Коэффициент Θ (приложение): ");                in.Theta = sc.nextDouble();
+        System.out.print("Динамический коэффициент μ₀: ");               in.mu0 = sc.nextDouble();
+
+        CurvedSpanCalculator.calculateAndReport(in);
     }
 
 }
