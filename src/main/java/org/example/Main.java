@@ -9,6 +9,8 @@ import org.example.calculator.paragraph_9.PrestressedBeamCalculator;
 import org.example.context.BridgeContext;
 import org.example.model.RebarType;
 import org.example.model.TrackType;
+import org.example.calculator.paragraph_10.BoardInput;
+import org.example.calculator.paragraph_10.LongitudinalBoardCalculator;
 
 import java.util.Scanner;
 
@@ -31,6 +33,7 @@ public class Main {
             System.out.println("7. Рассчитать внешнюю консоль плиты (формула 8.1)");
             System.out.println("8. Рассчитать главную балку (формула 8.4)");
             System.out.println("9. Рассчитать главную балку с напрягаемой арматурой (Раздел 9)");
+            System.out.println("10. Рассчитать продольный борт (Раздел 10)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -70,6 +73,9 @@ public class Main {
                     break;
                 case 9:
                     calculatePrestressedBeam(sc, ctx);
+                    break;
+                case 10:
+                    calculateBoard(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -717,6 +723,68 @@ public class Main {
         System.out.printf(" >>> ИТОГОВЫЙ КЛАСС ГЛАВНОЙ БАЛКИ: K = %.2f <<<%n", KFinal);
         System.out.println("============================================================\n");
     }
+    
+    private static void calculateBoard(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- РАСЧЁТ ПРОДОЛЬНОГО БОРТА (Раздел 10) ---");
+        System.out.println("(материалы берутся из Раздела 5 — сначала выполните пункт 1)");
 
+        BoardInput in = new BoardInput();
+
+        // --- материалы и коэффициенты из BridgeContext ---
+        in.Rb = ctx.Rb;
+        in.Rbt = ctx.Rbt;
+        in.Rs = ctx.Rs;
+        in.Rsc = ctx.Rs;                       // для ненапрягаемой арматуры R_sc = R_s
+        in.nPrime = ctx.nPrime;
+        in.np = ctx.np;
+        in.npPrime = ctx.npPrime;
+        in.nk = ctx.nk;
+        in.gammaBallast = ctx.gammaBallastWithTrack;
+        in.ls = ctx.ls;                        // длина шпалы (если введена в Разделе 6)
+
+        // --- геометрия борта ---
+        System.out.print("Высота продольного борта H_br (м): ");
+        in.Hbr = sc.nextDouble();
+        if (in.ls <= 0) {
+            System.out.print("Длина шпалы l_s (м): ");
+            in.ls = sc.nextDouble();
+        }
+        System.out.print("Толщина балласта под шпалой h_b (м): ");
+        in.hb = sc.nextDouble();
+        System.out.print("Плечо балластной призмы x (м): ");
+        in.xShoulder = sc.nextDouble();
+
+        // --- сечение и арматура ---
+        System.out.print("Рабочая высота сечения h0 (м): ");
+        in.h0 = sc.nextDouble();
+        System.out.print("Площадь растянутой арматуры As (м²): ");
+        in.As = sc.nextDouble();
+        System.out.print("Площадь сжатой арматуры As' (м²): ");
+        in.AsPrime = sc.nextDouble();
+        System.out.print("Расстояние до центра сжатой арматуры a's (м): ");
+        in.asPrime = sc.nextDouble();
+        System.out.print("Длина проекции наклонного сечения c (м) [0 — принять = h0]: ");
+        in.cShear = sc.nextDouble();
+        System.out.print("Угол внутреннего трения балласта φ (град) [обычно 40]: ");
+        in.phiFrictionDeg = sc.nextDouble();
+
+        // --- выносливость (Раздел 10.3) ---
+        System.out.print("Асимметрия цикла для бетона ρ_b: ");
+        in.rhoB = sc.nextDouble();
+        System.out.print("Асимметрия цикла для арматуры ρ: ");
+        in.rhoS = sc.nextDouble();
+        System.out.print("Коэффициент уменьшения динамики ε (Приложение 3): ");
+        in.epsilonDyn = sc.nextDouble();
+
+        // --- приведение к классу (необязательно) ---
+        System.out.print("Эталонная нагрузка k_c (0 — класс не считать): ");
+        in.kc = sc.nextDouble();
+        if (in.kc > 0) {
+            System.out.print("Динамический коэффициент (1+μ): ");
+            in.dynamicCoeff = sc.nextDouble();
+        }
+
+        LongitudinalBoardCalculator.calculateAndReport(in);
+    }
 
 }
