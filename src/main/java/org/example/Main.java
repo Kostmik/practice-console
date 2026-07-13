@@ -13,6 +13,8 @@ import org.example.calculator.paragraph_10.BoardInput;
 import org.example.calculator.paragraph_10.LongitudinalBoardCalculator;
 import org.example.calculator.paragraph_11.CurvedSpanInput;
 import org.example.calculator.paragraph_11.CurvedSpanCalculator;
+import org.example.calculator.paragraph_12.DefectInput;
+import org.example.calculator.paragraph_12.DefectCalculator;
 
 import java.util.Scanner;
 
@@ -37,6 +39,7 @@ public class Main {
             System.out.println("9. Рассчитать главную балку с напрягаемой арматурой (Раздел 9)");
             System.out.println("10. Рассчитать продольный борт (Раздел 10)");
             System.out.println("11. Рассчитать долю нагрузки на балку на кривой (Раздел 11)");
+            System.out.println("12. Учесть влияние дефектов пролётного строения (Раздел 12)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -82,6 +85,9 @@ public class Main {
                     break;
                 case 11:
                     calculateCurvedSpan(sc, ctx);
+                    break;
+                case 12:
+                    calculateDefects(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -834,6 +840,98 @@ public class Main {
         System.out.print("Динамический коэффициент μ₀: ");               in.mu0 = sc.nextDouble();
 
         CurvedSpanCalculator.calculateAndReport(in);
+    }
+    
+    private static void calculateDefects(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- УЧЁТ ВЛИЯНИЯ ДЕФЕКТОВ (Раздел 12) ---");
+        System.out.println("(материалы можно взять из Раздела 5 — сначала выполните пункт 1)");
+        System.out.println("Выберите вид дефекта:");
+        System.out.println("  1 - ослабление арматуры коррозией / выключенные стержни (12.2, ф. 12.1)");
+        System.out.println("  2 - трещина в сжатой зоне бетона (12.3, ф. 12.2-12.3)");
+        System.out.println("  3 - раковины/сколы бетона, прямоугольное сечение (12.4, ф. 12.4-12.5)");
+        System.out.println("  4 - раковины/сколы бетона, тавровое сечение (12.4, ф. 12.6, 12.5)");
+        System.out.println("  5 - дефекты в пролёте с напрягаемой арматурой (12.5, ф. 12.7, 12.5)");
+        System.out.print("Ваш выбор: ");
+        int kind = sc.nextInt();
+
+        DefectInput in = new DefectInput();
+
+        // материалы из BridgeContext (если рассчитаны в п.1); при нуле — спросим
+        in.Rb  = ctx.Rb;
+        in.Rs  = ctx.Rs;
+        in.Rsc = ctx.Rs;                       // для ненапрягаемой арматуры R_sc = R_s
+
+        if (kind == 1) {
+            in.type = DefectInput.DefectType.CORROSION;
+            System.out.print("Общее число стержней рабочей арматуры n: ");
+            in.nBars = sc.nextInt();
+            System.out.print("Площадь сечения одного стержня f_a (см²/мм²/м² — любые ед.): ");
+            in.faOne = sc.nextDouble();
+            System.out.print("Число повреждённых коррозией стержней n_1: ");
+            int n1 = sc.nextInt();
+            in.corrodedLoss = new double[Math.max(n1, 0)];
+            for (int i = 0; i < n1; i++) {
+                System.out.printf("  Площадь ослабления коррозией f_%d (в тех же ед.): ", i + 1);
+                in.corrodedLoss[i] = sc.nextDouble();
+            }
+            System.out.print("Число выключенных из работы стержней n_2: ");
+            in.nDisconnected = sc.nextInt();
+            DefectCalculator.calculateAndReport(in);
+            return;
+        }
+
+        if (kind == 2) {
+            in.type = DefectInput.DefectType.CRACK_IN_COMPRESSION;
+            readMaterialsIfEmpty(sc, in, false);
+            System.out.print("Ширина сечения b (м): ");                    in.b  = sc.nextDouble();
+            System.out.print("Рабочая высота сечения h0 (м): ");           in.h0 = sc.nextDouble();
+            System.out.print("Площадь растянутой арматуры A_s (м²): ");     in.As = sc.nextDouble();
+            System.out.print("Площадь сжатой арматуры A'_s (м²): ");        in.AsPrime = sc.nextDouble();
+            System.out.print("Расстояние до центра сжатой арматуры a'_s (м): "); in.asPrime = sc.nextDouble();
+            System.out.print("Высота сжатой зоны по эпюре трещины x̄_φ (м): ");   in.xBarPhi = sc.nextDouble();
+            System.out.print("Момент от испытательной нагрузки M̄ (кН·м): ");     in.Mbar = sc.nextDouble();
+            System.out.print("Предельный момент M по разделу 7 (кН·м) [0 — рассчитать]: "); in.Mult = sc.nextDouble();
+            DefectCalculator.calculateAndReport(in);
+            return;
+        }
+
+        // kind 3/4/5 — раковины/сколы
+        System.out.print("Ширина сечения (ребра) b (м): ");                in.b  = sc.nextDouble();
+        System.out.print("Рабочая высота сечения h0 (м): ");               in.h0 = sc.nextDouble();
+        readMaterialsIfEmpty(sc, in, kind == 5);
+        System.out.print("Площадь растянутой арматуры A_s (м²): ");         in.As = sc.nextDouble();
+        System.out.print("Площадь сжатой арматуры A'_s (м²): ");            in.AsPrime = sc.nextDouble();
+        System.out.print("Расстояние до центра сжатой арматуры a'_s (м): ");in.asPrime = sc.nextDouble();
+        System.out.print("Площадь ослабления раковиной/сколом A_0 (м²): "); in.A0 = sc.nextDouble();
+        System.out.print("Расстояние от растянутой арматуры до ц.т. ослабления a_0 (м): "); in.a0 = sc.nextDouble();
+
+        if (kind == 3) {
+            in.type = DefectInput.DefectType.VOID_RECTANGULAR;
+        } else if (kind == 4) {
+            in.type = DefectInput.DefectType.VOID_TSECTION;
+            System.out.print("Расчётная ширина полки b'_f (м): ");          in.bfPrime = sc.nextDouble();
+            System.out.print("Приведённая толщина полки h'_f (м): ");       in.hfPrime = sc.nextDouble();
+        } else if (kind == 5) {
+            in.type = DefectInput.DefectType.VOID_PRESTRESSED;
+            System.out.print("Расчётная ширина полки b'_f (м): ");          in.bfPrime = sc.nextDouble();
+            System.out.print("Приведённая толщина полки h'_f (м): ");       in.hfPrime = sc.nextDouble();
+            System.out.print("Сопротивление напрягаемой арматуры R_p (МПа): ");     in.Rp = sc.nextDouble();
+            System.out.print("Напряжение в напрягаемой арматуре сжатой зоны σ'_pc (МПа): "); in.sigmaPc = sc.nextDouble();
+            System.out.print("Площадь растянутой напрягаемой арматуры A_p (м²): ");  in.Ap = sc.nextDouble();
+            System.out.print("Площадь напрягаемой арматуры сжатой зоны A'_p (м²): ");in.ApPrime = sc.nextDouble();
+            System.out.print("Расстояние до центра A'_p — a'_p (м): ");              in.apPrime = sc.nextDouble();
+        } else {
+            System.out.println("Неверный выбор вида дефекта.");
+            return;
+        }
+        DefectCalculator.calculateAndReport(in);
+    }
+
+    /** Запрашивает R_b/R_s, если они не заданы в контексте. */
+    private static void readMaterialsIfEmpty(Scanner sc, DefectInput in, boolean prestressed) {
+        if (in.Rb <= 0) { System.out.print("Сопротивление бетона сжатию R_b (МПа): "); in.Rb = sc.nextDouble(); }
+        if (in.Rs <= 0) { System.out.print("Сопротивление арматуры растяжению R_s (МПа): "); in.Rs = sc.nextDouble(); }
+        if (in.Rsc <= 0) { in.Rsc = in.Rs; }
     }
 
 }
