@@ -1,6 +1,9 @@
 package org.example;
 
 import org.example.calculator.*;
+import org.example.calculator.paragraph_15.InspectionCalculator;
+import org.example.calculator.paragraph_15.InspectionInput;
+import org.example.calculator.paragraph_15.InspectionOutput;
 import org.example.calculator.paragraph_8.BeamCalculator;
 import org.example.calculator.paragraph_8.BetaCalculator;
 import org.example.calculator.paragraph_8.SlabCantileverCalculator;
@@ -18,6 +21,8 @@ import org.example.calculator.paragraph_12.DefectCalculator;
 import org.example.calculator.paragraph_13.CarbonInput;
 import org.example.calculator.paragraph_13.CarbonTables;
 import org.example.calculator.paragraph_13.CarbonCalculator;
+import org.example.calculator.paragraph_14.CarbonRecommendationCalculator;
+import org.example.calculator.paragraph_14.CarbonRecommendationTables;
 
 import java.util.Scanner;
 
@@ -44,6 +49,8 @@ public class Main {
             System.out.println("11. Рассчитать долю нагрузки на балку на кривой (Раздел 11)");
             System.out.println("12. Учесть влияние дефектов пролётного строения (Раздел 12)");
             System.out.println("13. Рассчитать усиление углеволокном (Раздел 13)");
+            System.out.println("14. Получить рекомендации по усилению углеволокном (Раздел 14)");
+            System.out.println("15. Обследование и испытание пролётных строений (Раздел 15)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -95,6 +102,12 @@ public class Main {
                     break;
                 case 13:
                     calculateCarbon(sc, ctx);
+                    break;
+                case 14:
+                    calculateCarbonRecommendations(sc, ctx);
+                    break;
+                case 15:
+                    calculateInspection(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -1079,4 +1092,142 @@ public class Main {
         }
     }
 
+    private static void calculateCarbonRecommendations(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n=== РЕКОМЕНДАЦИИ ПО УСИЛЕНИЮ (Раздел 14) ===");
+
+        System.out.println("\n1. Показать все схемы усиления (Таблица 14.1)");
+        System.out.println("2. Получить информацию о конкретной схеме");
+        System.out.println("3. Подобрать схему по требуемому увеличению несущей способности");
+        System.out.println("4. Сравнить несколько схем");
+        System.out.print("Выберите действие (1-4): ");
+
+        int action = sc.nextInt();
+
+        switch (action) {
+            case 1:
+                CarbonRecommendationTables.printAllSchemes();
+                break;
+
+            case 2:
+                System.out.print("Введите номер схемы (1-7): ");
+                int schemeNum = sc.nextInt();
+                try {
+                    CarbonRecommendationTables.StrengtheningScheme scheme = CarbonRecommendationTables.getScheme(schemeNum);
+                    CarbonRecommendationCalculator.printSchemeDetails(scheme);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Ошибка: " + e.getMessage());
+                }
+                break;
+
+            case 3:
+                System.out.print("Введите требуемое увеличение несущей способности (%): ");
+                double requiredPercent = sc.nextDouble();
+                CarbonRecommendationTables.StrengtheningScheme recommended = CarbonRecommendationCalculator.recommendScheme(requiredPercent);
+                CarbonRecommendationCalculator.printSchemeDetails(recommended);
+                System.out.printf("\nРекомендованная схема обеспечивает увеличение на %.0f%%%n",
+                    recommended.getIncreasePercent());
+                break;
+
+            case 4:
+                System.out.print("Введите количество схем для сравнения (2-7): ");
+                int count = sc.nextInt();
+                if (count < 2 || count > 7) {
+                    System.out.println("Неверное количество схем");
+                    return;
+                }
+
+                CarbonRecommendationTables.StrengtheningScheme[] schemesToCompare = new CarbonRecommendationTables.StrengtheningScheme[count];
+                System.out.println("Введите номера схем для сравнения:");
+                for (int i = 0; i < count; i++) {
+                    System.out.printf("  Схема %d: ", i + 1);
+                    int num = sc.nextInt();
+                    schemesToCompare[i] = CarbonRecommendationTables.getScheme(num);
+                }
+
+                CarbonRecommendationCalculator.compareSchemes(schemesToCompare);
+                break;
+
+            default:
+                System.out.println("Неверный выбор");
+        }
+    }
+
+    private static void calculateInspection(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
+        System.out.println("║   ОБСЛЕДОВАНИЕ И ИСПЫТАНИЕ ПРОЛЁТНЫХ СТРОЕНИЙ [Раздел 15]    ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════╝");
+
+        System.out.println("\nВыберите расчёт:");
+        System.out.println("  1 - Смещение оси пути (15.3, ф. 15.1)");
+        System.out.println("  2 - Средняя прочность бетона (15.4, ф. 15.2)");
+        System.out.println("  3 - Доля нагрузки по испытаниям (15.5, ф. 15.3)");
+        System.out.println("  4 - Полный расчёт (все три пункта)");
+        System.out.print("Ваш выбор: ");
+        int choice = sc.nextInt();
+
+        InspectionInput in = new InspectionInput();
+
+        if (choice == 1 || choice == 4) {
+            System.out.println("\n--- 15.3. СМЕЩЕНИЕ ОСИ ПУТИ (ф. 15.1) ---");
+            System.out.print("a' — расстояние между внутр. гранью головки рельса и отвесом (м) [например: 0,85]: ");
+            in.aPrime = sc.nextDouble();
+            System.out.print("b' — расстояние от оси пролётного строения до отвеса (м) [например: 0,1]: ");
+            in.bPrime = sc.nextDouble();
+            System.out.print("b'₀ — ширина колеи по внутр. граням головок рельсов (м) [например: 1.52]: ");
+            in.b0Prime = sc.nextDouble();
+        }
+
+        if (choice == 2 || choice == 4) {
+            System.out.println("\n--- 15.4. ПРОЧНОСТЬ БЕТОНА (ф. 15.2) ---");
+            System.out.print("Число измерений n [например: 3]: ");
+            int n = sc.nextInt();
+            in.concreteStrengths = new double[n];
+            for (int i = 0; i < n; i++) {
+                System.out.printf("  R%d (МПа) [например: +-23]: ", i + 1);
+                in.concreteStrengths[i] = sc.nextDouble();
+            }
+        }
+
+        if (choice == 3 || choice == 4) {
+            System.out.println("\n--- 15.5. ИСПЫТАНИЕ ПРОЛЁТНЫХ СТРОЕНИЙ (ф. 15.3) ---");
+            System.out.print("Число балок m [например: 2]: ");
+            int m = sc.nextInt();
+            in.deflections = new double[m];
+            in.inertias = new double[m];
+            for (int i = 0; i < m; i++) {
+                System.out.printf("\n  Балка %d:%n", i + 1);
+                System.out.printf("    Прогиб f%d (мм, с учётом осадки опор) [например: +-12]: ", i + 1);
+                in.deflections[i] = sc.nextDouble();
+                System.out.printf("    Момент инерции I%d (м⁴, без арматуры) [например: 0,045]: ", i + 1);
+                in.inertias[i] = sc.nextDouble();
+            }
+            System.out.print("\nИндекс балки для расчёта ε_M (1.." + m + "): ");
+            in.targetBeamIndex = sc.nextInt() - 1;
+        }
+
+        // Расчёт и вывод
+        InspectionOutput out = InspectionCalculator.calculateAndReport(in);
+
+        // Сохранение результатов в контекст для использования в других разделах
+        if (choice == 1 || choice == 4) {
+            // Обновляем смещение оси пути в контексте (используется в разделах 6, 7, 8)
+            ctx.trackOffsetLeft = out.trackOffset;
+            ctx.trackOffsetRight = out.trackOffset;
+            System.out.printf("\n[!] Смещение оси пути l = %.4f м сохранено в контекст.%n", out.trackOffset);
+        }
+        if (choice == 2 || choice == 4) {
+            // Обновляем фактическую прочность бетона (используется в разделе 5 и далее)
+            ctx.concreteStrengthR = out.avgConcreteStrength;
+            System.out.printf("[!] Средняя прочность бетона R = %.2f МПа сохранена в контекст.%n",
+                out.avgConcreteStrength);
+            System.out.println("[!] Рекомендуется пересчитать характеристики материалов (пункт 1 меню).");
+        }
+        if (choice == 3 || choice == 4) {
+            // Сохраняем уточнённую долю нагрузки (используется в разделах 7, 8, 9)
+            ctx.epsilonM_Beam1 = out.epsilonM;
+            System.out.printf("[!] Уточнённая доля нагрузки ε_M = %.4f сохранена в контекст.%n",
+                out.epsilonM);
+            System.out.println("[!] Рекомендуется пересчитать главную балку (пункт 8 меню).");
+        }
+    }
 }
