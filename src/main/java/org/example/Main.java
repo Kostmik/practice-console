@@ -15,6 +15,9 @@ import org.example.calculator.paragraph_11.CurvedSpanInput;
 import org.example.calculator.paragraph_11.CurvedSpanCalculator;
 import org.example.calculator.paragraph_12.DefectInput;
 import org.example.calculator.paragraph_12.DefectCalculator;
+import org.example.calculator.paragraph_13.CarbonInput;
+import org.example.calculator.paragraph_13.CarbonTables;
+import org.example.calculator.paragraph_13.CarbonCalculator;
 
 import java.util.Scanner;
 
@@ -40,6 +43,7 @@ public class Main {
             System.out.println("10. Рассчитать продольный борт (Раздел 10)");
             System.out.println("11. Рассчитать долю нагрузки на балку на кривой (Раздел 11)");
             System.out.println("12. Учесть влияние дефектов пролётного строения (Раздел 12)");
+            System.out.println("13. Рассчитать усиление углеволокном (Раздел 13)");
             System.out.println("0. Выход");
             System.out.print("\nВыберите пункт меню: ");
 
@@ -88,6 +92,9 @@ public class Main {
                     break;
                 case 12:
                     calculateDefects(sc, ctx);
+                    break;
+                case 13:
+                    calculateCarbon(sc, ctx);
                     break;
                 default:
                     System.out.println("Неверный выбор.");
@@ -841,7 +848,7 @@ public class Main {
 
         CurvedSpanCalculator.calculateAndReport(in);
     }
-    
+
     private static void calculateDefects(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- УЧЁТ ВЛИЯНИЯ ДЕФЕКТОВ (Раздел 12) ---");
         System.out.println("(материалы можно взять из Раздела 5 — сначала выполните пункт 1)");
@@ -932,6 +939,144 @@ public class Main {
         if (in.Rb <= 0) { System.out.print("Сопротивление бетона сжатию R_b (МПа): "); in.Rb = sc.nextDouble(); }
         if (in.Rs <= 0) { System.out.print("Сопротивление арматуры растяжению R_s (МПа): "); in.Rs = sc.nextDouble(); }
         if (in.Rsc <= 0) { in.Rsc = in.Rs; }
+    }
+
+    private static void calculateCarbon(Scanner sc, BridgeContext ctx) {
+        System.out.println("\n--- УСИЛЕНИЕ УГЛЕВОЛОКНОМ (Раздел 13) ---");
+        System.out.println("(характеристики бетона и арматуры — по разделу 5, сначала выполните пункт 1)");
+        System.out.println("Выберите проверку:");
+        System.out.println("  1 - прочность нормального сечения по моменту (13.1-13.9)");
+        System.out.println("  2 - прочность наклонного сечения по поперечной силе (13.10-13.16)");
+        System.out.println("  3 - прочность наклонного сечения по моменту (13.17-13.18)");
+        System.out.println("  4 - выносливость усиленного сечения (13.19-13.28)");
+        System.out.println("  5 - учёт технологии усиления (13.29)");
+        System.out.print("Ваш выбор: ");
+        int mode = sc.nextInt();
+
+        CarbonInput in = new CarbonInput();
+        in.Rb = ctx.Rb; in.Rbt = ctx.Rbt; in.Rs = ctx.Rs; in.Rsc = ctx.Rs;
+        in.Eb = ctx.Eb; in.Es = ctx.Es; in.nPrimeSteel = ctx.nPrime;
+
+        if (mode == 5) {
+            in.mode = CarbonInput.Mode.TECHNOLOGY;
+            System.out.print("Предельный момент неусиленного сечения M (кН·м): ");   in.M  = sc.nextDouble();
+            System.out.print("Предельный момент усиленного сечения M^y (кН·м): ");    in.My = sc.nextDouble();
+            System.out.print("Момент от постоянных нагрузок M_p (кН·м): ");           in.Mp = sc.nextDouble();
+            System.out.print("Момент от временной нагрузки при усилении M_k (кН·м): ");in.Mk = sc.nextDouble();
+            System.out.print("M^y_k (кН·м): ");                                       in.MyK = sc.nextDouble();
+            CarbonCalculator.calculateAndReport(in);
+            return;
+        }
+
+        if (in.Rb <= 0) { System.out.print("R_b (МПа): "); in.Rb = sc.nextDouble(); }
+        if (in.Rs <= 0) { System.out.print("R_s (МПа): "); in.Rs = sc.nextDouble(); }
+        in.Rsc = in.Rs;
+
+        System.out.print("Модуль упругости углеволокна E_f (МПа): ");        in.Ef = sc.nextDouble();
+        System.out.print("Сопротивление углеволокна R_f (МПа): ");           in.Rf = sc.nextDouble();
+        System.out.print("Толщина одного слоя t_f (мм): ");                  in.tfLayerMm = sc.nextDouble();
+        System.out.print("Количество слоёв n: ");                            in.nLayers = sc.nextInt();
+        System.out.println("Тип усиления (табл. 13.4): 1-холст низ без закр., 2-холст низ с закр.,");
+        System.out.println("  3-U-обойма без закр., 4-U-обойма с закр., 5-пластины с закр.");
+        System.out.print("Ваш выбор: ");
+        in.reinfType = reinforcementType(sc.nextInt());
+
+        if (mode == 1) {
+            in.mode = CarbonInput.Mode.STRENGTH_MOMENT;
+            System.out.print("Ширина ребра b (м): ");                    in.b = sc.nextDouble();
+            System.out.print("Ширина полки b'_f (м): ");                 in.bfPrime = sc.nextDouble();
+            System.out.print("Толщина полки h'_f (м): ");                in.hfPrime = sc.nextDouble();
+            System.out.print("Высота балки h (м): ");                    in.h = sc.nextDouble();
+            System.out.print("Рабочая высота h0 (м): ");                 in.h0 = sc.nextDouble();
+            System.out.print("Расстояние до сжатой арматуры a'_s (м): ");in.asPrime = sc.nextDouble();
+            System.out.print("Площадь растянутой арматуры A_s (м²): ");  in.As = sc.nextDouble();
+            System.out.print("Площадь сжатой арматуры A'_s (м²): ");     in.AsPrime = sc.nextDouble();
+            System.out.print("Площадь усиления на нижней грани A_f1 (м²): ");   in.Af1 = sc.nextDouble();
+            System.out.print("Площадь усиления на боковых гранях A_f2 (м², 0 — только низ): "); in.Af2 = sc.nextDouble();
+            System.out.print("Высота полок U-обоймы d (м): ");           in.d = sc.nextDouble();
+            System.out.print("Предельная деформация бетона ε_b,ult [обычно 0.0033]: "); in.epsBult = sc.nextDouble();
+            readMomentLoads(sc, in);
+        } else if (mode == 2) {
+            in.mode = CarbonInput.Mode.STRENGTH_SHEAR;
+            if (in.Rbt <= 0) { System.out.print("R_bt (МПа): "); in.Rbt = sc.nextDouble(); }
+            if (in.Eb <= 0)  { System.out.print("E_b (МПа): "); in.Eb = sc.nextDouble(); }
+            System.out.print("Ширина ребра b (м): ");                    in.b = sc.nextDouble();
+            System.out.print("Рабочая высота h0 (м): ");                 in.h0 = sc.nextDouble();
+            System.out.print("Площадь одной ветви хомутов A_sw (м²): "); in.Asw = sc.nextDouble();
+            System.out.print("Шаг хомутов s (м): ");                     in.s = sc.nextDouble();
+            System.out.print("Σ A_si·sinα по отгибам (м², 0 — нет): ");  in.sumAsiSinAlpha = sc.nextDouble();
+            System.out.print("Длина проекции c (м) [0 — вычислить по 13.14]: "); in.cShear = sc.nextDouble();
+            System.out.print("Σ площадей наклонных холстов A_fi (м²): ");in.Afi = sc.nextDouble();
+            System.out.print("Угол наклона холстов φ (град) [90 — вертик.]: "); in.phiFiberDeg = sc.nextDouble();
+            System.out.print("Σ площадей вертикальных холстов A_fw (м²): "); in.Afw = sc.nextDouble();
+            System.out.print("Предельная поперечная сила Q (кН) [0 — вычислить]: "); in.Q = sc.nextDouble();
+            System.out.print("Q_p (кН) [0 — вычислить по 13.11]: ");      in.Qp = sc.nextDouble();
+            if (in.Qp <= 0) {
+                System.out.print("  p_p (кН/м): "); in.pp = sc.nextDouble();
+                System.out.print("  p_b (кН/м): "); in.pb = sc.nextDouble();
+                System.out.print("  Ω_p (м): ");    in.OmegaP = sc.nextDouble();
+            }
+            System.out.print("Доля нагрузки ε_Q: ");                     in.epsQ = sc.nextDouble();
+            System.out.print("Площадь линии влияния Ω_к (м): ");         in.OmegaK = sc.nextDouble();
+        } else if (mode == 3) {
+            in.mode = CarbonInput.Mode.INCLINED_MOMENT;
+            System.out.print("Сопротивление хомутов R_sw (МПа): ");      in.Rsw = sc.nextDouble();
+            System.out.print("Площадь растянутой арматуры A_s (м²): ");  in.As = sc.nextDouble();
+            System.out.print("плечо z_s (м): ");                         in.zS = sc.nextDouble();
+            System.out.print("A_sw (м²) и z_sw (м): ");   in.Asw = sc.nextDouble(); in.zSw = sc.nextDouble();
+            System.out.print("Σ A_si (м²) и z_si (м): "); in.sumAsi = sc.nextDouble(); in.zSi = sc.nextDouble();
+            System.out.print("A_f1 (м²) и z_c1 (м): ");   in.Af1 = sc.nextDouble(); in.zC1 = sc.nextDouble();
+            System.out.print("A_f2 (м²) и z_c2 (м): ");   in.Af2 = sc.nextDouble(); in.zC2 = sc.nextDouble();
+            System.out.print("A_fw (м²) и z_cw (м): ");   in.Afw = sc.nextDouble(); in.zCw = sc.nextDouble();
+            System.out.print("A_fi (м²) и z_ci (м): ");   in.Afi = sc.nextDouble(); in.zCi = sc.nextDouble();
+            readMomentLoads(sc, in);
+        } else if (mode == 4) {
+            in.mode = CarbonInput.Mode.FATIGUE;
+            System.out.print("R_bf (МПа): "); in.Rbf = sc.nextDouble();
+            System.out.print("R_sf (МПа): "); in.Rsf = sc.nextDouble();
+            System.out.print("Ширина ребра b (м): ");                    in.b = sc.nextDouble();
+            System.out.print("Ширина полки b'_f (м): ");                 in.bfPrime = sc.nextDouble();
+            System.out.print("Толщина полки h'_f (м): ");                in.hfPrime = sc.nextDouble();
+            System.out.print("Высота балки h (м): ");                    in.h = sc.nextDouble();
+            System.out.print("Рабочая высота h0 (м): ");                 in.h0 = sc.nextDouble();
+            System.out.print("a'_s (м): ");                              in.asPrime = sc.nextDouble();
+            System.out.print("a_s (м): ");                               in.as = sc.nextDouble();
+            System.out.print("a_u (м): ");                               in.au = sc.nextDouble();
+            System.out.print("A_s (м²): ");                              in.As = sc.nextDouble();
+            System.out.print("A'_s (м²): ");                             in.AsPrime = sc.nextDouble();
+            System.out.print("A_f1 (м²): ");                             in.Af1 = sc.nextDouble();
+            System.out.print("A_f2 (м²): ");                             in.Af2 = sc.nextDouble();
+            System.out.print("A'_f (м²): ");                             in.AfPrime = sc.nextDouble();
+            if (in.nPrimeSteel <= 0) { System.out.print("n' (сталь/бетон): "); in.nPrimeSteel = sc.nextDouble(); }
+            System.out.print("n'_f (углеволокно/бетон): ");              in.nPrimeFiber = sc.nextDouble();
+            System.out.print("Коэффициент Θ: ");                         in.Theta = sc.nextDouble();
+            System.out.print("Предельный момент M (кН·м): ");            in.M = sc.nextDouble();
+            System.out.print("Момент от постоянных M_p (кН·м): ");       in.Mp = sc.nextDouble();
+            System.out.print("Доля нагрузки ε_M: ");                     in.epsM = sc.nextDouble();
+            System.out.print("Площадь линии влияния Ω (м): ");           in.Omega = sc.nextDouble();
+        } else {
+            System.out.println("Неверный выбор проверки.");
+            return;
+        }
+        CarbonCalculator.calculateAndReport(in);
+    }
+
+    private static void readMomentLoads(Scanner sc, CarbonInput in) {
+        System.out.print("Предельный момент неусиленного сечения M (кН·м): "); in.M = sc.nextDouble();
+        System.out.print("Момент от постоянных нагрузок M_p (кН·м): ");        in.Mp = sc.nextDouble();
+        System.out.print("Доля временной нагрузки ε_M: ");                     in.epsM = sc.nextDouble();
+        System.out.print("Площадь линии влияния Ω (м): ");                     in.Omega = sc.nextDouble();
+    }
+
+    private static CarbonTables.ReinforcementType reinforcementType(int n) {
+        switch (n) {
+            case 1: return CarbonTables.ReinforcementType.SHEET_BOTTOM_FREE;
+            case 2: return CarbonTables.ReinforcementType.SHEET_BOTTOM_ANCHORED;
+            case 3: return CarbonTables.ReinforcementType.U_JACKET_FREE;
+            case 4: return CarbonTables.ReinforcementType.U_JACKET_ANCHORED;
+            case 5: return CarbonTables.ReinforcementType.PLATE_ANCHORED;
+            default: return CarbonTables.ReinforcementType.U_JACKET_FREE;
+        }
     }
 
 }
