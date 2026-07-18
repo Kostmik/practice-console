@@ -42,6 +42,8 @@ public class SlabCalculator {
         }
 
         double l0 = ctx.B + delta_prime + delta_doubleprime;
+        ctx.l0 = l0;
+
         System.out.printf("   l0 = B + Δ' + Δ'' = %.2f + %.2f + %.2f = %.2f м%n", ctx.B, delta_prime, delta_doubleprime, l0);
 
         // =====================================================================

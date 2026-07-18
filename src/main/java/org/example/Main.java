@@ -1,28 +1,18 @@
 package org.example;
 
 import org.example.calculator.*;
-import org.example.calculator.paragraph_15.InspectionCalculator;
-import org.example.calculator.paragraph_15.InspectionInput;
-import org.example.calculator.paragraph_15.InspectionOutput;
-import org.example.calculator.paragraph_8.BeamCalculator;
-import org.example.calculator.paragraph_8.BetaCalculator;
-import org.example.calculator.paragraph_8.SlabCantileverCalculator;
-import org.example.calculator.paragraph_8.SlabMonolithicCalculator;
-import org.example.calculator.paragraph_9.PrestressedBeamCalculator;
+import org.example.calculator.paragraph_7.*;
+import org.example.calculator.paragraph_8.*;
+import org.example.calculator.paragraph_9.*;
+import org.example.calculator.paragraph_10.*;
+import org.example.calculator.paragraph_11.*;
+import org.example.calculator.paragraph_12.*;
+import org.example.calculator.paragraph_13.*;
+import org.example.calculator.paragraph_14.*;
+import org.example.calculator.paragraph_15.*;
 import org.example.context.BridgeContext;
 import org.example.model.RebarType;
 import org.example.model.TrackType;
-import org.example.calculator.paragraph_10.BoardInput;
-import org.example.calculator.paragraph_10.LongitudinalBoardCalculator;
-import org.example.calculator.paragraph_11.CurvedSpanInput;
-import org.example.calculator.paragraph_11.CurvedSpanCalculator;
-import org.example.calculator.paragraph_12.DefectInput;
-import org.example.calculator.paragraph_12.DefectCalculator;
-import org.example.calculator.paragraph_13.CarbonInput;
-import org.example.calculator.paragraph_13.CarbonTables;
-import org.example.calculator.paragraph_13.CarbonCalculator;
-import org.example.calculator.paragraph_14.CarbonRecommendationCalculator;
-import org.example.calculator.paragraph_14.CarbonRecommendationTables;
 
 import java.util.Scanner;
 
@@ -41,20 +31,24 @@ public class Main {
             System.out.println("3. Рассчитать динамический коэффициент (п. 6.4)");
             System.out.println("4. Рассчитать доли временной нагрузки (п. 6.6 - 6.7)");
             System.out.println("5. Рассчитать плиту балластного корыта на прочность (п. 7.2)");
-            System.out.println("6. Рассчитать монолитный участок плиты (формула 8.2 - 8.3)");
-            System.out.println("7. Рассчитать внешнюю консоль плиты (формула 8.1)");
-            System.out.println("8. Рассчитать главную балку (формула 8.4)");
-            System.out.println("9. Рассчитать главную балку с напрягаемой арматурой (Раздел 9)");
-            System.out.println("10. Рассчитать продольный борт (Раздел 10)");
-            System.out.println("11. Рассчитать долю нагрузки на балку на кривой (Раздел 11)");
-            System.out.println("12. Учесть влияние дефектов пролётного строения (Раздел 12)");
-            System.out.println("13. Рассчитать усиление углеволокном (Раздел 13)");
-            System.out.println("14. Получить рекомендации по усилению углеволокном (Раздел 14)");
-            System.out.println("15. Обследование и испытание пролётных строений (Раздел 15)");
+            System.out.println("6. Рассчитать плиту балластного корыта по поперечной силе (п. 7.2.4)");
+            System.out.println("7. Рассчитать главную балку по моменту (п. 7.2.5-7.2.6)");
+            System.out.println("8. Рассчитать главную балку по поперечной силе (п. 7.2.7-7.2.8)");
+            System.out.println("9. Рассчитать плиту балластного корыта на выносливость (п. 7.3.1)");
+            System.out.println("10. Рассчитать главную балку на выносливость (п. 7.3.2)");
+            System.out.println("11. Рассчитать монолитный участок плиты (формула 8.2 - 8.3)");
+            System.out.println("12. Рассчитать внешнюю консоль плиты (формула 8.1)");
+            System.out.println("13. Рассчитать главную балку (формула 8.4)");
+            System.out.println("14. Рассчитать главную балку с напрягаемой арматурой (Раздел 9)");
+            System.out.println("15. Рассчитать продольный борт (Раздел 10)");
+            System.out.println("16. Рассчитать долю нагрузки на балку на кривой (Раздел 11)");
+            System.out.println("17. Учесть влияние дефектов пролётного строения (Раздел 12)");
+            System.out.println("18. Рассчитать усиление углеволокном (Раздел 13)");
+            System.out.println("19. Получить рекомендации по усилению углеволокном (Раздел 14)");
+            System.out.println("20. Обследование и испытание пролётных строений (Раздел 15)");
             System.out.println("0. Выход");
-            System.out.print("\nВыберите пункт меню: ");
 
-            int choice = sc.nextInt();
+            int choice = readInt(sc, "\nВыберите пункт меню: ");
 
             if (choice == 0) {
                 System.out.println("Завершение работы программы. До свидания!");
@@ -64,53 +58,27 @@ public class Main {
             inputCommonData(sc, ctx);
 
             switch (choice) {
-                case 1:
-                    calculateMaterials(sc, ctx);
-                    break;
-                case 2:
-                    calculatePermanentLoads(sc, ctx);
-                    break;
-                case 3:
-                    calculateDynamicCoeff(sc, ctx);
-                    break;
-                case 4:
-                    calculateShare(sc, ctx);
-                    break;
-                case 5:
-                    calculateSlabStrength(sc, ctx);
-                    break;
-                case 6:
-                    calculateSlabMonolithic(sc, ctx);
-                    break;
-                case 7:
-                    calculateSlabCantilever(sc, ctx);
-                    break;
-                case 8:
-                    calculateBeam(sc, ctx);
-                    break;
-                case 9:
-                    calculatePrestressedBeam(sc, ctx);
-                    break;
-                case 10:
-                    calculateBoard(sc, ctx);
-                    break;
-                case 11:
-                    calculateCurvedSpan(sc, ctx);
-                    break;
-                case 12:
-                    calculateDefects(sc, ctx);
-                    break;
-                case 13:
-                    calculateCarbon(sc, ctx);
-                    break;
-                case 14:
-                    calculateCarbonRecommendations(sc, ctx);
-                    break;
-                case 15:
-                    calculateInspection(sc, ctx);
-                    break;
-                default:
-                    System.out.println("Неверный выбор.");
+                case 1: calculateMaterials(sc, ctx); break;
+                case 2: calculatePermanentLoads(sc, ctx); break;
+                case 3: calculateDynamicCoeff(sc, ctx); break;
+                case 4: calculateShare(sc, ctx); break;
+                case 5: calculateSlabStrength(sc, ctx); break;
+                case 6: calculateSlabShear(sc, ctx); break;
+                case 7: calculateBeamMoment(sc, ctx); break;
+                case 8: calculateBeamShear(sc, ctx); break;
+                case 9: calculateSlabFatigue(sc, ctx); break;
+                case 10: calculateBeamFatigue(sc, ctx); break;
+                case 11: calculateSlabMonolithic(sc, ctx); break;
+                case 12: calculateSlabCantilever(sc, ctx); break;
+                case 13: calculateBeam(sc, ctx); break;
+                case 14: calculatePrestressedBeam(sc, ctx); break;
+                case 15: calculateBoard(sc, ctx); break;
+                case 16: calculateCurvedSpan(sc, ctx); break;
+                case 17: calculateDefects(sc, ctx); break;
+                case 18: calculateCarbon(sc, ctx); break;
+                case 19: calculateCarbonRecommendations(sc, ctx); break;
+                case 20: calculateInspection(sc, ctx); break;
+                default: System.out.println("Неверный выбор.");
             }
 
             System.out.print("\nНажмите Enter для продолжения...");
@@ -121,63 +89,75 @@ public class Main {
         sc.close();
     }
 
+    // =====================================================================
+    // БЕЗОПАСНЫЙ ВВОД ДАННЫХ (ТОЛЬКО ЗАПЯТАЯ ДЛЯ ДРОБЕЙ)
+    // =====================================================================
+
+    private static double readDouble(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.next().trim();
+            if (input.contains(".")) {
+                System.out.println("   ⚠ Ошибка: используйте запятую (,) в качестве десятичного разделителя, а не точку (.). Попробуйте снова.");
+                continue;
+            }
+            try {
+                return Double.parseDouble(input.replace(',', '.'));
+            } catch (NumberFormatException e) {
+                System.out.println("   ⚠ Ошибка: введено некорректное число. Попробуйте снова.");
+            }
+        }
+    }
+
+    private static int readInt(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.next().trim();
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("   ⚠ Ошибка: введено некорректное целое число. Попробуйте снова.");
+            }
+        }
+    }
+
+    // =====================================================================
+    // МЕТОДЫ МЕНЮ
+    // =====================================================================
+
     private static void inputCommonData(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- ВВОД ИСХОДНЫХ ДАННЫХ ---");
 
-        System.out.print("Расчётный пролёт l (м) [например, 10.8]: ");
-        ctx.spanLength = sc.nextDouble();
+        ctx.spanLength = readDouble(sc, "Расчётный пролёт l (м) [например, 10,8]: ");
+        ctx.ballastThickness = readDouble(sc, "Толщина балласта под шпалой hb (м) [например, 0,25]: ");
 
-        System.out.print("Толщина балласта под шпалой hb (м) [например, 0.25]: ");
-        ctx.ballastThickness = sc.nextDouble();
+        int trackChoice = readInt(sc, "Тип пути: 1 - звеньевой, 2 - бесстыковой. Выберите (1/2): ");
+        ctx.trackType = (trackChoice == 2) ? TrackType.CONTINUOUS : TrackType.LINKED;
 
-        System.out.println("Тип пути: 1 - звеньевой, 2 - бесстыковой");
-        System.out.print("Выберите (1/2): ");
-        ctx.trackType = (sc.nextInt() == 2) ? TrackType.CONTINUOUS : TrackType.LINKED;
-
-        System.out.println("Тип шпал: 1 - ж/б, 2 - деревянные");
-        System.out.print("Выберите (1/2): ");
-        boolean woodenSleepers = sc.nextInt() == 2;
+        int sleeperChoice = readInt(sc, "Тип шпал: 1 - ж/б, 2 - деревянные. Выберите (1/2): ");
+        boolean woodenSleepers = (sleeperChoice == 2);
         LoadsCalculator.setBallastDensity(ctx, woodenSleepers);
 
-        System.out.print("Фактическая прочность бетона R (МПа) [например, 23.0]: ");
-        ctx.concreteStrengthR = sc.nextDouble();
-
-        // Геометрия балок (нужна для пункта 4)
-        System.out.print("Расстояние между осями главных балок c (м) [например, 1.8]: ");
-        ctx.distanceBetweenBeams = sc.nextDouble();
-
-        System.out.print("Смещение оси пути у левой опоры e1 (м) [например, 0.2]: ");
-        ctx.trackOffsetLeft = sc.nextDouble();
-
-        System.out.print("Смещение оси пути у правой опоры e2 (м) [например, 0.2]: ");
-        ctx.trackOffsetRight = sc.nextDouble();
+        ctx.concreteStrengthR = readDouble(sc, "Фактическая прочность бетона R (МПа) [например, 23,0]: ");
+        ctx.distanceBetweenBeams = readDouble(sc, "Расстояние между осями главных балок c (м) [например, 1,8]: ");
+        ctx.trackOffsetLeft = readDouble(sc, "Смещение оси пути у левой опоры e1 (м) [например, 0,2]: ");
+        ctx.trackOffsetRight = readDouble(sc, "Смещение оси пути у правой опоры e2 (м) [например, 0,2]: ");
     }
 
     private static void calculateMaterials(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- ХАРАКТЕРИСТИКИ АРМАТУРЫ ---");
-        System.out.println("Тип рабочей арматуры: 1 - Гладкая (А240), 2 - Периодическая (А400)");
-        System.out.print("Выберите (1/2): ");
-        int rebarChoice = sc.nextInt();
+        int rebarChoice = readInt(sc, "Тип рабочей арматуры: 1 - Гладкая (А240), 2 - Периодическая (А400). Выберите (1/2): ");
         System.out.println();
         MaterialCalculator.printMaterialsReport(ctx, rebarChoice);
     }
 
     private static void calculatePermanentLoads(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- ГЕОМЕТРИЯ ДЛЯ СБОРА НАГРУЗОК ---");
-        System.out.print("Толщина плиты h_slab (м) [например, 0.26]: ");
-        double hSlab = sc.nextDouble();
-
-        System.out.print("Объём ж/б пролётного строения V_concrete (м³) [например, 30.6]: ");
-        double vConcrete = sc.nextDouble();
-
-        System.out.print("Вес обустройств (лотки, перила) P_devices (кН) [если нет, 0]: ");
-        double pDevices = sc.nextDouble();
-
-        System.out.print("Площадь поперечного сечения балластной призмы S_ballast (м²) [например, 2.06]: ");
-        double sBallast = sc.nextDouble();
-
-        System.out.print("Количество главных балок m (обычно 2): ");
-        int mBeams = sc.nextInt();
+        double hSlab = readDouble(sc, "Толщина плиты h_slab (м) [например, 0,26]: ");
+        double vConcrete = readDouble(sc, "Объём ж/б пролётного строения V_concrete (м³) [например, 30,6]: ");
+        double pDevices = readDouble(sc, "Вес обустройств (лотки, перила) P_devices (кН) [если нет, 0]: ");
+        double sBallast = readDouble(sc, "Площадь поперечного сечения балластной призмы S_ballast (м²) [например, 2,06]: ");
+        int mBeams = readInt(sc, "Количество главных балок m (обычно 2): ");
         System.out.println();
 
         LoadsCalculator.printLoadsReport(ctx, hSlab, vConcrete, pDevices, sBallast, mBeams);
@@ -186,25 +166,21 @@ public class Main {
     private static void calculateDynamicCoeff(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЁТ ДИНАМИЧЕСКОГО КОЭФФИЦИЕНТА (1+μ) ---");
 
-        // Главная балка
         double muBeam = LoadsCalculator.calculateDynamicCoeff(ctx, ctx.spanLength);
         ctx.dynamicCoeffBeam = muBeam;
         LoadsCalculator.printDynamicCoeffReport(ctx, ctx.spanLength, "ГЛАВНАЯ БАЛКА", false);
 
-        // Плита
         System.out.println("\nДля ПЛИТЫ БАЛЛАСТНОГО КОРЫТА:");
         System.out.println("  1 - Максимальное значение (λ → 0)");
         System.out.println("  2 - Расчёт по формуле с вводом λ");
-        System.out.print("Выберите (1/2): ");
-        int slabChoice = sc.nextInt();
+        int slabChoice = readInt(sc, "Выберите (1/2): ");
 
         double muSlab;
         if (slabChoice == 1) {
             muSlab = LoadsCalculator.calculateDynamicCoeffForSlab(ctx, true, 0.0);
             LoadsCalculator.printDynamicCoeffReport(ctx, 0.0, "ПЛИТА БАЛЛАСТНОГО КОРЫТА", true);
         } else {
-            System.out.print("Введите длину загружения λ для плиты (м) [например, 2.0]: ");
-            double lambdaSlab = sc.nextDouble();
+            double lambdaSlab = readDouble(sc, "Введите длину загружения λ для плиты (м) [например, 2,0]: ");
             if (lambdaSlab <= 0) lambdaSlab = 2.0;
             muSlab = LoadsCalculator.calculateDynamicCoeffForSlab(ctx, false, lambdaSlab);
             LoadsCalculator.printDynamicCoeffReport(ctx, lambdaSlab, "ПЛИТА БАЛЛАСТНОГО КОРЫТА", false);
@@ -214,15 +190,10 @@ public class Main {
 
     private static void calculateShare(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЁТ ДОЛЕЙ ВРЕМЕННОЙ НАГРУЗКИ ---");
-        System.out.println("Тип пролетного строения:");
-        System.out.println("  1 - Монолитное (п. 6.6)");
-        System.out.println("  2 - Сборное (п. 6.7)");
-        System.out.print("Выберите (1/2): ");
-        int typeChoice = sc.nextInt();
+        int typeChoice = readInt(sc, "Тип пролетного строения: 1 - Монолитное (п. 6.6), 2 - Сборное (п. 6.7). Выберите (1/2): ");
         boolean isMonolithic = (typeChoice == 1);
 
-        System.out.print("Введите относительную координату сечения x/l (от 0 до 1) [например, 0.5]: ");
-        double xRatio = sc.nextDouble();
+        double xRatio = readDouble(sc, "Введите относительную координату сечения x/l (от 0 до 1) [например, 0,5]: ");
 
         if (isMonolithic) {
             ShareCalculator.calculateMonolithic(ctx, xRatio);
@@ -236,289 +207,190 @@ public class Main {
     private static void calculateSlabStrength(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- ГЕОМЕТРИЯ И АРМАТУРА ПЛИТЫ ---");
 
-        System.out.print("Высота плиты h (м) [например, 0.26]: ");
-        ctx.slabHeight = sc.nextDouble();
-
-        System.out.print("Расстояние до центра растянутой арматуры as (м) [например, 0.026]: ");
-        ctx.as_tensile = sc.nextDouble();
-
-        System.out.print("Расстояние до центра сжатой арматуры as' (м) [например, 0.026]: ");
-        ctx.as_compressive = sc.nextDouble();
-
-        System.out.print("Площадь растянутой арматуры As (м²) [например, 0.000905 для 8Ø12]: ");
-        ctx.As_tensile = sc.nextDouble();
-
-        System.out.print("Площадь сжатой арматуры As' (м²) [если нет, введите 0]: ");
-        ctx.As_compressive = sc.nextDouble();
+        ctx.slabHeight = readDouble(sc, "Высота плиты h (м) [например, 0,26]: ");
+        ctx.as_tensile = readDouble(sc, "Расстояние до центра растянутой арматуры as (м) [например, 0,026]: ");
+        ctx.as_compressive = readDouble(sc, "Расстояние до центра сжатой арматуры as' (м) [например, 0,026]: ");
+        ctx.As_tensile = readDouble(sc, "Площадь растянутой арматуры As (м²) [например, 0,000905 для 8Ø12]: ");
+        ctx.As_compressive = readDouble(sc, "Площадь сжатой арматуры As' (м²) [если нет, введите 0]: ");
 
         System.out.println("\n--- ГЕОМЕТРИЯ ПОПЕРЕЧНОГО СЕЧЕНИЯ ---");
-        System.out.print("Расстояние между внутренними гранями ребер lp (м) [например, 1.2]: ");
-        ctx.lp = sc.nextDouble();
-
-        System.out.print("Расстояние между наружными гранями ребер B (м) [например, 2.4]: ");
-        ctx.B = sc.nextDouble();
-
-        System.out.print("Длина шпалы ls (м) [например, 2.7]: ");
-        ctx.ls = sc.nextDouble();
-
-        System.out.print("Расстояние от ребра до левого борта l'b (м) [например, 1.05]: ");
-        ctx.lb_prime = sc.nextDouble();
-
-        System.out.print("Расстояние от ребра до правого борта l''b (м) [например, 1.05]: ");
-        ctx.lb_doubleprime = sc.nextDouble();
-
-        System.out.print("Толщина балласта под левым концом шпалы h'b (м) [например, 0.35]: ");
-        ctx.hb_prime = sc.nextDouble();
-
-        System.out.print("Толщина балласта под правым концом шпалы h''b (м) [например, 0.35]: ");
-        ctx.hb_doubleprime = sc.nextDouble();
+        ctx.lp = readDouble(sc, "Расстояние между внутренними гранями ребер lp (м) [например, 1,2]: ");
+        ctx.B = readDouble(sc, "Расстояние между наружными гранями ребер B (м) [например, 2,4]: ");
+        ctx.ls = readDouble(sc, "Длина шпалы ls (м) [например, 2,7]: ");
+        ctx.lb_prime = readDouble(sc, "Расстояние от ребра до левого борта l'b (м) [например, 1,05]: ");
+        ctx.lb_doubleprime = readDouble(sc, "Расстояние от ребра до правого борта l''b (м) [например, 1,05]: ");
+        ctx.hb_prime = readDouble(sc, "Толщина балласта под левым концом шпалы h'b (м) [например, 0,35]: ");
+        ctx.hb_doubleprime = readDouble(sc, "Толщина балласта под правым концом шпалы h''b (м) [например, 0,35]: ");
 
         System.out.println("\n--- МОМЕНТЫ ОТ ПОСТОЯННЫХ НАГРУЗОК ---");
-        System.out.print("Момент в монолитном участке Mp (кН·м) [введите 0 для авто-расчета]: ");
-        ctx.Mp_monolithic = sc.nextDouble();
-
-        System.out.print("Момент во внешней консоли Mp (кН·м) [например, 12.5]: ");
-        ctx.Mp_external_cantilever = sc.nextDouble();
+        ctx.Mp_monolithic = readDouble(sc, "Момент в монолитном участке Mp (кН·м) [введите 0 для авто-расчета]: ");
+        ctx.Mp_external_cantilever = readDouble(sc, "Момент во внешней консоли Mp (кН·м) [например, 12,5]: ");
 
         System.out.println();
         SlabCalculator.calculateAndPrintReport(ctx);
     }
 
-    private static void calculateBetaOnly(Scanner sc, BridgeContext ctx) {
-        System.out.println("\n--- РАСЧЕТ КОЭФФИЦИЕНТА β (ФОРМУЛА 8.3) ---");
-
-        System.out.println("\n[1. Исходные данные]");
-        System.out.print("Год выпуска норм проектирования (например, 1931): ");
-        ctx.designYear = sc.nextInt();
-
-        System.out.println("Тип арматуры:");
-        System.out.println("  1 - Гладкая (А240)");
-        System.out.println("  2 - Периодического профиля (А400)");
-        System.out.print("Выберите (1/2): ");
-        int rebarChoice = sc.nextInt();
-
-        System.out.print("Рассчетную ширину плиту b (м) [например, 1.0]: ");
-        ctx.b = sc.nextDouble();
-
-        System.out.print("Длина распределения временной нагрузки (м) [например, 3.4]: ");
-        ctx.l_o = sc.nextDouble();
-
-        System.out.print("Коэффициент надежности по назначению [например, 1.1]: ");
-        ctx.l_o = sc.nextDouble();
-
-        RebarType rebarType;
-        if (rebarChoice == 1) {
-            rebarType = RebarType.SMOOTH;
-        } else {
-            rebarType = RebarType.RIBBED;
+    private static void calculateSlabShear(Scanner sc, BridgeContext ctx) {
+        if (ctx.Rbt == 0.0 || ctx.ppSlab == null) {
+            System.out.println("\n⚠️ ОШИБКА: Недостаточно данных для расчета!");
+            System.out.println("Необходимо сначала выполнить пункты 1 и 2.");
+            return;
         }
 
-        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов, 0.904 - с дефектами): ");
-        ctx.j = sc.nextDouble();
+        System.out.println("\n--- ДОПОЛНИТЕЛЬНЫЕ ПАРАМЕТРЫ ДЛЯ РАСЧЕТА ПО ПОПЕРЕЧНОЙ СИЛЕ ---");
 
-        // Расчет β
-        ctx.beta = BetaCalculator.calculateBeta(ctx.designYear, rebarType, ctx.j);
+        ctx.lt = readDouble(sc, "Длина внешней консоли с учетом тротуара lt (м) [например, 1,25]: ");
+        ctx.lk = readDouble(sc, "Длина внешней консоли плиты lk (м) [например, 1,05]: ");
+        ctx.P0 = readDouble(sc, "Нагрузка от веса перил P0 (кН/м) [если нет, 0]: ");
+        ctx.pt = readDouble(sc, "Нагрузка от веса тротуара pt (кН/м) [если нет, 0]: ");
 
-        // Вывод отчета
-        BetaCalculator.printBetaReport(ctx.designYear, rebarType, ctx.j);
+        System.out.println();
+        SlabShearCalculator.calculateAndPrintReport(ctx);
+    }
+
+    private static void calculateBeamShear(Scanner sc, BridgeContext ctx) {
+        if (ctx.Rbt == 0.0 || ctx.ppBeam == null || ctx.epsilonQ_Beam1 == null) {
+            System.out.println("\n⚠️ ОШИБКА: Недостаточно данных для расчета!");
+            System.out.println("Необходимо сначала выполнить пункты 1, 2 и 4.");
+            return;
+        }
+
+        System.out.println("\n--- АРМИРОВАНИЕ НА СДВИГ И ЛИНИИ ВЛИЯНИЯ ---");
+
+        ctx.Asw = readDouble(sc, "Площадь поперечного сечения одной ветви хомутов Asw (м²) [например, 0.000201 для 2Ø8]: ");
+        ctx.s_stirrups = readDouble(sc, "Шаг хомутов s (м) [например, 0.20]: ");
+        ctx.sum_Asi = readDouble(sc, "Сумма площадей отогнутых стержней ΣAsi (м²) [если нет, 0]: ");
+        ctx.alpha_bent = readDouble(sc, "Угол наклона отогнутых стержней α (град) [если нет, 0]: ");
+
+        System.out.println("\n--- ПЛОЩАДИ ЛИНИЙ ВЛИЯНИЯ ПОПЕРЕЧНОЙ СИЛЫ ---");
+        ctx.Omega_k = readDouble(sc, "Площадь линии влияния поперечной силы Ωk (временная) (м²) [например, 2.97]: ");
+        ctx.Omega_p = readDouble(sc, "Площадь линии влияния поперечной силы Ωp (постоянная) (м²) [например, 2.61]: ");
+
+        System.out.println();
+        BeamShearCalculator.calculateAndPrintReport(ctx);
+    }
+
+    private static void calculateSlabFatigue(Scanner sc, BridgeContext ctx) {
+        if (ctx.Rb == 0.0 || ctx.ppSlab == null || ctx.k_monolithic == 0.0) {
+            System.out.println("\n️ ОШИБКА: Недостаточно данных для расчета!");
+            System.out.println("Необходимо сначала выполнить пункты 1, 2 и 5 (расчет плиты на прочность).");
+            return;
+        }
+
+        System.out.println("\n--- РАСЧЕТ ПЛИТЫ НА ВЫНОСЛИВОСТЬ ---");
+        System.out.println("Данные берутся из предыдущих расчетов.");
+        System.out.println();
+
+        SlabFatigueCalculator.calculateAndPrintReport(ctx);
+    }
+
+    private static void calculateBeamFatigue(Scanner sc, BridgeContext ctx) {
+        if (ctx.Rb == 0.0 || ctx.ppBeam == null || ctx.k_beam_moment == 0.0) {
+            System.out.println("\n⚠️ ОШИБКА: Недостаточно данных для расчета!");
+            System.out.println("Необходимо сначала выполнить пункты 1, 2, 4 и 7 (расчет балки на прочность).");
+            return;
+        }
+
+        System.out.println("\n--- РАСЧЕТ ГЛАВНОЙ БАЛКИ НА ВЫНОСЛИВОСТЬ ---");
+        System.out.println("Данные берутся из предыдущих расчетов.");
+        System.out.println();
+
+        BeamFatigueCalculator.calculateAndPrintReport(ctx);
+    }
+
+    private static void calculateBeamMoment(Scanner sc, BridgeContext ctx) {
+        if (ctx.Rb == 0.0 || ctx.ppBeam == null || ctx.epsilonM_Beam1 == null) {
+            System.out.println("\n⚠️ ОШИБКА: Недостаточно данных для расчета!");
+            System.out.println("Необходимо сначала выполнить пункты 1, 2 и 4.");
+            return;
+        }
+
+        System.out.println("\n--- ГЕОМЕТРИЯ И АРМАТУРА ГЛАВНОЙ БАЛКИ ---");
+
+        ctx.beamHeight = readDouble(sc, "Высота балки h (м) [например, 1,34]: ");
+        ctx.beamWidth = readDouble(sc, "Ширина ребра балки b (м) [например, 0,60]: ");
+        ctx.bf = readDouble(sc, "Расчетная ширина плиты bf (м) [например, 2,45]: ");
+        ctx.hf = readDouble(sc, "Приведенная толщина плиты hf (м) [например, 0,238]: ");
+        ctx.As_beam_tensile = readDouble(sc, "Площадь растянутой арматуры As (м²) [например, 0,01367 для 17Ø32]: ");
+        ctx.As_beam_compressive = readDouble(sc, "Площадь сжатой арматуры As' (м²) [например, 0,003216 для 4Ø32]: ");
+        ctx.as_beam_tensile = readDouble(sc, "Расстояние до центра растянутой арматуры as (м) [например, 0,106]: ");
+        ctx.as_beam_compressive = readDouble(sc, "Расстояние до центра сжатой арматуры as' (м) [например, 0,038]: ");
+
+        System.out.println();
+        BeamMomentCalculator.calculateAndPrintReport(ctx);
     }
 
     private static void calculateSlabMonolithic(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЕТ МОНОЛИТНОГО УЧАСТКА ПЛИТЫ (ФОРМУЛА 8.2) ---");
-
-        System.out.println("\n[1. Исходные данные]");
-        System.out.print("Год выпуска норм проектирования (например, 1931): ");
-        int designYear = sc.nextInt();
-
-        System.out.println("Тип арматуры:");
-        System.out.println("  1 - Гладкая (А240)");
-        System.out.println("  2 - Периодического профиля (А400)");
-        System.out.print("Выберите (1/2): ");
-        int rebarChoice = sc.nextInt();
-
-        RebarType rebarType;
-        if (rebarChoice == 1) {
-            rebarType = RebarType.SMOOTH;
-        } else {
-            rebarType = RebarType.RIBBED;
-        }
+        int designYear = readInt(sc, "Год выпуска норм проектирования (например, 1931): ");
+        int rebarChoice = readInt(sc, "Тип арматуры: 1 - Гладкая (А240), 2 - Периодического профиля (А400). Выберите (1/2): ");
+        RebarType rebarType = (rebarChoice == 1) ? RebarType.SMOOTH : RebarType.RIBBED;
 
         System.out.print("Тип нагрузки (Н7 или Н8): ");
         String loadType = sc.next();
 
-        System.out.print("Положение вершины линии влияния α (0.0 или 0.5): ");
-        double alpha = sc.nextDouble();
+        double alpha = readDouble(sc, "Положение вершины линии влияния α (0,0 или 0,5): ");
+        double j = readDouble(sc, "Относительное изменение площади арматуры j (1,0 - без дефектов): ");
+        double l0 = readDouble(sc, "Длина распределения временной нагрузки l0 (м) [например, 3,4]: ");
+        double etaM = readDouble(sc, "Коэффициент надежности по назначению ηM (например, 1,1): ");
 
-        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов): ");
-        double j = sc.nextDouble();
-
-        System.out.println("\n[2. Параметры, вводимые пользователем]");
-        System.out.print("Длина распределения временной нагрузки l0 (м) [например, 3.4]: ");
-        double l0 = sc.nextDouble();
-
-        System.out.print("Коэффициент надежности по назначению ηM (например, 1.1): ");
-        double etaM = sc.nextDouble();
-
-        // Проверка: есть ли толщина плиты в контексте
         if (ctx.slabHeight <= 0) {
-            System.out.print("Толщина плиты h_slab (м) [например, 0.26]: ");
-            ctx.slabHeight = sc.nextDouble();
+            ctx.slabHeight = readDouble(sc, "Толщина плиты h_slab (м) [например, 0,26]: ");
         }
-
         System.out.println();
 
-        // Расчет
-        double k = SlabMonolithicCalculator.calculate(
-            ctx, designYear, l0, etaM, rebarType, j, loadType, alpha
-        );
-
-        // Вывод отчета
-        SlabMonolithicCalculator.printReport(
-            ctx, designYear, l0, etaM, rebarType, j, loadType, alpha, k
-        );
+        double k = SlabMonolithicCalculator.calculate(ctx, designYear, l0, etaM, rebarType, j, loadType, alpha);
+        SlabMonolithicCalculator.printReport(ctx, designYear, l0, etaM, rebarType, j, loadType, alpha, k);
     }
 
     private static void calculateSlabCantilever(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЕТ ВНЕШНЕЙ КОНСОЛИ ПЛИТЫ (ФОРМУЛА 8.1) ---");
-
-        System.out.println("\n[1. Исходные данные]");
-        System.out.print("Год выпуска норм проектирования (например, 1931): ");
-        int designYear = sc.nextInt();
-
-        System.out.println("Тип арматуры:");
-        System.out.println("  1 - Гладкая (А240)");
-        System.out.println("  2 - Периодического профиля (А400)");
-        System.out.print("Выберите (1/2): ");
-        int rebarChoice = sc.nextInt();
-
-        RebarType rebarType;
-        if (rebarChoice == 1) {
-            rebarType = RebarType.SMOOTH;
-        } else {
-            rebarType = RebarType.RIBBED;
-        }
+        int designYear = readInt(sc, "Год выпуска норм проектирования (например, 1931): ");
+        int rebarChoice = readInt(sc, "Тип арматуры: 1 - Гладкая (А240), 2 - Периодического профиля (А400). Выберите (1/2): ");
+        RebarType rebarType = (rebarChoice == 1) ? RebarType.SMOOTH : RebarType.RIBBED;
 
         System.out.print("Тип нагрузки (Н7 или Н8): ");
         String loadType = sc.next();
 
-        System.out.print("Положение вершины линии влияния α (0.0 или 0.5): ");
-        double alpha = sc.nextDouble();
+        double alpha = readDouble(sc, "Положение вершины линии влияния α (0,0 или 0,5): ");
+        double j = readDouble(sc, "Относительное изменение площади арматуры j (1,0 - без дефектов): ");
+        double l0 = readDouble(sc, "Длина распределения временной нагрузки l0 (м) [например, 3,4]: ");
+        double etaM = readDouble(sc, "Коэффициент надежности по назначению ηM (например, 1,1): ");
+        double delta = readDouble(sc, "Расстояние от ребра до точки приложения нагрузки Δ (м): ");
+        double Z = readDouble(sc, "Расстояние от ребра до расчетного сечения Z (м): ");
+        double lk = readDouble(sc, "Длина внешней консоли lk (м): ");
+        double P0 = readDouble(sc, "Нагрузка от веса перил P0 (кН): ");
+        double lt = readDouble(sc, "Расстояние до центра тяжести перил lt (м): ");
+        double Mp = readDouble(sc, "Изгибающий момент от постоянных нагрузок Mp (кН·м): ");
 
-        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов): ");
-        double j = sc.nextDouble();
-
-        System.out.println("\n[2. Параметры, вводимые пользователем]");
-        System.out.print("Длина распределения временной нагрузки l0 (м) [например, 3.4]: ");
-        double l0 = sc.nextDouble();
-
-        System.out.print("Коэффициент надежности по назначению ηM (например, 1.1): ");
-        double etaM = sc.nextDouble();
-
-        System.out.print("Расстояние от ребра до точки приложения нагрузки Δ (м): ");
-        double delta = sc.nextDouble();
-
-        System.out.print("Расстояние от ребра до расчетного сечения Z (м): ");
-        double Z = sc.nextDouble();
-
-        System.out.print("Длина внешней консоли lk (м): ");
-        double lk = sc.nextDouble();
-
-        System.out.print("Нагрузка от веса перил P0 (кН): ");
-        double P0 = sc.nextDouble();
-
-        System.out.print("Расстояние до центра тяжести перил lt (м): ");
-        double lt = sc.nextDouble();
-
-        System.out.print("Изгибающий момент от постоянных нагрузок Mp (кН·м): ");
-        double Mp = sc.nextDouble();
-
-        // Проверка: есть ли толщина плиты в контексте
-        if (ctx.slabHeight <= 0) {
-            System.out.print("Толщина плиты h_slab (м) [например, 0.26]: ");
-            ctx.slabHeight = sc.nextDouble();
-        }
-        if (ctx.B <= 0) {
-            System.out.print("Расстояние между наружными гранями ребер B (м) [например, 2.4]: ");
-            ctx.B = sc.nextDouble();
-        }
-        if (ctx.ls <= 0) {
-            System.out.print("Длина шпалы ls (м) [например, 2.7]: ");
-            ctx.ls = sc.nextDouble();
-        }
-
+        if (ctx.slabHeight <= 0) ctx.slabHeight = readDouble(sc, "Толщина плиты h_slab (м) [например, 0,26]: ");
+        if (ctx.B <= 0) ctx.B = readDouble(sc, "Расстояние между наружными гранями ребер B (м) [например, 2,4]: ");
+        if (ctx.ls <= 0) ctx.ls = readDouble(sc, "Длина шпалы ls (м) [например, 2,7]: ");
         System.out.println();
 
-        // Расчет
-        double k = SlabCantileverCalculator.calculate(
-            ctx, designYear, l0, etaM, rebarType, j,
-            loadType, alpha, delta, Z, lk, P0, lt, Mp
-        );
-
-        // Вывод отчета
-        SlabCantileverCalculator.printReport(
-            ctx, designYear, l0, etaM, rebarType, j,
-            loadType, alpha, delta, Z, lk, P0, lt, Mp, k
-        );
+        double k = SlabCantileverCalculator.calculate(ctx, designYear, l0, etaM, rebarType, j, loadType, alpha, delta, Z, lk, P0, lt, Mp);
+        SlabCantileverCalculator.printReport(ctx, designYear, l0, etaM, rebarType, j, loadType, alpha, delta, Z, lk, P0, lt, Mp, k);
     }
 
-    /**
-     * Метод для расчета главной балки по формуле 8.4
-     */
     private static void calculateBeam(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЕТ ГЛАВНОЙ БАЛКИ (ФОРМУЛА 8.4) ---");
-
-        System.out.println("\n[1. Исходные данные]");
-        System.out.print("Год выпуска норм проектирования (например, 1931): ");
-        int designYear = sc.nextInt();
-
-        System.out.println("Тип арматуры:");
-        System.out.println("  1 - Гладкая (А240)");
-        System.out.println("  2 - Периодического профиля (А400)");
-        System.out.print("Выберите (1/2): ");
-        int rebarChoice = sc.nextInt();
-
-        RebarType rebarType;
-        if (rebarChoice == 1) {
-            rebarType = RebarType.SMOOTH;
-        } else {
-            rebarType = RebarType.RIBBED;
-        }
+        int designYear = readInt(sc, "Год выпуска норм проектирования (например, 1931): ");
+        int rebarChoice = readInt(sc, "Тип арматуры: 1 - Гладкая (А240), 2 - Периодического профиля (А400). Выберите (1/2): ");
+        RebarType rebarType = (rebarChoice == 1) ? RebarType.SMOOTH : RebarType.RIBBED;
 
         System.out.print("Тип нагрузки (Н7 или Н8): ");
         String loadType = sc.next();
 
-        System.out.print("Положение вершины линии влияния α (0.0 или 0.5): ");
-        double alpha = sc.nextDouble();
-
-        System.out.print("Относительное изменение площади арматуры j (1.0 - без дефектов): ");
-        double j = sc.nextDouble();
-
-        System.out.println("\n[2. Параметры для балки]");
-        System.out.print("Доля временной нагрузки на балку εM (из Раздела 6) [например, 0.565]: ");
-        double epsilon = sc.nextDouble();
-
-        System.out.print("Количество главных балок m [например, 2]: ");
-        int m = sc.nextInt();
-
-        System.out.print("Вес пролетного строения на балку pp (кН/м) [например, 34.0]: ");
-        double pp = sc.nextDouble();
-
-        System.out.print("Вес балласта на балку pb (кН/м) [например, 20.6]: ");
-        double pb = sc.nextDouble();
-
+        double alpha = readDouble(sc, "Положение вершины линии влияния α (0,0 или 0,5): ");
+        double j = readDouble(sc, "Относительное изменение площади арматуры j (1,0 - без дефектов): ");
+        double epsilon = readDouble(sc, "Доля временной нагрузки на балку εM (из Раздела 6) [например, 0,565]: ");
+        int m = readInt(sc, "Количество главных балок m [например, 2]: ");
+        double pp = readDouble(sc, "Вес пролетного строения на балку pp (кН/м) [например, 34,0]: ");
+        double pb = readDouble(sc, "Вес балласта на балку pb (кН/м) [например, 20,6]: ");
         System.out.println();
 
-        // Расчет
-        double k = BeamCalculator.calculate(
-            ctx, designYear, rebarType, j, loadType, alpha,
-            epsilon, m, pp, pb
-        );
-
-        // Вывод отчета
-        BeamCalculator.printReport(
-            ctx, designYear, rebarType, j, loadType, alpha,
-            epsilon, m, pp, pb, k
-        );
+        double k = BeamCalculator.calculate(ctx, designYear, rebarType, j, loadType, alpha, epsilon, m, pp, pb);
+        BeamCalculator.printReport(ctx, designYear, rebarType, j, loadType, alpha, epsilon, m, pp, pb, k);
     }
 
     private static void calculatePrestressedBeam(Scanner sc, BridgeContext ctx) {
@@ -629,9 +501,9 @@ public class Main {
 
         // ===== 2. ОПРЕДЕЛЕНИЕ ВЫСОТЫ СЖАТОЙ ЗОНЫ x =====
         double xWeb = PrestressedBeamCalculator.calculateXWithWeb(
-            Rs, As, Rp, Ap, Rsc, As_s, sigmaP2s, Ap_s, Rb, bf, b, hf);
+                Rs, As, Rp, Ap, Rsc, As_s, sigmaP2s, Ap_s, Rb, bf, b, hf);
         double xFlange = PrestressedBeamCalculator.calculateXWithFlange(
-            Rs, As, Rp, Ap, Rsc, As_s, sigmaP2s, Ap_s, Rb, bf);
+                Rs, As, Rp, Ap, Rsc, As_s, sigmaP2s, Ap_s, Rb, bf);
 
         double xCalc;
         boolean isInWeb;
@@ -654,10 +526,10 @@ public class Main {
         double M;
         if (isInWeb) {
             M = PrestressedBeamCalculator.calculateMomentWithWeb(
-                Rb, b, xCalc, h0, bf, hf, Rsc, As_s, as, sigmaPc, Ap_s, ap);
+                    Rb, b, xCalc, h0, bf, hf, Rsc, As_s, as, sigmaPc, Ap_s, ap);
         } else {
             M = PrestressedBeamCalculator.calculateMomentWithFlange(
-                Rb, bf, xCalc, h0, Rsc, As_s, as, sigmaPc, Ap_s, ap);
+                    Rb, bf, xCalc, h0, Rsc, As_s, as, sigmaPc, Ap_s, ap);
         }
 
         // ===== 4. РАСЧЕТ ПО ИЗГИБУ (ф. 7.20) =====
@@ -666,7 +538,7 @@ public class Main {
 
         // ===== 5. РАСЧЕТ ПО ПОПЕРЕЧНОЙ СИЛЕ (ф. 9.7 и 7.25) =====
         double Q = PrestressedBeamCalculator.calculateShearForce(
-            Rp, sumApi, sinAlpha, Rs, Asw, c, s, Qb);
+                Rp, sumApi, sinAlpha, Rs, Asw, c, s, Qb);
         double k_Q = (Q - Qp) / (1.15 * epsilonQ * OmegaK);
 
         // ===== 6. ГРУЗОПОДЪЕМНОСТЬ ПО ПРОЧНОСТИ =====
@@ -710,12 +582,12 @@ public class Main {
 
         // Допускаемая нагрузка по выносливости бетона (адаптация ф. 7.40)
         double kFatB = (1.0 / (ThetaFatigue * epsilonM * Omega)) *
-            ((Rbf * 1000 * Ired) / xPrime - MpFatigue);
+                ((Rbf * 1000 * Ired) / xPrime - MpFatigue);
 
         // Допускаемая нагрузка по выносливости арматуры (адаптация ф. 7.41)
         double leverArmP = h - au - xPrime; // Расстояние от центра тяжести сжатой зоны до арматуры
         double kFatP = (1.0 / (ThetaFatigue * epsilonM * Omega)) *
-            ((Rpf * 1000 * Ired) / (nPrime * leverArmP) - MpFatigue);
+                ((Rpf * 1000 * Ired) / (nPrime * leverArmP) - MpFatigue);
 
         // Итоговые показатели по выносливости
         double kFatigue = Math.min(kFatB, kFatP);
@@ -758,144 +630,80 @@ public class Main {
 
     private static void calculateBoard(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- РАСЧЁТ ПРОДОЛЬНОГО БОРТА (Раздел 10) ---");
-        System.out.println("(материалы берутся из Раздела 5 — сначала выполните пункт 1)");
-
         BoardInput in = new BoardInput();
 
-        // --- материалы и коэффициенты из BridgeContext ---
-        in.Rb = ctx.Rb;
-        in.Rbt = ctx.Rbt;
-        in.Rs = ctx.Rs;
-        in.Rsc = ctx.Rs;                       // для ненапрягаемой арматуры R_sc = R_s
-        in.nPrime = ctx.nPrime;
-        in.np = ctx.np;
-        in.npPrime = ctx.npPrime;
-        in.nk = ctx.nk;
-        in.gammaBallast = ctx.gammaBallastWithTrack;
-        in.ls = ctx.ls;                        // длина шпалы (если введена в Разделе 6)
+        in.Rb = ctx.Rb; in.Rbt = ctx.Rbt; in.Rs = ctx.Rs; in.Rsc = ctx.Rs;
+        in.nPrime = ctx.nPrime; in.np = ctx.np; in.npPrime = ctx.npPrime; in.nk = ctx.nk;
+        in.gammaBallast = ctx.gammaBallastWithTrack; in.ls = ctx.ls;
 
-        // --- геометрия борта ---
-        System.out.print("Высота продольного борта H_br (м) [например, 0.5]: ");
-        in.Hbr = sc.nextDouble();
-        if (in.ls <= 0) {
-            System.out.print("Длина шпалы l_s (м) [например, 2.7]: ");
-            in.ls = sc.nextDouble();
-        }
-        System.out.print("Толщина балласта под шпалой h_b (м) [например, 0.25]: ");
-        in.hb = sc.nextDouble();
-        System.out.print("Плечо балластной призмы x (м) [например, 0.4]: ");
-        in.xShoulder = sc.nextDouble();
-
-        // --- сечение и арматура ---
-        System.out.print("Рабочая высота сечения h0 (м) [например, 0.45]: ");
-        in.h0 = sc.nextDouble();
-        System.out.print("Площадь растянутой арматуры As (м²) [например, 0.0012]: ");
-        in.As = sc.nextDouble();
-        System.out.print("Площадь сжатой арматуры As' (м²) [например, 0.0004]: ");
-        in.AsPrime = sc.nextDouble();
-        System.out.print("Расстояние до центра сжатой арматуры a's (м) [например, 0.04]: ");
-        in.asPrime = sc.nextDouble();
-        System.out.print("Длина проекции наклонного сечения c (м) [0 — принять = h0; например, 0]: ");
-        in.cShear = sc.nextDouble();
-        System.out.print("Угол внутреннего трения балласта φ (град) [например, 40]: ");
-        in.phiFrictionDeg = sc.nextDouble();
-
-        // --- выносливость (Раздел 10.3) ---
-        System.out.print("Асимметрия цикла для бетона ρ_b [например, 0.3]: ");
-        in.rhoB = sc.nextDouble();
-        System.out.print("Асимметрия цикла для арматуры ρ [например, 0.3]: ");
-        in.rhoS = sc.nextDouble();
-        System.out.print("Коэффициент уменьшения динамики ε (Приложение 3) [например, 0.8]: ");
-        in.epsilonDyn = sc.nextDouble();
-
-        // --- приведение к классу (необязательно) ---
-        System.out.print("Эталонная нагрузка k_c (0 — класс не считать) [например, 0]: ");
-        in.kc = sc.nextDouble();
-        if (in.kc > 0) {
-            System.out.print("Динамический коэффициент (1+μ) [например, 1.3]: ");
-            in.dynamicCoeff = sc.nextDouble();
-        }
+        in.Hbr = readDouble(sc, "Высота продольного борта H_br (м) [например, 0,5]: ");
+        if (in.ls <= 0) in.ls = readDouble(sc, "Длина шпалы l_s (м) [например, 2,7]: ");
+        in.hb = readDouble(sc, "Толщина балласта под шпалой h_b (м) [например, 0,25]: ");
+        in.xShoulder = readDouble(sc, "Плечо балластной призмы x (м) [например, 0,4]: ");
+        in.h0 = readDouble(sc, "Рабочая высота сечения h0 (м) [например, 0,45]: ");
+        in.As = readDouble(sc, "Площадь растянутой арматуры As (м²) [например, 0,0012]: ");
+        in.AsPrime = readDouble(sc, "Площадь сжатой арматуры As' (м²) [например, 0,0004]: ");
+        in.asPrime = readDouble(sc, "Расстояние до центра сжатой арматуры a's (м) [например, 0,04]: ");
+        in.cShear = readDouble(sc, "Длина проекции наклонного сечения c (м) [0 — принять = h0; например, 0]: ");
+        in.phiFrictionDeg = readDouble(sc, "Угол внутреннего трения балласта φ (град) [например, 40]: ");
+        in.rhoB = readDouble(sc, "Асимметрия цикла для бетона ρ_b [например, 0,3]: ");
+        in.rhoS = readDouble(sc, "Асимметрия цикла для арматуры ρ [например, 0,3]: ");
+        in.epsilonDyn = readDouble(sc, "Коэффициент уменьшения динамики ε (Приложение 3) [например, 0,8]: ");
+        in.kc = readDouble(sc, "Эталонная нагрузка k_c (0 — класс не считать) [например, 0]: ");
+        if (in.kc > 0) in.dynamicCoeff = readDouble(sc, "Динамический коэффициент (1+μ) [например, 1,3]: ");
 
         LongitudinalBoardCalculator.calculateAndReport(in);
     }
 
     private static void calculateCurvedSpan(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- ПРОЛЁТ НА КРИВОЙ (Раздел 11) ---");
-        System.out.println("(пролёт, c, Es/Eb, As, балласт, шпала берутся из ранее введённых данных)");
-
         CurvedSpanInput in = new CurvedSpanInput();
 
-        // --- из BridgeContext ---
-        in.l  = ctx.spanLength;
-        in.c  = ctx.distanceBetweenBeams;
-        in.Eb = ctx.Eb;
-        in.Es = ctx.Es;
-        in.As = ctx.As_tensile;
-        in.hb = ctx.ballastThickness;
-        in.ls = ctx.ls;
-        in.as = ctx.as_tensile;
-        if (in.l  <= 0) { System.out.print("Расчётный пролёт l (м) [например, 16.5]: "); in.l  = sc.nextDouble(); }
-        if (in.c  <= 0) { System.out.print("Расстояние между осями балок c (м) [например, 1.9]: "); in.c = sc.nextDouble(); }
-        if (in.Eb <= 0) { System.out.print("Модуль упругости бетона Eb (МПа) [например, 30000]: "); in.Eb = sc.nextDouble(); }
-        if (in.As <= 0) { System.out.print("Площадь растянутой арматуры As (м²) [например, 0.006]: "); in.As = sc.nextDouble(); }
+        in.l = ctx.spanLength; in.c = ctx.distanceBetweenBeams; in.Eb = ctx.Eb; in.Es = ctx.Es;
+        in.As = ctx.As_tensile; in.hb = ctx.ballastThickness; in.ls = ctx.ls; in.as = ctx.as_tensile;
 
-        // --- геометрия сечения ---
-        System.out.print("Ширина ребра (стенки) балки b (м) [например, 0.2]: ");        in.b  = sc.nextDouble();
-        System.out.print("Параметр l_k для c1 = l_k + 0,5b (м) [например, 0.5]: ");      in.lk = sc.nextDouble();
-        System.out.print("Полная высота балки h (м) [например, 1.3]: ");                 in.h  = sc.nextDouble();
-        System.out.print("Средняя толщина плиты между рёбрами h1 (м) [например, 0.18]: ");in.h1 = sc.nextDouble();
-        System.out.print("Средняя толщина плиты консоли h2 (м) [например, 0.15]: ");      in.h2 = sc.nextDouble();
-        System.out.print("Высота рельса hp (м) [например, 0.18]: ");                      in.hp = sc.nextDouble();
-        System.out.print("Высота шпалы hs (м) [например, 0.2]: ");                       in.hs = sc.nextDouble();
-        System.out.print("Высота приложения нагрузки ht (м) [например, 2.2]: "); in.ht = sc.nextDouble();
+        if (in.l <= 0) in.l = readDouble(sc, "Расчётный пролёт l (м) [например, 16,5]: ");
+        if (in.c <= 0) in.c = readDouble(sc, "Расстояние между осями балок c (м) [например, 1,9]: ");
+        if (in.Eb <= 0) in.Eb = readDouble(sc, "Модуль упругости бетона Eb (МПа) [например, 30000]: ");
+        if (in.As <= 0) in.As = readDouble(sc, "Площадь растянутой арматуры As (м²) [например, 0,006]: ");
 
-        // --- кривая и путь ---
-        System.out.print("Радиус кривой R (м) [например, 600]: ");                       in.R  = sc.nextDouble();
-        System.out.print("Наибольшая скорость v (км/ч) [например, 80]: ");              in.v  = sc.nextDouble();
-        System.out.print("Возвышение наружного рельса Δh (м) [например, 0.1]: ");        in.cantElevation = sc.nextDouble();
-        System.out.print("Расстояние между осями головок рельсов b0 (м) [например, 1.6]: "); in.b0 = sc.nextDouble();
-        System.out.print("Смещение оси пути l' (участок 0,25l…0,75l, м) [например, 0.05]: ");  in.lPrime = sc.nextDouble();
-        System.out.print("Смещение оси пути l'' (участки у опор, м) [например, 0.05]: ");      in.lDoublePrime = sc.nextDouble();
-        System.out.print("Коэффициент Θ (приложение) [например, 1.0]: ");                in.Theta = sc.nextDouble();
-        System.out.print("Динамический коэффициент μ₀ [например, 0.3]: ");               in.mu0 = sc.nextDouble();
+        in.b = readDouble(sc, "Ширина ребра (стенки) балки b (м) [например, 0,2]: ");
+        in.lk = readDouble(sc, "Параметр l_k для c1 = l_k + 0,5b (м) [например, 0,5]: ");
+        in.h = readDouble(sc, "Полная высота балки h (м) [например, 1,3]: ");
+        in.h1 = readDouble(sc, "Средняя толщина плиты между рёбрами h1 (м) [например, 0,18]: ");
+        in.h2 = readDouble(sc, "Средняя толщина плиты консоли h2 (м) [например, 0,15]: ");
+        in.hp = readDouble(sc, "Высота рельса hp (м) [например, 0,18]: ");
+        in.hs = readDouble(sc, "Высота шпалы hs (м) [например, 0,2]: ");
+        in.ht = readDouble(sc, "Высота приложения нагрузки ht (м) [например, 2,2]: ");
+        in.R = readDouble(sc, "Радиус кривой R (м) [например, 600]: ");
+        in.v = readDouble(sc, "Наибольшая скорость v (км/ч) [например, 80]: ");
+        in.cantElevation = readDouble(sc, "Возвышение наружного рельса Δh (м) [например, 0,1]: ");
+        in.b0 = readDouble(sc, "Расстояние между осями головок рельсов b0 (м) [например, 1,6]: ");
+        in.lPrime = readDouble(sc, "Смещение оси пути l' (участок 0,25l…0,75l, м) [например, 0,05]: ");
+        in.lDoublePrime = readDouble(sc, "Смещение оси пути l'' (участки у опор, м) [например, 0,05]: ");
+        in.Theta = readDouble(sc, "Коэффициент Θ (приложение) [например, 1,0]: ");
+        in.mu0 = readDouble(sc, "Динамический коэффициент μ₀ [например, 0,3]: ");
 
         CurvedSpanCalculator.calculateAndReport(in);
     }
 
     private static void calculateDefects(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- УЧЁТ ВЛИЯНИЯ ДЕФЕКТОВ (Раздел 12) ---");
-        System.out.println("(материалы можно взять из Раздела 5 — сначала выполните пункт 1)");
-        System.out.println("Выберите вид дефекта:");
-        System.out.println("  1 - ослабление арматуры коррозией / выключенные стержни (12.2, ф. 12.1)");
-        System.out.println("  2 - трещина в сжатой зоне бетона (12.3, ф. 12.2-12.3)");
-        System.out.println("  3 - раковины/сколы бетона, прямоугольное сечение (12.4, ф. 12.4-12.5)");
-        System.out.println("  4 - раковины/сколы бетона, тавровое сечение (12.4, ф. 12.6, 12.5)");
-        System.out.println("  5 - дефекты в пролёте с напрягаемой арматурой (12.5, ф. 12.7, 12.5)");
-        System.out.print("Ваш выбор [например, 1]: ");
-        int kind = sc.nextInt();
+        int kind = readInt(sc, "Выберите вид дефекта: 1 - коррозия, 2 - трещина в сжатой зоне, 3 - раковины (прямоуг.), 4 - раковины (тавр), 5 - напрягаемая арматура: ");
 
         DefectInput in = new DefectInput();
-
-        // материалы из BridgeContext (если рассчитаны в п.1); при нуле — спросим
-        in.Rb  = ctx.Rb;
-        in.Rs  = ctx.Rs;
-        in.Rsc = ctx.Rs;                       // для ненапрягаемой арматуры R_sc = R_s
+        in.Rb = ctx.Rb; in.Rs = ctx.Rs; in.Rsc = ctx.Rs;
 
         if (kind == 1) {
             in.type = DefectInput.DefectType.CORROSION;
-            System.out.print("Общее число стержней рабочей арматуры n [например, 20]: ");
-            in.nBars = sc.nextInt();
-            System.out.print("Площадь сечения одного стержня f_a (см²/мм²/м² — любые ед.) [например, 4.91]: ");
-            in.faOne = sc.nextDouble();
-            System.out.print("Число повреждённых коррозией стержней n_1 [например, 2]: ");
-            int n1 = sc.nextInt();
+            in.nBars = readInt(sc, "Общее число стержней рабочей арматуры n [например, 20]: ");
+            in.faOne = readDouble(sc, "Площадь сечения одного стержня f_a (см²) [например, 4,91]: ");
+            int n1 = readInt(sc, "Число повреждённых коррозией стержней n_1 [например, 2]: ");
             in.corrodedLoss = new double[Math.max(n1, 0)];
             for (int i = 0; i < n1; i++) {
-                System.out.printf("  Площадь ослабления коррозией f_%d (в тех же ед.) [например, 0.6]: ", i + 1);
-                in.corrodedLoss[i] = sc.nextDouble();
+                in.corrodedLoss[i] = readDouble(sc, String.format("Площадь ослабления коррозией f_%d (см²) [например, 0,6]: ", i + 1));
             }
-            System.out.print("Число выключенных из работы стержней n_2 [например, 1]: ");
-            in.nDisconnected = sc.nextInt();
+            in.nDisconnected = readInt(sc, "Число выключенных из работы стержней n_2 [например, 1]: ");
             DefectCalculator.calculateAndReport(in);
             return;
         }
@@ -903,43 +711,41 @@ public class Main {
         if (kind == 2) {
             in.type = DefectInput.DefectType.CRACK_IN_COMPRESSION;
             readMaterialsIfEmpty(sc, in, false);
-            System.out.print("Ширина сечения b (м) [например, 0.2]: ");                    in.b  = sc.nextDouble();
-            System.out.print("Рабочая высота сечения h0 (м) [например, 1.25]: ");           in.h0 = sc.nextDouble();
-            System.out.print("Площадь растянутой арматуры A_s (м²) [например, 0.006]: ");     in.As = sc.nextDouble();
-            System.out.print("Площадь сжатой арматуры A'_s (м²) [например, 0.0006]: ");        in.AsPrime = sc.nextDouble();
-            System.out.print("Расстояние до центра сжатой арматуры a'_s (м) [например, 0.05]: "); in.asPrime = sc.nextDouble();
-            System.out.print("Высота сжатой зоны по эпюре трещины x̄_φ (м) [например, 0.05]: ");   in.xBarPhi = sc.nextDouble();
-            System.out.print("Момент от испытательной нагрузки M̄ (кН·м) [например, 900]: ");     in.Mbar = sc.nextDouble();
-            System.out.print("Предельный момент M по разделу 7 (кН·м) [0 — рассчитать; например, 1834]: "); in.Mult = sc.nextDouble();
+            in.b = readDouble(sc, "Ширина сечения b (м) [например, 0,2]: ");
+            in.h0 = readDouble(sc, "Рабочая высота сечения h0 (м) [например, 1,25]: ");
+            in.As = readDouble(sc, "Площадь растянутой арматуры A_s (м²) [например, 0,006]: ");
+            in.AsPrime = readDouble(sc, "Площадь сжатой арматуры A'_s (м²) [например, 0,0006]: ");
+            in.asPrime = readDouble(sc, "Расстояние до центра сжатой арматуры a'_s (м) [например, 0,05]: ");
+            in.xBarPhi = readDouble(sc, "Высота сжатой зоны по эпюре трещины x̄_φ (м) [например, 0,05]: ");
+            in.Mbar = readDouble(sc, "Момент от испытательной нагрузки M̄ (кН·м) [например, 900]: ");
+            in.Mult = readDouble(sc, "Предельный момент M по разделу 7 (кН·м) [0 — рассчитать; например, 1834]: ");
             DefectCalculator.calculateAndReport(in);
             return;
         }
 
-        // kind 3/4/5 — раковины/сколы
-        System.out.print("Ширина сечения (ребра) b (м) [например, 0.2]: ");                in.b  = sc.nextDouble();
-        System.out.print("Рабочая высота сечения h0 (м) [например, 1.25]: ");               in.h0 = sc.nextDouble();
+        in.b = readDouble(sc, "Ширина сечения (ребра) b (м) [например, 0,2]: ");
+        in.h0 = readDouble(sc, "Рабочая высота сечения h0 (м) [например, 1,25]: ");
         readMaterialsIfEmpty(sc, in, kind == 5);
-        System.out.print("Площадь растянутой арматуры A_s (м²) [например, 0.006]: ");         in.As = sc.nextDouble();
-        System.out.print("Площадь сжатой арматуры A'_s (м²) [например, 0.0006]: ");            in.AsPrime = sc.nextDouble();
-        System.out.print("Расстояние до центра сжатой арматуры a'_s (м) [например, 0.05]: ");in.asPrime = sc.nextDouble();
-        System.out.print("Площадь ослабления раковиной/сколом A_0 (м²) [например, 0.003]: "); in.A0 = sc.nextDouble();
-        System.out.print("Расстояние от растянутой арматуры до ц.т. ослабления a_0 (м) [например, 1.15]: "); in.a0 = sc.nextDouble();
+        in.As = readDouble(sc, "Площадь растянутой арматуры A_s (м²) [например, 0,006]: ");
+        in.AsPrime = readDouble(sc, "Площадь сжатой арматуры A'_s (м²) [например, 0,0006]: ");
+        in.asPrime = readDouble(sc, "Расстояние до центра сжатой арматуры a'_s (м) [например, 0,05]: ");
+        in.A0 = readDouble(sc, "Площадь ослабления раковиной/сколом A_0 (м²) [например, 0,003]: ");
+        in.a0 = readDouble(sc, "Расстояние от растянутой арматуры до ц.т. ослабления a_0 (м) [например, 1,15]: ");
 
-        if (kind == 3) {
-            in.type = DefectInput.DefectType.VOID_RECTANGULAR;
-        } else if (kind == 4) {
+        if (kind == 3) in.type = DefectInput.DefectType.VOID_RECTANGULAR;
+        else if (kind == 4) {
             in.type = DefectInput.DefectType.VOID_TSECTION;
-            System.out.print("Расчётная ширина полки b'_f (м) [например, 1.6]: ");          in.bfPrime = sc.nextDouble();
-            System.out.print("Приведённая толщина полки h'_f (м) [например, 0.18]: ");       in.hfPrime = sc.nextDouble();
+            in.bfPrime = readDouble(sc, "Расчётная ширина полки b'_f (м) [например, 1,6]: ");
+            in.hfPrime = readDouble(sc, "Приведённая толщина полки h'_f (м) [например, 0,18]: ");
         } else if (kind == 5) {
             in.type = DefectInput.DefectType.VOID_PRESTRESSED;
-            System.out.print("Расчётная ширина полки b'_f (м) [например, 1.6]: ");          in.bfPrime = sc.nextDouble();
-            System.out.print("Приведённая толщина полки h'_f (м) [например, 0.18]: ");       in.hfPrime = sc.nextDouble();
-            System.out.print("Сопротивление напрягаемой арматуры R_p (МПа) [например, 800]: ");     in.Rp = sc.nextDouble();
-            System.out.print("Напряжение в напрягаемой арматуре сжатой зоны σ'_pc (МПа) [например, 300]: "); in.sigmaPc = sc.nextDouble();
-            System.out.print("Площадь растянутой напрягаемой арматуры A_p (м²) [например, 0.003]: ");  in.Ap = sc.nextDouble();
-            System.out.print("Площадь напрягаемой арматуры сжатой зоны A'_p (м²) [например, 0.0005]: ");in.ApPrime = sc.nextDouble();
-            System.out.print("Расстояние до центра A'_p — a'_p (м) [например, 0.05]: ");              in.apPrime = sc.nextDouble();
+            in.bfPrime = readDouble(sc, "Расчётная ширина полки b'_f (м) [например, 1,6]: ");
+            in.hfPrime = readDouble(sc, "Приведённая толщина полки h'_f (м) [например, 0,18]: ");
+            in.Rp = readDouble(sc, "Сопротивление напрягаемой арматуры R_p (МПа) [например, 800]: ");
+            in.sigmaPc = readDouble(sc, "Напряжение в напрягаемой арматуре сжатой зоны σ'_pc (МПа) [например, 300]: ");
+            in.Ap = readDouble(sc, "Площадь растянутой напрягаемой арматуры A_p (м²) [например, 0,003]: ");
+            in.ApPrime = readDouble(sc, "Площадь напрягаемой арматуры сжатой зоны A'_p (м²) [например, 0,0005]: ");
+            in.apPrime = readDouble(sc, "Расстояние до центра A'_p — a'_p (м) [например, 0,05]: ");
         } else {
             System.out.println("Неверный выбор вида дефекта.");
             return;
@@ -947,24 +753,15 @@ public class Main {
         DefectCalculator.calculateAndReport(in);
     }
 
-    /** Запрашивает R_b/R_s, если они не заданы в контексте. */
     private static void readMaterialsIfEmpty(Scanner sc, DefectInput in, boolean prestressed) {
-        if (in.Rb <= 0) { System.out.print("Сопротивление бетона сжатию R_b (МПа) [например, 17.0]: "); in.Rb = sc.nextDouble(); }
-        if (in.Rs <= 0) { System.out.print("Сопротивление арматуры растяжению R_s (МПа) [например, 250]: "); in.Rs = sc.nextDouble(); }
-        if (in.Rsc <= 0) { in.Rsc = in.Rs; }
+        if (in.Rb <= 0) in.Rb = readDouble(sc, "Сопротивление бетона сжатию R_b (МПа) [например, 17,0]: ");
+        if (in.Rs <= 0) in.Rs = readDouble(sc, "Сопротивление арматуры растяжению R_s (МПа) [например, 250]: ");
+        if (in.Rsc <= 0) in.Rsc = in.Rs;
     }
 
     private static void calculateCarbon(Scanner sc, BridgeContext ctx) {
         System.out.println("\n--- УСИЛЕНИЕ УГЛЕВОЛОКНОМ (Раздел 13) ---");
-        System.out.println("(характеристики бетона и арматуры — по разделу 5, сначала выполните пункт 1)");
-        System.out.println("Выберите проверку:");
-        System.out.println("  1 - прочность нормального сечения по моменту (13.1-13.9)");
-        System.out.println("  2 - прочность наклонного сечения по поперечной силе (13.10-13.16)");
-        System.out.println("  3 - прочность наклонного сечения по моменту (13.17-13.18)");
-        System.out.println("  4 - выносливость усиленного сечения (13.19-13.28)");
-        System.out.println("  5 - учёт технологии усиления (13.29)");
-        System.out.print("Ваш выбор [например, 1]: ");
-        int mode = sc.nextInt();
+        int mode = readInt(sc, "Выберите проверку: 1 - момент, 2 - поперечная сила, 3 - наклонный момент, 4 - выносливость, 5 - технология: ");
 
         CarbonInput in = new CarbonInput();
         in.Rb = ctx.Rb; in.Rbt = ctx.Rbt; in.Rs = ctx.Rs; in.Rsc = ctx.Rs;
@@ -972,101 +769,99 @@ public class Main {
 
         if (mode == 5) {
             in.mode = CarbonInput.Mode.TECHNOLOGY;
-            System.out.print("Предельный момент неусиленного сечения M (кН·м) [например, 1834]: ");   in.M  = sc.nextDouble();
-            System.out.print("Предельный момент усиленного сечения M^y (кН·м) [например, 2226]: ");    in.My = sc.nextDouble();
-            System.out.print("Момент от постоянных нагрузок M_p (кН·м) [например, 650]: ");           in.Mp = sc.nextDouble();
-            System.out.print("Момент от временной нагрузки при усилении M_k (кН·м) [например, 400]: ");in.Mk = sc.nextDouble();
-            System.out.print("M^y_k (кН·м) [например, 200]: ");                                       in.MyK = sc.nextDouble();
+            in.M = readDouble(sc, "Предельный момент неусиленного сечения M (кН·м) [например, 1834]: ");
+            in.My = readDouble(sc, "Предельный момент усиленного сечения M^y (кН·м) [например, 2226]: ");
+            in.Mp = readDouble(sc, "Момент от постоянных нагрузок M_p (кН·м) [например, 650]: ");
+            in.Mk = readDouble(sc, "Момент от временной нагрузки при усилении M_k (кН·м) [например, 400]: ");
+            in.MyK = readDouble(sc, "M^y_k (кН·м) [например, 200]: ");
             CarbonCalculator.calculateAndReport(in);
             return;
         }
 
-        if (in.Rb <= 0) { System.out.print("R_b (МПа) [например, 17.0]: "); in.Rb = sc.nextDouble(); }
-        if (in.Rs <= 0) { System.out.print("R_s (МПа) [например, 250]: "); in.Rs = sc.nextDouble(); }
+        if (in.Rb <= 0) in.Rb = readDouble(sc, "R_b (МПа) [например, 17,0]: ");
+        if (in.Rs <= 0) in.Rs = readDouble(sc, "R_s (МПа) [например, 250]: ");
         in.Rsc = in.Rs;
 
-        System.out.print("Модуль упругости углеволокна E_f (МПа) [например, 230000]: ");        in.Ef = sc.nextDouble();
-        System.out.print("Сопротивление углеволокна R_f (МПа) [например, 2400]: ");           in.Rf = sc.nextDouble();
-        System.out.print("Толщина одного слоя t_f (мм) [например, 0.13]: ");                  in.tfLayerMm = sc.nextDouble();
-        System.out.print("Количество слоёв n [например, 2]: ");                            in.nLayers = sc.nextInt();
-        System.out.println("Тип усиления (табл. 13.4): 1-холст низ без закр., 2-холст низ с закр.,");
-        System.out.println("  3-U-обойма без закр., 4-U-обойма с закр., 5-пластины с закр.");
-        System.out.print("Ваш выбор [например, 3]: ");
-        in.reinfType = reinforcementType(sc.nextInt());
+        in.Ef = readDouble(sc, "Модуль упругости углеволокна E_f (МПа) [например, 230000]: ");
+        in.Rf = readDouble(sc, "Сопротивление углеволокна R_f (МПа) [например, 2400]: ");
+        in.tfLayerMm = readDouble(sc, "Толщина одного слоя t_f (мм) [например, 0,13]: ");
+        in.nLayers = readInt(sc, "Количество слоёв n [например, 2]: ");
+        int reinfChoice = readInt(sc, "Тип усиления (табл. 13.4): 1-холст низ без закр., 2-холст низ с закр., 3-U-обойма без закр., 4-U-обойма с закр., 5-пластины с закр.: ");
+        in.reinfType = reinforcementType(reinfChoice);
 
         if (mode == 1) {
             in.mode = CarbonInput.Mode.STRENGTH_MOMENT;
-            System.out.print("Ширина ребра b (м) [например, 0.2]: ");                    in.b = sc.nextDouble();
-            System.out.print("Ширина полки b'_f (м) [например, 1.6]: ");                 in.bfPrime = sc.nextDouble();
-            System.out.print("Толщина полки h'_f (м) [например, 0.18]: ");                in.hfPrime = sc.nextDouble();
-            System.out.print("Высота балки h (м) [например, 1.3]: ");                    in.h = sc.nextDouble();
-            System.out.print("Рабочая высота h0 (м) [например, 1.25]: ");                 in.h0 = sc.nextDouble();
-            System.out.print("Расстояние до сжатой арматуры a'_s (м) [например, 0.05]: ");in.asPrime = sc.nextDouble();
-            System.out.print("Площадь растянутой арматуры A_s (м²) [например, 0.006]: ");  in.As = sc.nextDouble();
-            System.out.print("Площадь сжатой арматуры A'_s (м²) [например, 0.0006]: ");     in.AsPrime = sc.nextDouble();
-            System.out.print("Площадь усиления на нижней грани A_f1 (м²) [например, 0.00013]: ");   in.Af1 = sc.nextDouble();
-            System.out.print("Площадь усиления на боковых гранях A_f2 (м², 0 — только низ) [например, 0.00006]: "); in.Af2 = sc.nextDouble();
-            System.out.print("Высота полок U-обоймы d (м) [например, 0.3]: ");           in.d = sc.nextDouble();
-            System.out.print("Предельная деформация бетона ε_b,ult [например, 0.0033]: "); in.epsBult = sc.nextDouble();
+            in.b = readDouble(sc, "Ширина ребра b (м) [например, 0,2]: ");
+            in.bfPrime = readDouble(sc, "Ширина полки b'_f (м) [например, 1,6]: ");
+            in.hfPrime = readDouble(sc, "Толщина полки h'_f (м) [например, 0,18]: ");
+            in.h = readDouble(sc, "Высота балки h (м) [например, 1,3]: ");
+            in.h0 = readDouble(sc, "Рабочая высота h0 (м) [например, 1,25]: ");
+            in.asPrime = readDouble(sc, "Расстояние до сжатой арматуры a'_s (м) [например, 0,05]: ");
+            in.As = readDouble(sc, "Площадь растянутой арматуры A_s (м²) [например, 0,006]: ");
+            in.AsPrime = readDouble(sc, "Площадь сжатой арматуры A'_s (м²) [например, 0,0006]: ");
+            in.Af1 = readDouble(sc, "Площадь усиления на нижней грани A_f1 (м²) [например, 0,00013]: ");
+            in.Af2 = readDouble(sc, "Площадь усиления на боковых гранях A_f2 (м², 0 — только низ) [например, 0,00006]: ");
+            in.d = readDouble(sc, "Высота полок U-обоймы d (м) [например, 0,3]: ");
+            in.epsBult = readDouble(sc, "Предельная деформация бетона ε_b,ult [например, 0,0033]: ");
             readMomentLoads(sc, in);
         } else if (mode == 2) {
             in.mode = CarbonInput.Mode.STRENGTH_SHEAR;
-            if (in.Rbt <= 0) { System.out.print("R_bt (МПа) [например, 1.2]: "); in.Rbt = sc.nextDouble(); }
-            if (in.Eb <= 0)  { System.out.print("E_b (МПа) [например, 30000]: "); in.Eb = sc.nextDouble(); }
-            System.out.print("Ширина ребра b (м) [например, 0.2]: ");                    in.b = sc.nextDouble();
-            System.out.print("Рабочая высота h0 (м) [например, 1.25]: ");                 in.h0 = sc.nextDouble();
-            System.out.print("Площадь одной ветви хомутов A_sw (м²) [например, 0.0001]: "); in.Asw = sc.nextDouble();
-            System.out.print("Шаг хомутов s (м) [например, 0.15]: ");                     in.s = sc.nextDouble();
-            System.out.print("Σ A_si·sinα по отгибам (м², 0 — нет) [например, 0]: ");  in.sumAsiSinAlpha = sc.nextDouble();
-            System.out.print("Длина проекции c (м) [0 — вычислить по 13.14; например, 0]: "); in.cShear = sc.nextDouble();
-            System.out.print("Σ площадей наклонных холстов A_fi (м²) [например, 0.00006]: ");in.Afi = sc.nextDouble();
-            System.out.print("Угол наклона холстов φ (град) [например, 90]: "); in.phiFiberDeg = sc.nextDouble();
-            System.out.print("Σ площадей вертикальных холстов A_fw (м²) [например, 0.00006]: "); in.Afw = sc.nextDouble();
-            System.out.print("Предельная поперечная сила Q (кН) [0 — вычислить; например, 0]: "); in.Q = sc.nextDouble();
-            System.out.print("Q_p (кН) [0 — вычислить по 13.11; например, 0]: ");      in.Qp = sc.nextDouble();
+            if (in.Rbt <= 0) in.Rbt = readDouble(sc, "R_bt (МПа) [например, 1,2]: ");
+            if (in.Eb <= 0) in.Eb = readDouble(sc, "E_b (МПа) [например, 30000]: ");
+            in.b = readDouble(sc, "Ширина ребра b (м) [например, 0,2]: ");
+            in.h0 = readDouble(sc, "Рабочая высота h0 (м) [например, 1,25]: ");
+            in.Asw = readDouble(sc, "Площадь одной ветви хомутов A_sw (м²) [например, 0,0001]: ");
+            in.s = readDouble(sc, "Шаг хомутов s (м) [например, 0,15]: ");
+            in.sumAsiSinAlpha = readDouble(sc, "Σ A_si·sinα по отгибам (м², 0 — нет) [например, 0]: ");
+            in.cShear = readDouble(sc, "Длина проекции c (м) [0 — вычислить по 13.14; например, 0]: ");
+            in.Afi = readDouble(sc, "Σ площадей наклонных холстов A_fi (м²) [например, 0,00006]: ");
+            in.phiFiberDeg = readDouble(sc, "Угол наклона холстов φ (град) [например, 90]: ");
+            in.Afw = readDouble(sc, "Σ площадей вертикальных холстов A_fw (м²) [например, 0,00006]: ");
+            in.Q = readDouble(sc, "Предельная поперечная сила Q (кН) [0 — вычислить; например, 0]: ");
+            in.Qp = readDouble(sc, "Q_p (кН) [0 — вычислить по 13.11; например, 0]: ");
             if (in.Qp <= 0) {
-                System.out.print("  p_p (кН/м) [например, 15]: "); in.pp = sc.nextDouble();
-                System.out.print("  p_b (кН/м) [например, 20]: "); in.pb = sc.nextDouble();
-                System.out.print("  Ω_p (м) [например, 8.0]: ");    in.OmegaP = sc.nextDouble();
+                in.pp = readDouble(sc, "  p_p (кН/м) [например, 15]: ");
+                in.pb = readDouble(sc, "  p_b (кН/м) [например, 20]: ");
+                in.OmegaP = readDouble(sc, "  Ω_p (м) [например, 8,0]: ");
             }
-            System.out.print("Доля нагрузки ε_Q [например, 0.55]: ");                     in.epsQ = sc.nextDouble();
-            System.out.print("Площадь линии влияния Ω_к (м) [например, 8.0]: ");         in.OmegaK = sc.nextDouble();
+            in.epsQ = readDouble(sc, "Доля нагрузки ε_Q [например, 0,55]: ");
+            in.OmegaK = readDouble(sc, "Площадь линии влияния Ω_к (м) [например, 8,0]: ");
         } else if (mode == 3) {
             in.mode = CarbonInput.Mode.INCLINED_MOMENT;
-            System.out.print("Сопротивление хомутов R_sw (МПа) [например, 250]: ");      in.Rsw = sc.nextDouble();
-            System.out.print("Площадь растянутой арматуры A_s (м²) [например, 0.006]: ");  in.As = sc.nextDouble();
-            System.out.print("плечо z_s (м) [например, 1.2]: ");                         in.zS = sc.nextDouble();
-            System.out.print("A_sw (м²) и z_sw (м) [например, 0.0001 и 0.6]: ");   in.Asw = sc.nextDouble(); in.zSw = sc.nextDouble();
-            System.out.print("Σ A_si (м²) и z_si (м) [например, 0 и 0]: "); in.sumAsi = sc.nextDouble(); in.zSi = sc.nextDouble();
-            System.out.print("A_f1 (м²) и z_c1 (м) [например, 0.00013 и 1.25]: ");   in.Af1 = sc.nextDouble(); in.zC1 = sc.nextDouble();
-            System.out.print("A_f2 (м²) и z_c2 (м) [например, 0.00006 и 0.6]: ");   in.Af2 = sc.nextDouble(); in.zC2 = sc.nextDouble();
-            System.out.print("A_fw (м²) и z_cw (м) [например, 0.00006 и 0.6]: ");   in.Afw = sc.nextDouble(); in.zCw = sc.nextDouble();
-            System.out.print("A_fi (м²) и z_ci (м) [например, 0.00006 и 0.6]: ");   in.Afi = sc.nextDouble(); in.zCi = sc.nextDouble();
+            in.Rsw = readDouble(sc, "Сопротивление хомутов R_sw (МПа) [например, 250]: ");
+            in.As = readDouble(sc, "Площадь растянутой арматуры A_s (м²) [например, 0,006]: ");
+            in.zS = readDouble(sc, "плечо z_s (м) [например, 1,2]: ");
+            in.Asw = readDouble(sc, "A_sw (м²) [например, 0,0001]: "); in.zSw = readDouble(sc, "z_sw (м) [например, 0,6]: ");
+            in.sumAsi = readDouble(sc, "Σ A_si (м²) [например, 0]: "); in.zSi = readDouble(sc, "z_si (м) [например, 0]: ");
+            in.Af1 = readDouble(sc, "A_f1 (м²) [например, 0,00013]: "); in.zC1 = readDouble(sc, "z_c1 (м) [например, 1,25]: ");
+            in.Af2 = readDouble(sc, "A_f2 (м²) [например, 0,00006]: "); in.zC2 = readDouble(sc, "z_c2 (м) [например, 0,6]: ");
+            in.Afw = readDouble(sc, "A_fw (м²) [например, 0,00006]: "); in.zCw = readDouble(sc, "z_cw (м) [например, 0,6]: ");
+            in.Afi = readDouble(sc, "A_fi (м²) [например, 0,00006]: "); in.zCi = readDouble(sc, "z_ci (м) [например, 0,6]: ");
             readMomentLoads(sc, in);
         } else if (mode == 4) {
             in.mode = CarbonInput.Mode.FATIGUE;
-            System.out.print("R_bf (МПа) [например, 8.5]: "); in.Rbf = sc.nextDouble();
-            System.out.print("R_sf (МПа) [например, 120]: "); in.Rsf = sc.nextDouble();
-            System.out.print("Ширина ребра b (м) [например, 0.2]: ");                    in.b = sc.nextDouble();
-            System.out.print("Ширина полки b'_f (м) [например, 1.6]: ");                 in.bfPrime = sc.nextDouble();
-            System.out.print("Толщина полки h'_f (м) [например, 0.18]: ");                in.hfPrime = sc.nextDouble();
-            System.out.print("Высота балки h (м) [например, 1.3]: ");                    in.h = sc.nextDouble();
-            System.out.print("Рабочая высота h0 (м) [например, 1.25]: ");                 in.h0 = sc.nextDouble();
-            System.out.print("a'_s (м) [например, 0.05]: ");                              in.asPrime = sc.nextDouble();
-            System.out.print("a_s (м) [например, 0.05]: ");                               in.as = sc.nextDouble();
-            System.out.print("a_u (м) [например, 0.05]: ");                               in.au = sc.nextDouble();
-            System.out.print("A_s (м²) [например, 0.006]: ");                              in.As = sc.nextDouble();
-            System.out.print("A'_s (м²) [например, 0.0006]: ");                             in.AsPrime = sc.nextDouble();
-            System.out.print("A_f1 (м²) [например, 0.00013]: ");                             in.Af1 = sc.nextDouble();
-            System.out.print("A_f2 (м²) [например, 0.00006]: ");                             in.Af2 = sc.nextDouble();
-            System.out.print("A'_f (м²) [например, 0.00013]: ");                             in.AfPrime = sc.nextDouble();
-            if (in.nPrimeSteel <= 0) { System.out.print("n' (сталь/бетон) [например, 6.9]: "); in.nPrimeSteel = sc.nextDouble(); }
-            System.out.print("n'_f (углеволокно/бетон) [например, 7.7]: ");              in.nPrimeFiber = sc.nextDouble();
-            System.out.print("Коэффициент Θ [например, 1.0]: ");                         in.Theta = sc.nextDouble();
-            System.out.print("Предельный момент M (кН·м) [например, 1800]: ");            in.M = sc.nextDouble();
-            System.out.print("Момент от постоянных M_p (кН·м) [например, 650]: ");       in.Mp = sc.nextDouble();
-            System.out.print("Доля нагрузки ε_M [например, 0.55]: ");                     in.epsM = sc.nextDouble();
-            System.out.print("Площадь линии влияния Ω (м) [например, 32.0]: ");           in.Omega = sc.nextDouble();
+            in.Rbf = readDouble(sc, "R_bf (МПа) [например, 8,5]: ");
+            in.Rsf = readDouble(sc, "R_sf (МПа) [например, 120]: ");
+            in.b = readDouble(sc, "Ширина ребра b (м) [например, 0,2]: ");
+            in.bfPrime = readDouble(sc, "Ширина полки b'_f (м) [например, 1,6]: ");
+            in.hfPrime = readDouble(sc, "Толщина полки h'_f (м) [например, 0,18]: ");
+            in.h = readDouble(sc, "Высота балки h (м) [например, 1,3]: ");
+            in.h0 = readDouble(sc, "Рабочая высота h0 (м) [например, 1,25]: ");
+            in.asPrime = readDouble(sc, "a'_s (м) [например, 0,05]: ");
+            in.as = readDouble(sc, "a_s (м) [например, 0,05]: ");
+            in.au = readDouble(sc, "a_u (м) [например, 0,05]: ");
+            in.As = readDouble(sc, "A_s (м²) [например, 0,006]: ");
+            in.AsPrime = readDouble(sc, "A'_s (м²) [например, 0,0006]: ");
+            in.Af1 = readDouble(sc, "A_f1 (м²) [например, 0,00013]: ");
+            in.Af2 = readDouble(sc, "A_f2 (м²) [например, 0,00006]: ");
+            in.AfPrime = readDouble(sc, "A'_f (м²) [например, 0,00013]: ");
+            if (in.nPrimeSteel <= 0) in.nPrimeSteel = readDouble(sc, "n' (сталь/бетон) [например, 6,9]: ");
+            in.nPrimeFiber = readDouble(sc, "n'_f (углеволокно/бетон) [например, 7,7]: ");
+            in.Theta = readDouble(sc, "Коэффициент Θ [например, 1,0]: ");
+            in.M = readDouble(sc, "Предельный момент M (кН·м) [например, 1800]: ");
+            in.Mp = readDouble(sc, "Момент от постоянных M_p (кН·м) [например, 650]: ");
+            in.epsM = readDouble(sc, "Доля нагрузки ε_M [например, 0,55]: ");
+            in.Omega = readDouble(sc, "Площадь линии влияния Ω (м) [например, 32,0]: ");
         } else {
             System.out.println("Неверный выбор проверки.");
             return;
@@ -1075,10 +870,10 @@ public class Main {
     }
 
     private static void readMomentLoads(Scanner sc, CarbonInput in) {
-        System.out.print("Предельный момент неусиленного сечения M (кН·м) [например, 1800]: "); in.M = sc.nextDouble();
-        System.out.print("Момент от постоянных нагрузок M_p (кН·м) [например, 650]: ");        in.Mp = sc.nextDouble();
-        System.out.print("Доля временной нагрузки ε_M [например, 0.55]: ");                     in.epsM = sc.nextDouble();
-        System.out.print("Площадь линии влияния Ω (м) [например, 32.0]: ");                     in.Omega = sc.nextDouble();
+        in.M = readDouble(sc, "Предельный момент неусиленного сечения M (кН·м) [например, 1800]: ");
+        in.Mp = readDouble(sc, "Момент от постоянных нагрузок M_p (кН·м) [например, 650]: ");
+        in.epsM = readDouble(sc, "Доля временной нагрузки ε_M [например, 0,55]: ");
+        in.Omega = readDouble(sc, "Площадь линии влияния Ω (м) [например, 32,0]: ");
     }
 
     private static CarbonTables.ReinforcementType reinforcementType(int n) {
@@ -1094,23 +889,12 @@ public class Main {
 
     private static void calculateCarbonRecommendations(Scanner sc, BridgeContext ctx) {
         System.out.println("\n=== РЕКОМЕНДАЦИИ ПО УСИЛЕНИЮ (Раздел 14) ===");
-
-        System.out.println("\n1. Показать все схемы усиления (Таблица 14.1)");
-        System.out.println("2. Получить информацию о конкретной схеме");
-        System.out.println("3. Подобрать схему по требуемому увеличению несущей способности");
-        System.out.println("4. Сравнить несколько схем");
-        System.out.print("Выберите действие (1-4): ");
-
-        int action = sc.nextInt();
+        int action = readInt(sc, "Выберите действие: 1 - Все схемы, 2 - Информация о схеме, 3 - Подбор по %, 4 - Сравнение схем: ");
 
         switch (action) {
-            case 1:
-                CarbonRecommendationTables.printAllSchemes();
-                break;
-
+            case 1: CarbonRecommendationTables.printAllSchemes(); break;
             case 2:
-                System.out.print("Введите номер схемы (1-7): ");
-                int schemeNum = sc.nextInt();
+                int schemeNum = readInt(sc, "Введите номер схемы (1-7): ");
                 try {
                     CarbonRecommendationTables.StrengtheningScheme scheme = CarbonRecommendationTables.getScheme(schemeNum);
                     CarbonRecommendationCalculator.printSchemeDetails(scheme);
@@ -1118,37 +902,24 @@ public class Main {
                     System.out.println("Ошибка: " + e.getMessage());
                 }
                 break;
-
             case 3:
-                System.out.print("Введите требуемое увеличение несущей способности (%): ");
-                double requiredPercent = sc.nextDouble();
+                double requiredPercent = readDouble(sc, "Введите требуемое увеличение несущей способности (%): ");
                 CarbonRecommendationTables.StrengtheningScheme recommended = CarbonRecommendationCalculator.recommendScheme(requiredPercent);
                 CarbonRecommendationCalculator.printSchemeDetails(recommended);
-                System.out.printf("\nРекомендованная схема обеспечивает увеличение на %.0f%%%n",
-                    recommended.getIncreasePercent());
+                System.out.printf("\nРекомендованная схема обеспечивает увеличение на %.0f%%%n", recommended.getIncreasePercent());
                 break;
-
             case 4:
-                System.out.print("Введите количество схем для сравнения (2-7): ");
-                int count = sc.nextInt();
-                if (count < 2 || count > 7) {
-                    System.out.println("Неверное количество схем");
-                    return;
-                }
-
+                int count = readInt(sc, "Введите количество схем для сравнения (2-7): ");
+                if (count < 2 || count > 7) { System.out.println("Неверное количество схем"); return; }
                 CarbonRecommendationTables.StrengtheningScheme[] schemesToCompare = new CarbonRecommendationTables.StrengtheningScheme[count];
                 System.out.println("Введите номера схем для сравнения:");
                 for (int i = 0; i < count; i++) {
-                    System.out.printf("  Схема %d: ", i + 1);
-                    int num = sc.nextInt();
+                    int num = readInt(sc, String.format("  Схема %d: ", i + 1));
                     schemesToCompare[i] = CarbonRecommendationTables.getScheme(num);
                 }
-
                 CarbonRecommendationCalculator.compareSchemes(schemesToCompare);
                 break;
-
-            default:
-                System.out.println("Неверный выбор");
+            default: System.out.println("Неверный выбор");
         }
     }
 
@@ -1157,77 +928,54 @@ public class Main {
         System.out.println("║   ОБСЛЕДОВАНИЕ И ИСПЫТАНИЕ ПРОЛЁТНЫХ СТРОЕНИЙ [Раздел 15]    ║");
         System.out.println("╚══════════════════════════════════════════════════════════════╝");
 
-        System.out.println("\nВыберите расчёт:");
-        System.out.println("  1 - Смещение оси пути (15.3, ф. 15.1)");
-        System.out.println("  2 - Средняя прочность бетона (15.4, ф. 15.2)");
-        System.out.println("  3 - Доля нагрузки по испытаниям (15.5, ф. 15.3)");
-        System.out.println("  4 - Полный расчёт (все три пункта)");
-        System.out.print("Ваш выбор: ");
-        int choice = sc.nextInt();
-
+        int choice = readInt(sc, "Выберите расчёт: 1 - Смещение оси пути, 2 - Прочность бетона, 3 - Доля нагрузки по испытаниям, 4 - Полный расчёт: ");
         InspectionInput in = new InspectionInput();
 
         if (choice == 1 || choice == 4) {
             System.out.println("\n--- 15.3. СМЕЩЕНИЕ ОСИ ПУТИ (ф. 15.1) ---");
-            System.out.print("a' — расстояние между внутр. гранью головки рельса и отвесом (м) [например: 0,85]: ");
-            in.aPrime = sc.nextDouble();
-            System.out.print("b' — расстояние от оси пролётного строения до отвеса (м) [например: 0,1]: ");
-            in.bPrime = sc.nextDouble();
-            System.out.print("b'₀ — ширина колеи по внутр. граням головок рельсов (м) [например: 1.52]: ");
-            in.b0Prime = sc.nextDouble();
+            in.aPrime = readDouble(sc, "a' — расстояние между внутр. гранью головки рельса и отвесом (м) [например, 0,85]: ");
+            in.bPrime = readDouble(sc, "b' — расстояние от оси пролётного строения до отвеса (м) [например, 0,1]: ");
+            in.b0Prime = readDouble(sc, "b'₀ — ширина колеи по внутр. граням головок рельсов (м) [например, 1,52]: ");
         }
 
         if (choice == 2 || choice == 4) {
             System.out.println("\n--- 15.4. ПРОЧНОСТЬ БЕТОНА (ф. 15.2) ---");
-            System.out.print("Число измерений n [например: 3]: ");
-            int n = sc.nextInt();
+            int n = readInt(sc, "Число измерений n [например, 3]: ");
             in.concreteStrengths = new double[n];
             for (int i = 0; i < n; i++) {
-                System.out.printf("  R%d (МПа) [например: +-23]: ", i + 1);
-                in.concreteStrengths[i] = sc.nextDouble();
+                in.concreteStrengths[i] = readDouble(sc, String.format("  R%d (МПа) [например, 23]: ", i + 1));
             }
         }
 
         if (choice == 3 || choice == 4) {
             System.out.println("\n--- 15.5. ИСПЫТАНИЕ ПРОЛЁТНЫХ СТРОЕНИЙ (ф. 15.3) ---");
-            System.out.print("Число балок m [например: 2]: ");
-            int m = sc.nextInt();
+            int m = readInt(sc, "Число балок m [например, 2]: ");
             in.deflections = new double[m];
             in.inertias = new double[m];
             for (int i = 0; i < m; i++) {
                 System.out.printf("\n  Балка %d:%n", i + 1);
-                System.out.printf("    Прогиб f%d (мм, с учётом осадки опор) [например: +-12]: ", i + 1);
-                in.deflections[i] = sc.nextDouble();
-                System.out.printf("    Момент инерции I%d (м⁴, без арматуры) [например: 0,045]: ", i + 1);
-                in.inertias[i] = sc.nextDouble();
+                in.deflections[i] = readDouble(sc, String.format("    Прогиб f%d (мм, с учётом осадки опор) [например, 12]: ", i + 1));
+                in.inertias[i] = readDouble(sc, String.format("    Момент инерции I%d (м⁴, без арматуры) [например, 0,045]: ", i + 1));
             }
-            System.out.print("\nИндекс балки для расчёта ε_M (1.." + m + "): ");
-            in.targetBeamIndex = sc.nextInt() - 1;
+            in.targetBeamIndex = readInt(sc, String.format("\nИндекс балки для расчёта ε_M (1..%d): ", m)) - 1;
         }
 
-        // Расчёт и вывод
         InspectionOutput out = InspectionCalculator.calculateAndReport(in);
 
-        // Сохранение результатов в контекст для использования в других разделах
         if (choice == 1 || choice == 4) {
-            // Обновляем смещение оси пути в контексте (используется в разделах 6, 7, 8)
             ctx.trackOffsetLeft = out.trackOffset;
             ctx.trackOffsetRight = out.trackOffset;
             System.out.printf("\n[!] Смещение оси пути l = %.4f м сохранено в контекст.%n", out.trackOffset);
         }
         if (choice == 2 || choice == 4) {
-            // Обновляем фактическую прочность бетона (используется в разделе 5 и далее)
             ctx.concreteStrengthR = out.avgConcreteStrength;
-            System.out.printf("[!] Средняя прочность бетона R = %.2f МПа сохранена в контекст.%n",
-                out.avgConcreteStrength);
+            System.out.printf("[!] Средняя прочность бетона R = %.2f МПа сохранена в контекст.%n", out.avgConcreteStrength);
             System.out.println("[!] Рекомендуется пересчитать характеристики материалов (пункт 1 меню).");
         }
         if (choice == 3 || choice == 4) {
-            // Сохраняем уточнённую долю нагрузки (используется в разделах 7, 8, 9)
             ctx.epsilonM_Beam1 = out.epsilonM;
-            System.out.printf("[!] Уточнённая доля нагрузки ε_M = %.4f сохранена в контекст.%n",
-                out.epsilonM);
-            System.out.println("[!] Рекомендуется пересчитать главную балку (пункт 8 меню).");
+            System.out.printf("[!] Уточнённая доля нагрузки ε_M = %.4f сохранена в контекст.%n", out.epsilonM);
+            System.out.println("[!] Рекомендуется пересчитать главную балку (пункт 7 или 10 меню).");
         }
     }
 }
