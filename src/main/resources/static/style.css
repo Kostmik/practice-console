@@ -1,0 +1,412 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* ШАПКА */
+.header {
+  background: #2c3e50;
+  color: white;
+  padding: 1.5rem 2rem 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.header h1 { font-size: 1.6rem; }
+
+.nav { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.nav button {
+  background: #34495e;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.nav button:hover { background: #4a6278; }
+.nav button.active { background: #3498db; font-weight: bold; }
+
+/* ПАСПОРТ СВЕРХУ - ВСЕ 10 МЕТРИК В ОДНУ СТРОКУ */
+.passport-compact {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.passport-title {
+  font-weight: bold;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  color: #ecf0f1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.passport-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.5rem 0.8rem;
+}
+
+.passport-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.passport-label {
+  color: #bdc3c7;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.passport-value {
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-edit-passport {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-edit-passport:hover {
+  background: #2980b9;
+}
+
+/* ОСНОВНОЙ КОНТЕНТ */
+.main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.section-title {
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.description { margin-bottom: 2rem; color: #666; font-size: 1.1rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border-color: #3498db;
+}
+
+.card h3 { color: #2c3e50; margin-bottom: 0.5rem; }
+.card p { color: #666; font-size: 0.95rem; }
+
+/* ФОРМЫ - ВСЕ НА ВСЮ ШИРИНУ */
+.form-container {
+  width: 100%;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.form-container-full {
+  width: 100%;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.form-group { margin-bottom: 1.2rem; }
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.2s;
+}
+
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-create {
+  background: #3498db;
+  color: white;
+  width: 100%;
+  font-weight: bold;
+}
+
+.btn-create:hover:not(:disabled) { background: #2980b9; }
+
+.btn-archive {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-half { width: auto; flex: 1; }
+
+/* РЕЗУЛЬТАТЫ */
+.result-box {
+  background: #e8f4f8;
+  border-left: 4px solid #3498db;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.result-box h3 { margin-bottom: 1rem; color: #2c3e50; }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.result-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.result-item .label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 0.3rem; }
+.result-item .value { font-size: 1.3rem; font-weight: bold; color: #2c3e50; }
+
+.error {
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  border-left: 4px solid #c33;
+}
+
+.warning {
+  background: #fff8e1;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #ffc107;
+}
+
+/* МОДАЛКА */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  min-width: 400px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* АДАПТИВ */
+@media (max-width: 1200px) {
+  .passport-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .header-top { flex-direction: column; align-items: flex-start; }
+  .nav { width: 100%; }
+  .main { padding: 1rem; }
+  .section { padding: 1rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-row-3 { grid-template-columns: 1fr; }
+  .passport-grid { grid-template-columns: repeat(2, 1fr); }
+  .btn-edit-passport { position: static; margin-top: 1rem; width: 100%; }
+}
+
+/* КНОПКА ПОДРОБНОГО РАСЧЁТА */
+.btn-toggle-report {
+  margin-top: 1.5rem;
+  background: #34495e;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+  width: auto;
+}
+
+.btn-toggle-report:hover {
+  background: #2c3e50;
+}
+
+/* КНОПКА ПОДРОБНОГО РАСЧЁТА */
+.btn-toggle-report {
+  margin-top: 1.5rem;
+  background: white;
+  color: #3498db;
+  padding: 0.8rem 1.5rem;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: auto;
+}
+
+.btn-toggle-report:hover {
+  background: #3498db;
+  color: white;
+}
+
+/* БЛОК ПОДРОБНОГО ОТЧЁТА - В СТИЛЕ САЙТА */
+.detailed-report {
+  margin-top: 1.5rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #333;
+  max-height: 600px;
+  overflow-y: auto;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+}
+
+/* Секции расчёта */
+.detailed-report .report-section {
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detailed-report .report-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Заголовки секций [1. ...], [2. ...] */
+.detailed-report .report-section-title {
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid #3498db;
+}
+
+/* Строки формул и пояснений */
+.detailed-report .report-line {
+  margin: 0.3rem 0;
+  padding-left: 1.5rem;
+  color: #555;
+}
+
+/* Выделяем строки с "Принимаем", "Так как", "Пересчет" */
+.detailed-report .report-line:has(+ .report-line) {
+  /* просто отступ */
+}

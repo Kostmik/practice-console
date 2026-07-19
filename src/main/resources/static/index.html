@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор грузоподъёмности ж/б мостов (РЖД 249/р)</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+    <!-- ШАПКА С ПАСПОРТОМ -->
+    <header class="header">
+        <div class="header-top">
+            <h1>🌉 Калькулятор грузоподъёмности ж/б мостов</h1>
+            <nav class="nav">
+                <button @click="page='home'" :class="{active: page==='home'}">Главная</button>
+                <button @click="page='materials'" :class="{active: page==='materials'}">5. Материалы</button>
+                <button @click="page='loads'" :class="{active: page==='loads'}">6. Нагрузки</button>
+                <button @click="page='slab'" :class="{active: page==='slab'}">7. Плита</button>
+                <button @click="page='beam'" :class="{active: page==='beam'}">7. Балка</button>
+            </nav>
+        </div>
+
+        <!-- КОМПАКТНЫЙ ПАСПОРТ СВЕРХУ (10 метрик в одну строку) -->
+        <div v-if="isPassportFilled" class="passport-compact">
+            <div class="passport-title">📋 Паспорт объекта</div>
+            <div class="passport-grid">
+                <div class="passport-item">
+                    <span class="passport-label">Пролёт l:</span>
+                    <span class="passport-value">{{ bridgeData.spanLength }} м</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Балласт hb:</span>
+                    <span class="passport-value">{{ bridgeData.ballastThickness }} м</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Путь:</span>
+                    <span class="passport-value">{{ trackTypeName }}</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Шпалы:</span>
+                    <span class="passport-value">{{ sleeperTypeName }}</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Бетон R:</span>
+                    <span class="passport-value">{{ bridgeData.concreteStrengthR }} МПа</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Арматура:</span>
+                    <span class="passport-value">{{ rebarTypeName }}</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Балок m:</span>
+                    <span class="passport-value">{{ bridgeData.mBeams }}</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Между балками c:</span>
+                    <span class="passport-value">{{ bridgeData.distanceBetweenBeams }} м</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Год норм:</span>
+                    <span class="passport-value">{{ bridgeData.designYear }}</span>
+                </div>
+                <div class="passport-item">
+                    <span class="passport-label">Нагрузка:</span>
+                    <span class="passport-value">{{ bridgeData.loadType }}</span>
+                </div>
+            </div>
+            <button @click="showPassportForm = true" class="btn-edit-passport">✏️ Изменить паспорт</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- ГЛАВНАЯ СТРАНИЦА: ФОРМА ПАСПОРТА -->
+        <section v-if="page==='home'" class="section">
+            <h2 class="section-title">Паспорт объекта</h2>
+            <p class="description">
+                Заполните основные характеристики моста. Эти данные будут автоматически использоваться во всех разделах расчёта.
+            </p>
+
+            <div class="form-container-full">
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Расчётный пролёт l (м):</label>
+                        <input v-model.number="bridgeData.spanLength" type="number" step="0.1" placeholder="10.8">
+                    </div>
+                    <div class="form-group">
+                        <label>Толщина балласта hb (м):</label>
+                        <input v-model.number="bridgeData.ballastThickness" type="number" step="0.01" placeholder="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>Тип пути:</label>
+                        <select v-model.number="bridgeData.trackType">
+                            <option :value="1">Звеньевой</option>
+                            <option :value="2">Бесстыковой</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Тип шпал:</label>
+                        <select v-model.number="bridgeData.sleeperType">
+                            <option :value="1">Железобетонные</option>
+                            <option :value="2">Деревянные</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Прочность бетона R (МПа):</label>
+                        <input v-model.number="bridgeData.concreteStrengthR" type="number" step="0.1" placeholder="23.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Расстояние между балками c (м):</label>
+                        <input v-model.number="bridgeData.distanceBetweenBeams" type="number" step="0.1" placeholder="1.8">
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Смещение пути e1 (м):</label>
+                        <input v-model.number="bridgeData.trackOffsetLeft" type="number" step="0.01" placeholder="0.2">
+                    </div>
+                    <div class="form-group">
+                        <label>Смещение пути e2 (м):</label>
+                        <input v-model.number="bridgeData.trackOffsetRight" type="number" step="0.01" placeholder="0.2">
+                    </div>
+                    <div class="form-group">
+                        <label>Количество главных балок m:</label>
+                        <input v-model.number="bridgeData.mBeams" type="number" step="1" min="1" placeholder="2">
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Тип рабочей арматуры:</label>
+                        <select v-model.number="bridgeData.rebarType">
+                            <option :value="1">Гладкая (А240)</option>
+                            <option :value="2">Периодического профиля (А400)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Год норм проектирования:</label>
+                        <input v-model.number="bridgeData.designYear" type="number" step="1" placeholder="1931">
+                    </div>
+                    <div class="form-group">
+                        <label>Тип расчётной нагрузки:</label>
+                        <select v-model="bridgeData.loadType">
+                            <option value="Н7">Н7</option>
+                            <option value="Н8">Н8</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button @click="savePassport" class="btn-create">💾 Сохранить паспорт</button>
+            </div>
+
+            <h2 class="section-title" style="margin-top: 2rem;">Разделы расчёта</h2>
+            <div class="grid">
+                <div class="card" @click="page='materials'">
+                    <h3>📊 Раздел 5</h3>
+                    <p>Характеристики материалов (бетон, арматура)</p>
+                </div>
+                <div class="card" @click="page='loads'">
+                    <h3>⚖️ Раздел 6</h3>
+                    <p>Постоянные нагрузки и динамический коэффициент</p>
+                </div>
+                <div class="card" @click="page='slab'">
+                    <h3>🔲 Раздел 7 (Плита)</h3>
+                    <p>Расчёт плиты балластного корыта на прочность и выносливость</p>
+                </div>
+                <div class="card" @click="page='beam'">
+                    <h3>🏗️ Раздел 7 (Балка)</h3>
+                    <p>Расчёт главной балки на прочность и выносливость</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- РАЗДЕЛ 5: МАТЕРИАЛЫ -->
+        <section v-if="page==='materials'" class="section">
+            <h2 class="section-title">Характеристики материалов (Раздел 5)</h2>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else class="form-container">
+                <p style="margin-bottom: 1rem; color: #666;">
+                    Данные о прочности бетона (R = {{ bridgeData.concreteStrengthR }} МПа) и типе арматуры ({{ rebarTypeName }})
+                    уже взяты из паспорта объекта. Нажмите кнопку для расчёта.
+                </p>
+                <button @click="calculateMaterials" :disabled="isLoading" class="btn-create">
+                    {{ isLoading ? 'Расчёт...' : 'Рассчитать характеристики' }}
+                </button>
+            </div>
+
+            <div v-if="materialsResult" class="result-box">
+                <h3>Результаты расчёта</h3>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="label">Rb (сжатие):</span>
+                        <span class="value">{{ materialsResult.Rb }} МПа</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Rbt (растяжение):</span>
+                        <span class="value">{{ materialsResult.Rbt }} МПа</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Eb (модуль упругости бетона):</span>
+                        <span class="value">{{ materialsResult.Eb }} МПа</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Rs (арматура):</span>
+                        <span class="value">{{ materialsResult.Rs }} МПа</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Es (модуль упругости арматуры):</span>
+                        <span class="value">{{ materialsResult.Es }} МПа</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">n' (отношение модулей):</span>
+                        <span class="value">{{ materialsResult.nPrime }}</span>
+                    </div>
+                </div>
+
+                <!-- КНОПКА ПОДРОБНОГО РАСЧЁТА -->
+                <button @click="toggleDetailedReport" class="btn-toggle-report">
+                    {{ showDetailedReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                </button>
+
+                <!-- БЛОК С ПОДРОБНЫМ ОТЧЁТОМ (стилизованный под сайт) -->
+                <div v-if="showDetailedReport" class="detailed-report" v-html="parseReport(materialsResult.detailedReport)"></div>
+            </div>
+
+            <div v-if="error" class="error">{{ error }}</div>
+        </section>
+
+        <!-- ЗАГОТОВКИ ДЛЯ ОСТАЛЬНЫХ РАЗДЕЛОВ -->
+        <section v-if="page==='loads'" class="section">
+            <h2 class="section-title">Постоянные нагрузки и коэффициенты (Раздел 6)</h2>
+            <p>Здесь будут формы для ввода геометрии моста, сбора нагрузок (п. 6.1-6.3) и расчёта динамического коэффициента (п. 6.4).</p>
+        </section>
+
+        <section v-if="page==='slab'" class="section">
+            <h2 class="section-title">Расчёт плиты балластного корыта (Раздел 7)</h2>
+            <p>Здесь будут формы для расчёта плиты на прочность (п. 7.2) и выносливость (п. 7.3.1).</p>
+        </section>
+
+        <section v-if="page==='beam'" class="section">
+            <h2 class="section-title">Расчёт главной балки (Раздел 7)</h2>
+            <p>Здесь будут формы для расчёта балки на момент, поперечную силу и выносливость.</p>
+        </section>
+    </main>
+
+    <!-- МОДАЛКА РЕДАКТИРОВАНИЯ ПАСПОРТА -->
+    <div v-if="showPassportForm" class="modal" @click.self="showPassportForm = false">
+        <div class="modal-content">
+            <h3>Редактирование паспорта объекта</h3>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Расчётный пролёт l (м):</label>
+                    <input v-model.number="bridgeData.spanLength" type="number" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Толщина балласта hb (м):</label>
+                    <input v-model.number="bridgeData.ballastThickness" type="number" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Тип пути:</label>
+                    <select v-model.number="bridgeData.trackType">
+                        <option :value="1">Звеньевой</option>
+                        <option :value="2">Бесстыковой</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Тип шпал:</label>
+                    <select v-model.number="bridgeData.sleeperType">
+                        <option :value="1">Железобетонные</option>
+                        <option :value="2">Деревянные</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Прочность бетона R (МПа):</label>
+                    <input v-model.number="bridgeData.concreteStrengthR" type="number" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Расстояние между балками c (м):</label>
+                    <input v-model.number="bridgeData.distanceBetweenBeams" type="number" step="0.1">
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Смещение пути e1 (м):</label>
+                    <input v-model.number="bridgeData.trackOffsetLeft" type="number" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Смещение пути e2 (м):</label>
+                    <input v-model.number="bridgeData.trackOffsetRight" type="number" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Количество главных балок m:</label>
+                    <input v-model.number="bridgeData.mBeams" type="number" step="1" min="1">
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Тип рабочей арматуры:</label>
+                    <select v-model.number="bridgeData.rebarType">
+                        <option :value="1">Гладкая (А240)</option>
+                        <option :value="2">Периодического профиля (А400)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Год норм проектирования:</label>
+                    <input v-model.number="bridgeData.designYear" type="number" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Тип расчётной нагрузки:</label>
+                    <select v-model="bridgeData.loadType">
+                        <option value="Н7">Н7</option>
+                        <option value="Н8">Н8</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button @click="savePassport" class="btn-create btn-half">Сохранить</button>
+                <button @click="showPassportForm = false" class="btn-archive btn-half">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
