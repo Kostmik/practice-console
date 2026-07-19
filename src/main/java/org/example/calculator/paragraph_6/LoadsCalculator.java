@@ -36,7 +36,7 @@ public class LoadsCalculator {
         calculateBeamLoads(ctx, vConcrete, pDevices, sBallast, mBeams);
 
         System.out.println("============================================================");
-        System.out.println(" СБОР ПОСТОЯННЫХ НАГРУЗОК [п. 6.1 - 6.3]");
+        //System.out.println(" СБОР ПОСТОЯННЫХ НАГРУЗОК [п. 6.1 - 6.3]");
         System.out.println("============================================================");
 
         System.out.println("\n[1. Удельные веса материалов (п. 6.1)]");
@@ -116,7 +116,7 @@ public class LoadsCalculator {
         double hb = ctx.ballastThickness;
 
         System.out.println("============================================================");
-        System.out.printf(" РАСЧЁТ ДИНАМИЧЕСКОГО КОЭФФИЦИЕНТА (1+μ) [п. 6.4]%n");
+        //System.out.printf(" РАСЧЁТ ДИНАМИЧЕСКОГО КОЭФФИЦИЕНТА (1+μ) [п. 6.4]%n");
         System.out.printf(" Элемент: %s%n", elementName);
         System.out.println("============================================================");
 
@@ -202,7 +202,7 @@ public class LoadsCalculator {
         }
 
         double result = useMaxCoefficient ? (1.0 + mu0 / 20.0) : (1.0 + mu0 / (20.0 + lambda));
-        System.out.printf("%n>>> ИТОГОВЫЙ КОЭФФИЦИЕНТ: 1+μ = %.3f%n", result);
+        System.out.printf("%nИТОГОВЫЙ КОЭФФИЦИЕНТ: 1+μ = %.3f%n", result);
         System.out.println("============================================================\n");
     }
 }

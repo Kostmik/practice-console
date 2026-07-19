@@ -87,8 +87,8 @@ public class ShareCalculator {
      * Вывод подробного отчета
      */
     public static void printReport(BridgeContext ctx, double xRatio, boolean isMonolithic) {
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ ДОЛЕЙ ВРЕМЕННОЙ НАГРУЗКИ [п. 6." + (isMonolithic ? "6" : "7") + "]");
+        //System.out.println("============================================================");
+        //System.out.println(" РАСЧЕТ ДОЛЕЙ ВРЕМЕННОЙ НАГРУЗКИ [п. 6." + (isMonolithic ? "6" : "7") + "]");
         System.out.printf(" Тип: %s пролетное строение%n", isMonolithic ? "Монолитное" : "Сборное");
         System.out.println("============================================================");
 

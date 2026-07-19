@@ -24,8 +24,6 @@ body {
   margin-bottom: 1rem;
 }
 
-.header h1 { font-size: 1.6rem; }
-
 .nav { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
 .nav button {
@@ -409,4 +407,33 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 /* Выделяем строки с "Принимаем", "Так как", "Пересчет" */
 .detailed-report .report-line:has(+ .report-line) {
   /* просто отступ */
+}
+
+/* Кнопка текущего раздела */
+.btn-nav-current {
+  background: #3498db !important;
+  color: white;
+  font-weight: bold;
+  cursor: default;
+  padding: 0.6rem 1.5rem;
+  min-width: 160px;
+  text-align: center;
+}
+
+/* Стрелки навигации */
+.btn-nav-arrow {
+  background: #34495e;
+  color: white;
+  font-size: 1.1rem;
+  padding: 0.6rem 0.9rem;
+  line-height: 1;
+}
+
+.btn-nav-arrow:hover:not(:disabled) {
+  background: #4a6278;
+}
+
+.btn-nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }

@@ -12,5 +12,6 @@ public record PermanentLoadsResponse(
 
         Double np,                          // Коэффициент надёжности для ж/б
         Double npPrime,                     // Коэффициент надёжности для балласта
-        Double nk                           // Коэффициент надёжности для временной нагрузки
+        Double nk,                          // Коэффициент надёжности для временной нагрузки
+        String detailedReport
 ) {}

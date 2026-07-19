@@ -12,17 +12,42 @@
     <!-- ШАПКА С ПАСПОРТОМ -->
     <header class="header">
         <div class="header-top">
-            <h1>🌉 Калькулятор грузоподъёмности ж/б мостов</h1>
+            <!-- Логотип слева -->
+            <img src="https://www.vniizht.ru/upload/uf/422/8nsuwop8elsys3x53socoda91mitz92k/Logo_title_wagon_letters_30s_fixed.svg" alt="Логотип ВНИИЖТ" class="header-logo">
+
+            <h1 class="header-title-text">Калькулятор грузоподъёмности ж/б мостов</h1>
+
+            <!-- Меню справа -->
             <nav class="nav">
-                <button @click="page='home'" :class="{active: page==='home'}">Главная</button>
-                <button @click="page='materials'" :class="{active: page==='materials'}">5. Материалы</button>
-                <button @click="page='loads'" :class="{active: page==='loads'}">6. Нагрузки</button>
-                <button @click="page='slab'" :class="{active: page==='slab'}">7. Плита</button>
-                <button @click="page='beam'" :class="{active: page==='beam'}">7. Балка</button>
+                <!-- Кнопка "Главная" -->
+                <button @click="page='home'" :class="{active: page==='home'}">🏠 Главная</button>
+
+                <!-- Стрелка влево -->
+                <button v-if="page !== 'home'"
+                        @click="goToPrevSection"
+                        :disabled="!hasPrevSection"
+                        class="btn-nav-arrow"
+                        title="Предыдущий раздел">
+                    ◀
+                </button>
+
+                <!-- Название текущего раздела -->
+                <button v-if="page !== 'home'" class="btn-nav-current">
+                    {{ currentSectionTitle }}
+                </button>
+
+                <!-- Стрелка вправо -->
+                <button v-if="page !== 'home'"
+                        @click="goToNextSection"
+                        :disabled="!hasNextSection"
+                        class="btn-nav-arrow"
+                        title="Следующий раздел">
+                    ▶
+                </button>
             </nav>
         </div>
 
-        <!-- КОМПАКТНЫЙ ПАСПОРТ СВЕРХУ (10 метрик в одну строку) -->
+        <!-- КОМПАКТНЫЙ ПАСПОРТ СВЕРХУ (10 метрик) -->
         <div v-if="isPassportFilled" class="passport-compact">
             <div class="passport-title">📋 Паспорт объекта</div>
             <div class="passport-grid">
@@ -199,27 +224,27 @@
                 <div class="result-grid">
                     <div class="result-item">
                         <span class="label">Rb (сжатие):</span>
-                        <span class="value">{{ materialsResult.Rb }} МПа</span>
+                        <span class="value">{{ formatNum(materialsResult.Rb, 2) }} МПа</span>
                     </div>
                     <div class="result-item">
                         <span class="label">Rbt (растяжение):</span>
-                        <span class="value">{{ materialsResult.Rbt }} МПа</span>
+                        <span class="value">{{ formatNum(materialsResult.Rbt, 2) }} МПа</span>
                     </div>
                     <div class="result-item">
-                        <span class="label">Eb (модуль упругости бетона):</span>
-                        <span class="value">{{ materialsResult.Eb }} МПа</span>
+                        <span class="label">Eb (модуль упругости):</span>
+                        <span class="value">{{ formatNum(materialsResult.Eb, 0) }} МПа</span>
                     </div>
                     <div class="result-item">
                         <span class="label">Rs (арматура):</span>
-                        <span class="value">{{ materialsResult.Rs }} МПа</span>
+                        <span class="value">{{ formatNum(materialsResult.Rs, 0) }} МПа</span>
                     </div>
                     <div class="result-item">
-                        <span class="label">Es (модуль упругости арматуры):</span>
-                        <span class="value">{{ materialsResult.Es }} МПа</span>
+                        <span class="label">Es (модуль упругости):</span>
+                        <span class="value">{{ formatNum(materialsResult.Es, 0) }} МПа</span>
                     </div>
                     <div class="result-item">
                         <span class="label">n' (отношение модулей):</span>
-                        <span class="value">{{ materialsResult.nPrime }}</span>
+                        <span class="value">{{ formatNum(materialsResult.nPrime, 2) }}</span>
                     </div>
                 </div>
 
@@ -228,19 +253,248 @@
                     {{ showDetailedReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                 </button>
 
-                <!-- БЛОК С ПОДРОБНЫМ ОТЧЁТОМ (стилизованный под сайт) -->
+                <!-- БЛОК С ПОДРОБНЫМ ОТЧЁТОМ -->
                 <div v-if="showDetailedReport" class="detailed-report" v-html="parseReport(materialsResult.detailedReport)"></div>
             </div>
 
             <div v-if="error" class="error">{{ error }}</div>
         </section>
 
-        <!-- ЗАГОТОВКИ ДЛЯ ОСТАЛЬНЫХ РАЗДЕЛОВ -->
+        <!-- РАЗДЕЛ 6: НАГРУЗКИ (ПОЛНОЦЕННЫЙ) -->
         <section v-if="page==='loads'" class="section">
-            <h2 class="section-title">Постоянные нагрузки и коэффициенты (Раздел 6)</h2>
-            <p>Здесь будут формы для ввода геометрии моста, сбора нагрузок (п. 6.1-6.3) и расчёта динамического коэффициента (п. 6.4).</p>
+            <h2 class="section-title">Раздел 6: Нагрузки и коэффициенты</h2>
+            <p class="description">
+                Расчёт постоянных нагрузок, динамического коэффициента и долей временной нагрузки.
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else>
+                <!-- 6.1 - 6.3 ПОСТОЯННЫЕ НАГРУЗКИ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    6.1 - 6.3. Постоянные нагрузки
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Толщина плиты h_slab (м):</label>
+                            <input v-model.number="loadsPermForm.hSlab" type="number" step="0.01" placeholder="0.26">
+                        </div>
+                        <div class="form-group">
+                            <label>Объём ж/б V_concrete (м³):</label>
+                            <input v-model.number="loadsPermForm.vConcrete" type="number" step="0.1" placeholder="30.6">
+                        </div>
+                        <div class="form-group">
+                            <label>Вес обустройств P_devices (кН):</label>
+                            <input v-model.number="loadsPermForm.pDevices" type="number" step="0.1" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Площадь балласта S_ballast (м²):</label>
+                            <input v-model.number="loadsPermForm.sBallast" type="number" step="0.01" placeholder="2.06">
+                        </div>
+                        <div class="form-group">
+                            <label>Количество балок m:</label>
+                            <input v-model.number="loadsPermForm.mBeams" type="number" step="1" min="1" placeholder="2">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button @click="calculatePermanentLoads" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="loadsPermResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">γ ж/б:</span>
+                            <span class="value">{{ formatNum(loadsPermResult.gammaReinforcedConcrete, 2) }} кН/м³</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">γ балласта:</span>
+                            <span class="value">{{ formatNum(loadsPermResult.gammaBallastWithTrack, 2) }} кН/м³</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">pp (плита):</span>
+                            <span class="value">{{ formatNum(loadsPermResult.ppSlab, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">pb (плита):</span>
+                            <span class="value">{{ formatNum(loadsPermResult.pbSlab, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">pp (балка):</span>
+                            <span class="value">{{ formatNum(loadsPermResult.ppBeam, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">pb (балка):</span>
+                            <span class="value">{{ formatNum(loadsPermResult.pbBeam, 2) }} кН/м</span>
+                        </div>
+                    </div>
+                    <button @click="showPermReport = !showPermReport" class="btn-toggle-report">
+                        {{ showPermReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                    </button>
+                    <div v-if="showPermReport" class="detailed-report" v-html="parseReport(loadsPermResult.detailedReport)"></div>
+                </div>
+
+                <!-- 6.4 ДИНАМИЧЕСКИЙ КОЭФФИЦИЕНТ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    6.4. Динамический коэффициент (1+μ)
+                </h3>
+
+                <!-- Главная балка -->
+                <h4 style="margin: 1.5rem 0 0.8rem; color: #34495e; font-size: 1.05rem;">
+                    Для главной балки
+                </h4>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Длина загружения λ (м):</label>
+                            <input v-model.number="loadsDynBeamForm.lambda" type="number" step="0.1" placeholder="10.8">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end; grid-column: span 2;">
+                            <button @click="calculateDynamicCoeffBeam" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать для балки' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="loadsDynBeamResult" class="result-box">
+                    <h3>Результаты для главной балки</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Базовый μ₀:</span>
+                            <span class="value">{{ formatNum(loadsDynBeamResult.mu0, 1) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Длина λ:</span>
+                            <span class="value">{{ formatNum(loadsDynBeamResult.lambda, 1) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Итоговый (1+μ):</span>
+                            <span class="value">{{ formatNum(loadsDynBeamResult.dynamicCoeff, 3) }}</span>
+                        </div>
+                    </div>
+                    <button @click="showDynBeamReport = !showDynBeamReport" class="btn-toggle-report">
+                        {{ showDynBeamReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                    </button>
+                    <div v-if="showDynBeamReport" class="detailed-report" v-html="parseReport(loadsDynBeamResult.detailedReport)"></div>
+                </div>
+
+                <!-- Плита балластного корыта -->
+                <h4 style="margin: 1.5rem 0 0.8rem; color: #34495e; font-size: 1.05rem;">
+                    Для плиты балластного корыта
+                </h4>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Режим расчёта:</label>
+                            <select v-model="loadsDynSlabForm.useMaxCoefficient">
+                                <option :value="true">Максимальное значение (λ → 0)</option>
+                                <option :value="false">По формуле (с вводом λ)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Длина загружения λ (м):</label>
+                            <input v-model.number="loadsDynSlabForm.lambda" type="number" step="0.1" :disabled="loadsDynSlabForm.useMaxCoefficient" placeholder="2.0">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button @click="calculateDynamicCoeffSlab" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать для плиты' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="loadsDynSlabResult" class="result-box">
+                    <h3>Результаты для плиты</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Базовый μ₀:</span>
+                            <span class="value">{{ formatNum(loadsDynSlabResult.mu0, 1) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Длина λ:</span>
+                            <span class="value">{{ formatNum(loadsDynSlabResult.lambda, 1) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Итоговый (1+μ):</span>
+                            <span class="value">{{ formatNum(loadsDynSlabResult.dynamicCoeff, 3) }}</span>
+                        </div>
+                    </div>
+                    <button @click="showDynSlabReport = !showDynSlabReport" class="btn-toggle-report">
+                        {{ showDynSlabReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                    </button>
+                    <div v-if="showDynSlabReport" class="detailed-report" v-html="parseReport(loadsDynSlabResult.detailedReport)"></div>
+                </div>
+
+                <!-- 6.6 - 6.7 ДОЛИ ВРЕМЕННОЙ НАГРУЗКИ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    6.6 - 6.7. Доли временной нагрузки
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Тип пролётного строения:</label>
+                            <select v-model="loadsShareForm.isMonolithic">
+                                <option :value="true">Монолитное (п. 6.6)</option>
+                                <option :value="false">Сборное (п. 6.7)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Относительная координата x/l:</label>
+                            <input v-model.number="loadsShareForm.xRatio" type="number" step="0.1" min="0" max="1" placeholder="0.5">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button @click="calculateShare" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать доли' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="loadsShareResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+
+                    <h4 style="margin-bottom: 0.5rem; color: #2c3e50;">Балка 1 (левая)</h4>
+                    <div class="result-grid" style="margin-bottom: 1rem;">
+                        <div class="result-item">
+                            <span class="label">Доля по моменту εM:</span>
+                            <span class="value">{{ formatNum(loadsShareResult.epsilonM_Beam1, 3) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Доля по силе εQ:</span>
+                            <span class="value">{{ formatNum(loadsShareResult.epsilonQ_Beam1, 3) }}</span>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: 0.5rem; color: #2c3e50;">Балка 2 (правая)</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Доля по моменту εM:</span>
+                            <span class="value">{{ formatNum(loadsShareResult.epsilonM_Beam2, 3) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Доля по силе εQ:</span>
+                            <span class="value">{{ formatNum(loadsShareResult.epsilonQ_Beam2, 3) }}</span>
+                        </div>
+                    </div>
+
+                    <button @click="showShareReport = !showShareReport" class="btn-toggle-report" style="margin-top: 1.5rem;">
+                        {{ showShareReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                    </button>
+                    <div v-if="showShareReport" class="detailed-report" v-html="parseReport(loadsShareResult.detailedReport)"></div>
+                </div>
+            </div>
         </section>
 
+        <!-- ЗАГОТОВКИ ДЛЯ ОСТАЛЬНЫХ РАЗДЕЛОВ -->
         <section v-if="page==='slab'" class="section">
             <h2 class="section-title">Расчёт плиты балластного корыта (Раздел 7)</h2>
             <p>Здесь будут формы для расчёта плиты на прочность (п. 7.2) и выносливость (п. 7.3.1).</p>
