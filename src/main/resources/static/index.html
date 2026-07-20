@@ -198,6 +198,10 @@
                     <h3>🏗️ Раздел 7 (Балка)</h3>
                     <p>Расчёт главной балки на прочность и выносливость</p>
                 </div>
+                <div class="card" @click="goToSection('strengthening')">
+                    <h3> Раздел 14</h3>
+                    <p>Рекомендации по усилению углеволокном</p>
+                </div>
             </div>
         </section>
 
@@ -645,6 +649,61 @@
             <h2 class="section-title">Расчёт главной балки (Раздел 7)</h2>
             <p>Здесь будут формы для расчёта балки на момент, поперечную силу и выносливость.</p>
         </section>
+
+        <!-- ============================================================ -->
+        <!-- РАЗДЕЛ 14: РЕКОМЕНДАЦИИ ПО УСИЛЕНИЮ                          -->
+        <!-- ============================================================ -->
+        <div v-if="page === 'strengthening'" class="section">
+            <h2 class="section-title">🔧 Раздел 14: Усиление углеволокном</h2>
+            <p class="description">
+                Возможные схемы усиления главных балок композиционными материалами
+                на основе углеродного волокна (Руководство ОАО "РЖД" № 249/р, раздел 14).
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <!-- Таблица схем усиления -->
+            <div class="form-container-full">
+                <h3 style="margin-bottom: 1rem; color: #2c3e50;">Таблица 14.1 — Возможные схемы усиления</h3>
+                <p style="color: #666; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    Выбор схемы усиления зависит от требуемой степени повышения несущей способности.
+                </p>
+
+                <div style="overflow-x: auto;">
+                    <table class="schemes-table">
+                        <thead>
+                        <tr>
+                            <th style="width: 60px;">№</th>
+                            <th>Описание конструкции усиления</th>
+                            <th style="width: 180px;">Увеличение несущей способности</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="scheme in strengtheningSchemes" :key="scheme.number">
+                            <td style="text-align: center; font-weight: bold; color: #2c3e50;">
+                                {{ scheme.number }}
+                            </td>
+                            <td>{{ scheme.description }}</td>
+                            <td style="text-align: center;">
+                                <span class="percent-badge">+{{ formatNum(scheme.increasePercent, 0) }}%</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem; font-style: italic;">
+                    Примечание: Усиление выполняется согласно Руководству по усилению ж/б пролётных
+                    строений железнодорожных мостов системой внешнего армирования на основе углеродных
+                    волокон (Распоряжение ОАО "РЖД" от 19.12.2013 № 2805р).
+                </p>
+            </div>
+
+            <div v-if="error" class="error">{{ error }}</div>
+        </div>
+
     </main>
 
     <!-- МОДАЛКА РЕДАКТИРОВАНИЯ ПАСПОРТА -->

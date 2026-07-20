@@ -437,3 +437,62 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* ============================================================ */
+/* ТАБЛИЦА СХЕМ УСИЛЕНИЯ (Раздел 14)                            */
+/* ============================================================ */
+.schemes-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 0.95rem;
+}
+
+.schemes-table thead {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+}
+
+.schemes-table th {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.schemes-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #ecf0f1;
+  color: #34495e;
+}
+
+.schemes-table tbody tr {
+  transition: background 0.2s;
+}
+
+.schemes-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.schemes-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Бейдж с процентом */
+.percent-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  background: #3498db;
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-width: 60px;
+  text-align: center;
+}

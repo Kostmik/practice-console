@@ -15,7 +15,8 @@ const app = createApp({
       { key: 'materials', title: '5. Материалы' },
       { key: 'loads', title: '6. Нагрузки' },
       { key: 'slab', title: '7. Плита' },
-      { key: 'beam', title: '7. Балка' }
+      { key: 'beam', title: '7. Балка' },
+      { key: 'strengthening', title: '14. Усиление' }
     ];
 
     const currentSectionIndex = computed(() => {
@@ -89,6 +90,7 @@ const app = createApp({
       localStorage.removeItem('slabStrengthResult');
       localStorage.removeItem('slabShearResult');
       localStorage.removeItem('slabFatigueResult');
+      localStorage.removeItem('strengtheningResult');
 
       materialsResult.value = null;
       loadsPermResult.value = null;
@@ -98,6 +100,7 @@ const app = createApp({
       slabStrengthResult.value = null;
       slabShearResult.value = null;
       slabFatigueResult.value = null;
+      strengtheningResult.value = null;
 
       showPassportForm.value = false;
       alert('✅ Паспорт обновлён!\n\nВнимание: предыдущие результаты расчётов автоматически сброшены.');
@@ -448,6 +451,24 @@ const app = createApp({
     }
 
     // ==========================================================
+    // 14. РАЗДЕЛ 14: УСИЛЕНИЕ КОМПОЗИЦИОННЫМИ МАТЕРИАЛАМИ
+    // ==========================================================
+    const strengtheningSchemes = ref([]);
+
+    async function loadStrengtheningSchemes() {
+      if (!isPassportFilled.value) return;
+
+      try {
+        const data = await api('/api/v1/carbonRecs/schemes');
+        if (data && data.schemes) {
+          strengtheningSchemes.value = data.schemes;
+        }
+      } catch (e) {
+        console.error('Ошибка загрузки схем усиления:', e);
+      }
+    }
+
+    // ==========================================================
     // 11. УТИЛИТЫ
     // ==========================================================
     function formatNum(val, digits = 2) {
@@ -499,6 +520,10 @@ const app = createApp({
 
       loadPassport();
 
+      if (isPassportFilled.value) {
+          loadStrengtheningSchemes();
+      }
+
       const safeParse = (key) => {
         try {
           const saved = localStorage.getItem(key);
@@ -517,6 +542,7 @@ const app = createApp({
       slabStrengthResult.value = safeParse('slabStrengthResult');
       slabShearResult.value = safeParse('slabShearResult');
       slabFatigueResult.value = safeParse('slabFatigueResult');
+      strengtheningResult.value = safeParse('strengtheningResult');
     });
 
     return {
@@ -544,6 +570,8 @@ const app = createApp({
       // Раздел 7: Поперечная сила и выносливость
       slabShearForm, slabShearResult, showSlabShearReport, calculateSlabShear, slabShearReadiness,
       slabFatigueResult, showSlabFatigueReport, calculateSlabFatigue, slabFatigueReadiness,
+      // Раздел 14
+      strengtheningSchemes, loadStrengtheningSchemes,
       // Утилиты
       formatNum
     };
