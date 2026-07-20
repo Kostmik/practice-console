@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Калькулятор грузоподъёмности ж/б мостов (РЖД 249/р)</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
             <!-- Меню справа -->
             <nav class="nav">
                 <!-- Кнопка "Главная" -->
-                <button @click="page='home'" :class="{active: page==='home'}">🏠 Главная</button>
+                <button @click="page='home'" :class="{active: page==='home'}">Главная</button>
 
                 <!-- Стрелка влево -->
                 <button v-if="page !== 'home'"
@@ -494,10 +494,151 @@
             </div>
         </section>
 
-        <!-- ЗАГОТОВКИ ДЛЯ ОСТАЛЬНЫХ РАЗДЕЛОВ -->
+        <!-- РАЗДЕЛ 7: ПЛИТА -->
         <section v-if="page==='slab'" class="section">
-            <h2 class="section-title">Расчёт плиты балластного корыта (Раздел 7)</h2>
-            <p>Здесь будут формы для расчёта плиты на прочность (п. 7.2) и выносливость (п. 7.3.1).</p>
+            <h2 class="section-title">Раздел 7: Расчёт плиты балластного корыта</h2>
+            <p class="description">
+                Расчёт плиты на прочность, поперечную силу и выносливость.
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else>
+                <!-- 7.2 ПЛИТА НА ПРОЧНОСТЬ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    7.2. Расчёт плиты на прочность
+                </h3>
+                <h4 style="margin: 1.5rem 0 0.8rem; color: #34495e; font-size: 1.05rem;">Геометрия и арматура</h4>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Высота плиты h (м):</label><input v-model.number="slabStrengthForm.slabHeight" type="number" step="0.01" placeholder="0.26"></div>
+                        <div class="form-group"><label>Расстояние до растянутой арматуры as (м):</label><input v-model.number="slabStrengthForm.asTensile" type="number" step="0.001" placeholder="0.026"></div>
+                        <div class="form-group"><label>Расстояние до сжатой арматуры as' (м):</label><input v-model.number="slabStrengthForm.asCompressive" type="number" step="0.001" placeholder="0.026"></div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Площадь растянутой арматуры As (м²):</label><input v-model.number="slabStrengthForm.asTensileArea" type="number" step="0.000001" placeholder="0.000905"></div>
+                        <div class="form-group"><label>Площадь сжатой арматуры As' (м²):</label><input v-model.number="slabStrengthForm.asCompressiveArea" type="number" step="0.000001" placeholder="0.000452"></div>
+                        <div class="form-group"><label>Расстояние между рёбрами lp (м):</label><input v-model.number="slabStrengthForm.lp" type="number" step="0.1" placeholder="1.2"></div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Расстояние между наружными гранями B (м):</label><input v-model.number="slabStrengthForm.B" type="number" step="0.1" placeholder="2.4"></div>
+                        <div class="form-group"><label>Длина шпалы ls (м):</label><input v-model.number="slabStrengthForm.ls" type="number" step="0.1" placeholder="2.7"></div>
+                        <div class="form-group"><label>Расстояние до левого борта l'b (м):</label><input v-model.number="slabStrengthForm.lbPrime" type="number" step="0.01" placeholder="1.05"></div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Расстояние до правого борта l''b (м):</label><input v-model.number="slabStrengthForm.lbDoubleprime" type="number" step="0.01" placeholder="1.05"></div>
+                        <div class="form-group"><label>Балласт под левым концом шпалы h'b (м):</label><input v-model.number="slabStrengthForm.hbPrime" type="number" step="0.01" placeholder="0.35"></div>
+                        <div class="form-group"><label>Балласт под правым концом шпалы h''b (м):</label><input v-model.number="slabStrengthForm.hbDoubleprime" type="number" step="0.01" placeholder="0.35"></div>
+                    </div>
+                </div>
+                <h4 style="margin: 1.5rem 0 0.8rem; color: #34495e; font-size: 1.05rem;">Моменты от постоянных нагрузок</h4>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Mp в монолитном участке (кН·м):</label><input v-model.number="slabStrengthForm.mpMonolithic" type="number" step="0.1" placeholder="0 (авто)"></div>
+                        <div class="form-group"><label>Mp во внешней консоли (кН·м):</label><input v-model.number="slabStrengthForm.mpExternalCantilever" type="number" step="0.1" placeholder="12.5"></div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div v-if="slabReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">⚠️ Не готовы: {{ slabReadiness.missing.join(', ') }}</div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">✅ Все зависимости рассчитаны</div>
+                            <button @click="calculateSlabStrength" :disabled="isLoading" class="btn-create">{{ isLoading ? 'Расчёт...' : 'Рассчитать плиту' }}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ВАЖНО: v-if="slabStrengthResult" защищает от null -->
+                <div v-if="slabStrengthResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+                    <div class="result-grid">
+                        <div class="result-item"><span class="label">Длина распределения l₀:</span><span class="value">{{ formatNum(slabStrengthResult.l0, 2) }} м</span></div>
+                        <div class="result-item"><span class="label">k (монолитный):</span><span class="value">{{ formatNum(slabStrengthResult.kMonolithic, 1) }} кН/м</span></div>
+                        <div class="result-item"><span class="label">K (монолитный):</span><span class="value">{{ formatNum(slabStrengthResult.KMonolithic, 2) }}</span></div>
+                        <div class="result-item"><span class="label">k (консоль):</span><span class="value">{{ formatNum(slabStrengthResult.kExternalCantilever, 1) }} кН/м</span></div>
+                        <div class="result-item"><span class="label">K (консоль):</span><span class="value">{{ formatNum(slabStrengthResult.KExternalCantilever, 2) }}</span></div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">Минимальный класс плиты:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(slabStrengthResult.minClass, 2) }}</span>
+                        </div>
+                    </div>
+                    <button @click="showSlabStrengthReport = !showSlabStrengthReport" class="btn-toggle-report">{{ showSlabStrengthReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}</button>
+                    <div v-if="showSlabStrengthReport" class="detailed-report" v-html="parseReport(slabStrengthResult.detailedReport)"></div>
+                </div>
+
+                <!-- 7.2.4 ПЛИТА ПО ПОПЕРЕЧНОЙ СИЛЕ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    7.2.4. Расчет плиты по поперечной силе
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Вес пог. м рельса с накладками P0 (кН/м):</label><input v-model.number="slabShearForm.P0" type="number" step="0.01" placeholder="0.65"></div>
+                        <div class="form-group"><label>Вес шпалы pt (кН/м):</label><input v-model.number="slabShearForm.pt" type="number" step="0.01" placeholder="0.25"></div>
+                        <div class="form-group"><label>Длина шпалы lt (м):</label><input v-model.number="slabShearForm.lt" type="number" step="0.1" placeholder="2.7"></div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Расстояние от оси пути до края консоли lk (м):</label><input v-model.number="slabShearForm.lk" type="number" step="0.01" placeholder="1.05"></div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div v-if="slabShearReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">⚠️ Не готовы: {{ slabShearReadiness.missing.join(', ') }}</div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">✅ Все зависимости рассчитаны</div>
+                            <button @click="calculateSlabShear" :disabled="isLoading" class="btn-create">{{ isLoading ? 'Расчёт...' : 'Рассчитать поперечную силу' }}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ВАЖНО: v-if="slabShearResult" защищает от null -->
+                <div v-if="slabShearResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+                    <div class="result-grid">
+                        <div class="result-item"><span class="label">k (монолитный):</span><span class="value">{{ formatNum(slabShearResult.kShearMonolithic, 1) }} кН/м</span></div>
+                        <div class="result-item"><span class="label">K (монолитный):</span><span class="value">{{ formatNum(slabShearResult.KShearMonolithic, 2) }}</span></div>
+                        <div class="result-item"><span class="label">k (консоль):</span><span class="value">{{ formatNum(slabShearResult.kShearExternal, 1) }} кН/м</span></div>
+                        <div class="result-item"><span class="label">K (консоль):</span><span class="value">{{ formatNum(slabShearResult.KShearExternal, 2) }}</span></div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">Мин. класс по поперечной силе:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(slabShearResult.minClass, 2) }}</span>
+                        </div>
+                    </div>
+                    <button @click="showSlabShearReport = !showSlabShearReport" class="btn-toggle-report">{{ showSlabShearReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}</button>
+                    <div v-if="showSlabShearReport" class="detailed-report" v-html="parseReport(slabShearResult.detailedReport)"></div>
+                </div>
+
+                <!-- 7.3.1 ПЛИТА НА ВЫНОСЛИВОСТЬ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    7.3.1. Расчет плиты на выносливость
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <p style="color: #666; font-size: 0.95rem;">
+                                Для расчета выносливости используются данные из раздела 7.2 (прочность) и материалов.
+                                Дополнительные геометрические параметры не требуются.
+                            </p>
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div v-if="slabFatigueReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">⚠️ Не готовы: {{ slabFatigueReadiness.missing.join(', ') }}</div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">✅ Все зависимости рассчитаны</div>
+                            <button @click="calculateSlabFatigue" :disabled="isLoading" class="btn-create">{{ isLoading ? 'Расчёт...' : 'Рассчитать на выносливость' }}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ВАЖНО: v-if="slabFatigueResult" защищает от null -->
+                <div v-if="slabFatigueResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+                    <div class="result-grid">
+                        <div class="result-item"><span class="label">k (бетон):</span><span class="value">{{ formatNum(slabFatigueResult.kFatigueConcrete, 1) }} кН/м</span></div>
+                        <div class="result-item"><span class="label">K (бетон):</span><span class="value">{{ formatNum(slabFatigueResult.KFatigueConcrete, 2) }}</span></div>
+                        <div class="result-item"><span class="label">k (арматура):</span><span class="value">{{ formatNum(slabFatigueResult.kFatigueRebar, 1) }} кН/м</span></div>
+                        <div class="result-item"><span class="label">K (арматура):</span><span class="value">{{ formatNum(slabFatigueResult.KFatigueRebar, 2) }}</span></div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">Мин. класс по выносливости:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(slabFatigueResult.minClass, 2) }}</span>
+                        </div>
+                    </div>
+                    <button @click="showSlabFatigueReport = !showSlabFatigueReport" class="btn-toggle-report">{{ showSlabFatigueReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}</button>
+                    <div v-if="showSlabFatigueReport" class="detailed-report" v-html="parseReport(slabFatigueResult.detailedReport)"></div>
+                </div>
+
+            </div>
         </section>
 
         <section v-if="page==='beam'" class="section">
