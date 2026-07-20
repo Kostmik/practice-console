@@ -106,9 +106,6 @@ public final class InspectionCalculator {
     }
 
     public static void printReport(InspectionInput in, InspectionOutput out) {
-        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
-        System.out.println("║   ОБСЛЕДОВАНИЕ И ИСПЫТАНИЕ ПРОЛЁТНЫХ СТРОЕНИЙ [Раздел 15]    ║");
-        System.out.println("╠══════════════════════════════════════════════════════════════╣");
 
         // 15.3
         System.out.println("\n[15.3. Определение смещения оси пути (ф. 15.1)]");
@@ -142,23 +139,19 @@ public final class InspectionCalculator {
             System.out.println("\n[15.5. Испытание пролётных строений (ф. 15.3)]");
             System.out.printf("   Число балок m = %d%n", in.deflections.length);
             System.out.printf("   Целевая балка (индекс %d):%n", in.targetBeamIndex);
-            System.out.println("   ┌──────┬────────────┬────────────┬──────────────┐");
-            System.out.println("   │ Балка│  Прогиб fᵢ │  Момент Iᵢ │   fᵢ · Iᵢ    │");
-            System.out.println("   │      │    (мм)    │    (м⁴)    │              │");
-            System.out.println("   ├──────┼────────────┼────────────┼──────────────┤");
+
             for (int i = 0; i < in.deflections.length; i++) {
-                String marker = (i == in.targetBeamIndex) ? " ◄──" : "";
-                System.out.printf("   │  %3d │ %10.3f │ %10.6f │ %12.6f │%s%n",
+                String marker = (i == in.targetBeamIndex) ? " <---" : "";
+                System.out.printf("   │ # %3d │ fᵢ = %10.3f │ Iᵢ = %10.6f │ fᵢ·Iᵢ = %12.6f │%s%n",
                     i + 1, in.deflections[i], in.inertias[i],
                     in.deflections[i] * in.inertias[i], marker);
             }
-            System.out.println("   └──────┴────────────┴────────────┴──────────────┘");
-            System.out.printf("   Σ(f·Iᵢ) = %.6f%n", out.sumFiIi);
+
+            System.out.printf("   Σ(fᵢ·Iᵢ) = %.6f%n", out.sumFiIi);
             System.out.printf("   f·I (балка %d) = %.6f%n", in.targetBeamIndex + 1, out.fTargetITarget);
-            System.out.printf("   >>> ε_M = (f·I) / Σ(f·Iᵢ) = %.4f%n", out.epsilonM);
+            System.out.printf("   >>> ε_M = (f·I) / Σ(fᵢ·Iᵢ) = %.4f%n", out.epsilonM);
         }
 
-        System.out.println("╚══════════════════════════════════════════════════════════════╝");
     }
 
     public static InspectionOutput calculateAndReport(InspectionInput in) {

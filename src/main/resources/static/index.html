@@ -202,6 +202,10 @@
                     <h3> Раздел 14</h3>
                     <p>Рекомендации по усилению углеволокном</p>
                 </div>
+                <div class="card" @click="goToSection('inspection')">
+                    <h3>🔍 Раздел 15</h3>
+                    <p>Обследование и испытание пролётных строений</p>
+                </div>
             </div>
         </section>
 
@@ -700,6 +704,145 @@
                     волокон (Распоряжение ОАО "РЖД" от 19.12.2013 № 2805р).
                 </p>
             </div>
+
+            <div v-if="error" class="error">{{ error }}</div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- РАЗДЕЛ 15: ОБСЛЕДОВАНИЕ И ИСПЫТАНИЕ                          -->
+        <!-- ============================================================ -->
+        <div v-if="page === 'inspection'" class="section">
+            <h2 class="section-title">🔍 Раздел 15: Обследование и испытание</h2>
+            <p class="description">
+                Расчёт параметров на основе данных натурных замеров и испытаний пролётного строения.
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <!-- Форма ввода данных -->
+            <div class="form-container">
+                <h3 style="margin-bottom: 1rem; color: #2c3e50;">📐 15.3 - Смещение оси пути</h3>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>a' (м):</label>
+                        <input type="number" v-model.number="inspectionForm.aPrime" step="0.001" placeholder="0.150">
+                    </div>
+                    <div class="form-group">
+                        <label>b' (м):</label>
+                        <input type="number" v-model.number="inspectionForm.bPrime" step="0.001" placeholder="0.100">
+                    </div>
+                    <div class="form-group">
+                        <label>b'₀ (м):</label>
+                        <input type="number" v-model.number="inspectionForm.b0Prime" step="0.001" placeholder="1.520">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <h3 style="margin-bottom: 1rem; color: #2c3e50;">🧪 15.4 - Прочность бетона</h3>
+                <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                    Введите единичные значения прочности бетона через запятую (МПа):
+                </p>
+                <div class="form-group">
+                    <input type="text" v-model="inspectionForm.concreteStrengthInput"
+                           placeholder="Например: 23.5, 24.1, 22.8, 23.9">
+                </div>
+            </div>
+
+            <div class="form-container">
+                <h3 style="margin-bottom: 1rem; color: #2c3e50;">📊 15.5 - Испытание пролётных строений (ф. 15.3)</h3>
+                <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                    Введите прогибы и моменты инерции для <strong>всех {{ bridgeData.mBeams }} балок</strong> через запятую.
+                </p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Прогибы f (мм):</label>
+                        <input type="text" v-model="inspectionForm.deflectionsInput"
+                               :placeholder="bridgeData.mBeams === 2 ? '5.2, 4.8' : '5.2'">
+                    </div>
+                    <div class="form-group">
+                        <label>Моменты инерции I (м⁴):</label>
+                        <input type="text" v-model="inspectionForm.momentsInput"
+                               :placeholder="bridgeData.mBeams === 2 ? '0.125, 0.125' : '0.125'">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Индекс целевой балки (от 0 до {{ bridgeData.mBeams - 1 }}):</label>
+                    <input type="number" v-model.number="inspectionForm.targetBeamIndex"
+                           min="0" :max="bridgeData.mBeams - 1" step="1" placeholder="0">
+                </div>
+            </div>
+
+            <button class="btn-create" @click="calculateInspection" :disabled="isLoading">
+                {{ isLoading ? 'Расчёт...' : 'Рассчитать' }}
+            </button>
+
+            <!-- Результаты -->
+            <div v-if="inspectionResult" style="margin-top: 2rem;">
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">📋 Результаты расчёта</h3>
+
+                <div class="result-box" style="margin-bottom: 1rem;">
+                    <h4>15.3 - Смещение оси пути</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Смещение e</span>
+                            <span class="value">{{ formatNum(inspectionResult.trackOffset, 3) }} м</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-box" style="margin-bottom: 1rem;">
+                    <h4>15.4 - Прочность бетона</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Средняя прочность R̄</span>
+                            <span class="value">{{ formatNum(inspectionResult.avgConcreteStrength, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Количество измерений</span>
+                            <span class="value">{{ inspectionResult.numberOfMeasurements }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <h4>15.5 - Испытание пролётных строений</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Число балок m</span>
+                            <span class="value">{{ inspectionResult.totalBeams }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Целевая балка</span>
+                            <span class="value">№{{ inspectionResult.targetBeamIndex + 1 }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">f·I (целевая балка)</span>
+                            <span class="value">{{ formatNum(inspectionResult.fTargetITarget, 6) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Σ(fᵢ·Iᵢ)</span>
+                            <span class="value">{{ formatNum(inspectionResult.sumFiIi, 6) }}</span>
+                        </div>
+                        <div class="result-item" style="grid-column: 1 / -1;">
+                            <span class="label">Доля временной нагрузки ε_M</span>
+                            <span class="value" style="color: #27ae60; font-size: 1.5rem;">{{ formatNum(inspectionResult.epsilonM, 4) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Подробный отчёт -->
+            <button v-if="inspectionResult?.detailedReport"
+                    class="btn-toggle-report"
+                    @click="showInspectionReport = !showInspectionReport">
+                {{ showInspectionReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+            </button>
+            <div v-if="showInspectionReport && inspectionResult?.detailedReport"
+                 class="detailed-report"
+                 v-html="parseReport(inspectionResult.detailedReport)"></div>
 
             <div v-if="error" class="error">{{ error }}</div>
         </div>

@@ -16,7 +16,8 @@ const app = createApp({
       { key: 'loads', title: '6. Нагрузки' },
       { key: 'slab', title: '7. Плита' },
       { key: 'beam', title: '7. Балка' },
-      { key: 'strengthening', title: '14. Усиление' }
+      { key: 'strengthening', title: '14. Усиление' },
+      { key: 'inspection', title: '15. Обследование' }
     ];
 
     const currentSectionIndex = computed(() => {
@@ -33,14 +34,24 @@ const app = createApp({
     const hasNextSection = computed(() => currentSectionIndex.value < sections.length - 1);
 
     function goToPrevSection() {
-      if (hasPrevSection.value) page.value = sections[currentSectionIndex.value - 1].key;
+      if (hasPrevSection.value) {
+          error.value = '';
+          isLoading.value = false;
+          page.value = sections[currentSectionIndex.value - 1].key;
+      }
     }
 
     function goToNextSection() {
-      if (hasNextSection.value) page.value = sections[currentSectionIndex.value + 1].key;
+      if (hasNextSection.value) {
+        error.value = '';
+        isLoading.value = false;
+        page.value = sections[currentSectionIndex.value + 1].key;
+      }
     }
 
     function goToSection(key) {
+      error.value = '';
+      isLoading.value = false;
       page.value = key;
     }
 
@@ -91,6 +102,7 @@ const app = createApp({
       localStorage.removeItem('slabShearResult');
       localStorage.removeItem('slabFatigueResult');
       localStorage.removeItem('strengtheningResult');
+      localStorage.removeItem('inspectionResult');
 
       materialsResult.value = null;
       loadsPermResult.value = null;
@@ -101,6 +113,7 @@ const app = createApp({
       slabShearResult.value = null;
       slabFatigueResult.value = null;
       strengtheningResult.value = null;
+      inspectionResult.value = null;
 
       showPassportForm.value = false;
       alert('✅ Паспорт обновлён!\n\nВнимание: предыдущие результаты расчётов автоматически сброшены.');
@@ -469,6 +482,92 @@ const app = createApp({
     }
 
     // ==========================================================
+    // 15. РАЗДЕЛ 15: ОБСЛЕДОВАНИЕ И ИСПЫТАНИЕ
+    // ==========================================================
+    const inspectionForm = reactive({
+      aPrime: null,
+      bPrime: null,
+      b0Prime: null,
+      concreteStrengthInput: '',
+      deflectionsInput: '',
+      momentsInput: '',
+      targetBeamIndex: 0
+    });
+    const inspectionResult = ref(null);
+    const showInspectionReport = ref(false);
+
+    async function calculateInspection() {
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт объекта';
+        return;
+      }
+
+      // Парсинг массивов из строк
+      const parseArray = (str) => {
+        return str.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+      };
+
+      const concreteStrengths = parseArray(inspectionForm.concreteStrengthInput);
+      const deflections = parseArray(inspectionForm.deflectionsInput);
+      const inertias = parseArray(inspectionForm.momentsInput);
+
+      // Валидация
+      if (inspectionForm.aPrime === null || inspectionForm.bPrime === null || inspectionForm.b0Prime === null) {
+        error.value = 'Заполните все поля для формулы 15.3';
+        return;
+      }
+      if (concreteStrengths.length === 0) {
+        error.value = 'Введите хотя бы одно измерение прочности бетона';
+        return;
+      }
+
+      // ВАЖНО: количество балок берётся из паспорта
+      const mBeams = bridgeData.mBeams;
+
+      if (deflections.length !== mBeams) {
+        error.value = `Количество прогибов должно быть равно числу балок (${mBeams}). Введите ${mBeams} значений через запятую.`;
+        return;
+      }
+      if (inertias.length !== mBeams) {
+        error.value = `Количество моментов инерции должно быть равно числу балок (${mBeams}). Введите ${mBeams} значений через запятую.`;
+        return;
+      }
+      if (inspectionForm.targetBeamIndex < 0 || inspectionForm.targetBeamIndex >= mBeams) {
+        error.value = `Индекс целевой балки должен быть от 0 до ${mBeams - 1}`;
+        return;
+      }
+
+      isLoading.value = true;
+      error.value = '';
+      inspectionResult.value = null;
+      showInspectionReport.value = false;
+
+      try {
+        const data = await api('/api/v1/inspection/calculate', {
+          method: 'POST',
+          body: JSON.stringify({
+            aPrime: inspectionForm.aPrime,
+            bPrime: inspectionForm.bPrime,
+            b0Prime: inspectionForm.b0Prime,
+            concreteStrengths: concreteStrengths,
+            deflections: deflections,
+            inertias: inertias,
+            targetBeamIndex: inspectionForm.targetBeamIndex
+          })
+        });
+
+        if (data) {
+          inspectionResult.value = data;
+          localStorage.setItem('inspectionResult', JSON.stringify(data));
+        }
+      } catch (e) {
+        error.value = e.message;
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    // ==========================================================
     // 11. УТИЛИТЫ
     // ==========================================================
     function formatNum(val, digits = 2) {
@@ -543,6 +642,7 @@ const app = createApp({
       slabShearResult.value = safeParse('slabShearResult');
       slabFatigueResult.value = safeParse('slabFatigueResult');
       strengtheningResult.value = safeParse('strengtheningResult');
+      inspectionResult.value = safeParse('inspectionResult');
     });
 
     return {
@@ -572,6 +672,8 @@ const app = createApp({
       slabFatigueResult, showSlabFatigueReport, calculateSlabFatigue, slabFatigueReadiness,
       // Раздел 14
       strengtheningSchemes, loadStrengtheningSchemes,
+      // Раздел 15
+      inspectionForm, inspectionResult, showInspectionReport, calculateInspection,
       // Утилиты
       formatNum
     };
