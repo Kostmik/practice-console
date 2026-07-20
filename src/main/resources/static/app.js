@@ -464,20 +464,18 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 14. РАЗДЕЛ 14: УСИЛЕНИЕ КОМПОЗИЦИОННЫМИ МАТЕРИАЛАМИ
+    // 14. РАЗДЕЛ 14: УСИЛЕНИЕ УГЛЕВОЛОКНОМ (ТАБЛИЦА)
     // ==========================================================
     const strengtheningSchemes = ref([]);
 
     async function loadStrengtheningSchemes() {
-      if (!isPassportFilled.value) return;
-
       try {
         const data = await api('/api/v1/carbonRecs/schemes');
-        if (data && data.schemes) {
-          strengtheningSchemes.value = data.schemes;
+        if (data) {
+          strengtheningSchemes.value = data;
         }
       } catch (e) {
-        console.error('Ошибка загрузки схем усиления:', e);
+        error.value = e.message;
       }
     }
 

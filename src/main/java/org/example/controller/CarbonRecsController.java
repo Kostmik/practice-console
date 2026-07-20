@@ -1,7 +1,7 @@
 package org.example.controller;
 
-import org.example.calculator.paragraph_14.CarbonRecommendationTables.StrengtheningScheme;
-import org.example.dto.carbonRecs.CarbonRecsResponse;
+import org.example.calculator.paragraph_14.CarbonRecsTables.StrengtheningScheme;
+import org.example.dto.carbonRecs.SchemeDto;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -13,16 +13,13 @@ import java.util.List;
 public class CarbonRecsController {
 
     @GetMapping("/schemes")
-    public CarbonRecsResponse getSchemes() {
-        StrengtheningScheme[] allSchemes = StrengtheningScheme.values();
-        List<CarbonRecsResponse.SchemeDto> schemes = Arrays.stream(allSchemes)
-            .map(s -> new CarbonRecsResponse.SchemeDto(
-                s.ordinal() + 1,
-                s.getDescription().trim(),
-                s.getIncreasePercent()
+    public List<SchemeDto> getSchemes() {
+        return Arrays.stream(StrengtheningScheme.values())
+            .map(scheme -> new SchemeDto(
+                scheme.ordinal() + 1,
+                scheme.getDescription().trim(),
+                scheme.getIncreasePercent()
             ))
             .toList();
-
-        return new CarbonRecsResponse(schemes, null, null);
     }
 }
