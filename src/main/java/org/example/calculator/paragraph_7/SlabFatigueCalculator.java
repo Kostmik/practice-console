@@ -18,9 +18,6 @@ public class SlabFatigueCalculator {
     private static final double[] EPS_S_RIBBED_POINTS = {0.67, 0.70, 0.74, 0.81, 0.83, 0.87, 0.94, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
     public static void calculateAndPrintReport(BridgeContext ctx) {
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ ПЛИТЫ БАЛЛАСТНОГО КОРЫТА НА ВЫНОСЛИВОСТЬ [п. 7.3.1]");
-        System.out.println("============================================================");
 
         double b = 1.0; // Расчетная ширина плиты, м
         double h0 = ctx.slabHeight - ctx.as_tensile;
@@ -192,12 +189,11 @@ public class SlabFatigueCalculator {
         // ИТОГ
         // =====================================================================
         System.out.println("\n============================================================");
-        System.out.println(" ИТОГОВЫЙ РЕЗУЛЬТАТ ПО ВЫНОСЛИВОСТИ ПЛИТЫ");
         System.out.println("============================================================");
         System.out.printf("   Класс по выносливости бетона:    K = %.2f%n", ctx.K_fatigue_slab_concrete);
         System.out.printf("   Класс по выносливости арматуры:  K = %.2f%n", ctx.K_fatigue_slab_rebar);
         double minK_fatigue = Math.min(ctx.K_fatigue_slab_concrete, ctx.K_fatigue_slab_rebar);
-        System.out.printf("   >>> МИНИМАЛЬНЫЙ КЛАСС ПО ВЫНОСЛИВОСТИ: K = %.2f <<<%n", minK_fatigue);
+        System.out.printf("   МИНИМАЛЬНЫЙ КЛАСС ПО ВЫНОСЛИВОСТИ: K = %.2f%n", minK_fatigue);
         System.out.println("============================================================\n");
     }
 

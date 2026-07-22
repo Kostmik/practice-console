@@ -1,74 +1,74 @@
 package org.example.controller;
 
 import org.example.calculator.paragraph_15.InspectionCalculator;
-import org.example.calculator.paragraph_15.InspectionInput;
-import org.example.calculator.paragraph_15.InspectionOutput;
-import org.example.dto.inspection.InspectionRequest;
-import org.example.dto.inspection.InspectionResponse;
+import org.example.dto.inspection.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/inspection")
 @CrossOrigin(origins = "*")
 public class InspectionController {
 
-    @PostMapping("/calculate")
-    public InspectionResponse calculate(@RequestBody InspectionRequest request) {
-        // 1. Маппим DTO в InspectionInput
-        InspectionInput input = new InspectionInput();
-        input.aPrime = request.aPrime();
-        input.bPrime = request.bPrime();
-        input.b0Prime = request.b0Prime();
-        input.concreteStrengths = request.concreteStrengths().stream()
-            .mapToDouble(Double::doubleValue).toArray();
-        input.deflections = request.deflections().stream()
-            .mapToDouble(Double::doubleValue).toArray();
-        input.inertias = request.inertias().stream()
-            .mapToDouble(Double::doubleValue).toArray();
-        input.targetBeamIndex = request.targetBeamIndex();
+    @PostMapping("/153")
+    public ResponseEntity<Inspection153Response> calculate153(@RequestBody Inspection153Request request) {
+        double trackOffset = InspectionCalculator.calculateTrackOffset(request.aPrime(), request.bPrime(), request.b0Prime());
 
-        // 2. Перехватываем вывод отчёта
+        String report = captureReport(() -> {
+            InspectionCalculator.printReport153(request.aPrime(), request.bPrime(), request.b0Prime(), trackOffset);
+        });
+
+        return ResponseEntity.ok(new Inspection153Response(trackOffset, report));
+    }
+
+    @PostMapping("/154")
+    public ResponseEntity<Inspection154Response> calculate154(@RequestBody Inspection154Request request) {
+        double[] strengths = request.concreteStrengths().stream().mapToDouble(Double::doubleValue).toArray();
+        double avg = InspectionCalculator.calculateAvgConcreteStrength(strengths);
+
+        String report = captureReport(() -> {
+            InspectionCalculator.printReport154(strengths, avg);
+        });
+
+        return ResponseEntity.ok(new Inspection154Response(avg, strengths.length, report));
+    }
+
+    @PostMapping("/155")
+    public ResponseEntity<Inspection155Response> calculate155(@RequestBody Inspection155Request request) {
+        double[] deflections = request.deflections().stream().mapToDouble(Double::doubleValue).toArray();
+        double[] inertias = request.inertias().stream().mapToDouble(Double::doubleValue).toArray();
+
+        double[] res = InspectionCalculator.calculateShareByTest(deflections, inertias, request.targetBeamIndex());
+        // res[0] = epsilonM, res[1] = sumFiIi, res[2] = fTargetITarget
+
+        String report = captureReport(() -> {
+            InspectionCalculator.printReport155(deflections, inertias, request.targetBeamIndex(), res[1], res[2], res[0]);
+        });
+
+        return ResponseEntity.ok(new Inspection155Response(
+                deflections.length,
+                request.targetBeamIndex(),
+                res[2],
+                res[1],
+                res[0],
+                report
+        ));
+    }
+
+    // Вспомогательный метод для перехвата консоли (стандартный для проекта)
+    private String captureReport(Runnable reportGenerator) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream oldOut = System.out;
         System.setOut(new PrintStream(baos, true, StandardCharsets.UTF_8));
-
-        InspectionOutput output;
         try {
-            output = InspectionCalculator.calculateAndReport(input);
+            reportGenerator.run();
         } finally {
             System.setOut(oldOut);
         }
-
-        // 3. Формируем строки для таблицы
-        List<InspectionResponse.BeamDeflectionRow> beamRows = new ArrayList<>();
-        for (int i = 0; i < input.deflections.length; i++) {
-            beamRows.add(new InspectionResponse.BeamDeflectionRow(
-                i + 1,
-                input.deflections[i],
-                input.inertias[i],
-                input.deflections[i] * input.inertias[i],
-                i == input.targetBeamIndex
-            ));
-        }
-
-        // 4. Возвращаем результат
-        return new InspectionResponse(
-            output.trackOffset,
-            output.avgConcreteStrength,
-            output.numberOfMeasurements,
-            output.epsilonM,
-            output.sumFiIi,
-            output.fTargetITarget,
-            input.targetBeamIndex,
-            input.deflections.length,
-            beamRows,
-            baos.toString(StandardCharsets.UTF_8)
-        );
+        return baos.toString(StandardCharsets.UTF_8);
     }
 }

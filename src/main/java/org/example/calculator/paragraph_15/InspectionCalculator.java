@@ -54,7 +54,7 @@ public final class InspectionCalculator {
      * @param deflections массив прогибов балок fᵢ, мм (с учётом осадки опор)
      * @param inertias    массив моментов инерции бетонного сечения Iᵢ, м⁴
      * @param targetIndex индекс балки, для которой считается ε_M (0-based)
-     * @return ε_M — доля временной нагрузки
+     * @return массив [epsilonM, sumFiIi, fTargetITarget]
      */
     public static double[] calculateShareByTest(double[] deflections, double[] inertias, int targetIndex) {
         if (deflections == null || inertias == null) {
@@ -79,8 +79,68 @@ public final class InspectionCalculator {
     }
 
     // =====================================================================
-    // Сводный расчёт и отчёт
+    // НОВЫЕ МЕТОДЫ: Подробный текстовый отчёт с подстановкой чисел
     // =====================================================================
+
+    public static void printReport153(double aPrime, double bPrime, double b0Prime, double trackOffset) {
+        System.out.println("[15.3. Определение смещения оси пути (ф. 15.1)]");
+        System.out.println("Исходные данные:");
+        System.out.printf("  a'  = %.4f м (расстояние от внутр. грани головки рельса до отвеса)%n", aPrime);
+        System.out.printf("  b'  = %.4f м (расстояние от оси пролётного строения до отвеса)%n", bPrime);
+        System.out.printf("  b'₀ = %.4f м (ширина колеи по внутр. граням головок рельсов)%n", b0Prime);
+        System.out.println("Расчет:");
+        System.out.printf("  l = a' − b' − 0,5·b'₀ = %.4f − %.4f − 0,5·%.4f = %.4f м%n", aPrime, bPrime, b0Prime, trackOffset);
+        System.out.println("Результат:");
+        if (trackOffset > 0) {
+            System.out.println("  Смещение оси пути — в сторону балки 1.");
+        } else if (trackOffset < 0) {
+            System.out.println("  Смещение оси пути — в сторону балки 2.");
+        } else {
+            System.out.println("  Смещение оси пути отсутствует.");
+        }
+    }
+
+    public static void printReport154(double[] strengths, double avg) {
+        System.out.println("[15.4. Определение прочности бетона (ф. 15.2)]");
+        System.out.printf("  Число измерений: n = %d%n", strengths.length);
+
+        // Формируем строку для подстановки в формулу
+        StringBuilder sumStr = new StringBuilder();
+        for (int i = 0; i < strengths.length; i++) {
+            sumStr.append(String.format("%.1f", strengths[i]));
+            if (i < strengths.length - 1) {
+                sumStr.append(" + ");
+            }
+        }
+
+        System.out.printf("  Единичные значения Rᵢ (МПа): %s%n", sumStr.toString());
+        System.out.println("Расчет:");
+        System.out.printf("  R̄ = ΣRᵢ / n = (%s) / %d = %.2f МПа%n", sumStr.toString(), strengths.length, avg);
+    }
+
+    public static void printReport155(double[] deflections, double[] inertias, int targetIndex, double sum, double fTarget, double epsilon) {
+        System.out.println("[15.5. Испытание пролётных строений (ф. 15.3)]");
+        System.out.printf("  Число балок: m = %d%n", deflections.length);
+        System.out.printf("  Целевая балка для расчета: № %d (индекс %d)%n", targetIndex + 1, targetIndex);
+        System.out.println("Расчет произведений fᵢ·Iᵢ по каждой балке:");
+
+        for (int i = 0; i < deflections.length; i++) {
+            String marker = (i == targetIndex) ? "  <-- Целевая балка" : "";
+            System.out.printf("  Балка %d: %.3f · %.6f = %.6f%s%n",
+                    i + 1, deflections[i], inertias[i], deflections[i] * inertias[i], marker);
+        }
+
+        System.out.println("Суммирование и итоговый расчет:");
+        System.out.printf("  Σ(fᵢ·Iᵢ) = %.6f%n", sum);
+        System.out.printf("  f·I (целевая балка №%d) = %.6f%n", targetIndex + 1, fTarget);
+        System.out.println("Итоговый расчет доли временной нагрузки:");
+        System.out.printf("  ε_M = (f·I) / Σ(fᵢ·Iᵢ) = %.6f / %.6f = %.4f%n", fTarget, sum, epsilon);
+    }
+
+    // =====================================================================
+    // СТАРЫЕ МЕТОДЫ: Оставлены для обратной совместимости (если где-то используются)
+    // =====================================================================
+
     public static InspectionOutput calculate(InspectionInput in) {
         InspectionOutput out = new InspectionOutput();
 
@@ -95,7 +155,7 @@ public final class InspectionCalculator {
 
         // 15.5
         if (in.deflections != null && in.inertias != null
-            && in.deflections.length > 0 && in.inertias.length > 0) {
+                && in.deflections.length > 0 && in.inertias.length > 0) {
             double[] res = calculateShareByTest(in.deflections, in.inertias, in.targetBeamIndex);
             out.epsilonM = res[0];
             out.sumFiIi = res[1];
@@ -106,52 +166,15 @@ public final class InspectionCalculator {
     }
 
     public static void printReport(InspectionInput in, InspectionOutput out) {
+        printReport153(in.aPrime, in.bPrime, in.b0Prime, out.trackOffset);
 
-        // 15.3
-        System.out.println("\n[15.3. Определение смещения оси пути (ф. 15.1)]");
-        System.out.printf("   a'  = %.4f м (расст. внутр. грани головки рельса — отвес)%n", in.aPrime);
-        System.out.printf("   b'  = %.4f м (расст. оси пролётного строения — отвес)%n", in.bPrime);
-        System.out.printf("   b'₀ = %.4f м (ширина колеи по внутр. граням головок рельсов)%n", in.b0Prime);
-        System.out.printf("   >>> l = a' − b' − 0,5·b'₀ = %.4f м%n", out.trackOffset);
-        if (out.trackOffset > 0) {
-            System.out.println("   Смещение оси пути — в сторону балки 1.");
-        } else if (out.trackOffset < 0) {
-            System.out.println("   Смещение оси пути — в сторону балки 2.");
-        } else {
-            System.out.println("   Смещение оси пути отсутствует.");
-        }
-
-        // 15.4
         if (in.concreteStrengths != null && in.concreteStrengths.length > 0) {
-            System.out.println("\n[15.4. Определение прочности бетона (ф. 15.2)]");
-            System.out.printf("   Число измерений n = %d%n", out.numberOfMeasurements);
-            System.out.print("   Единичные значения Rᵢ (МПа): ");
-            for (int i = 0; i < in.concreteStrengths.length; i++) {
-                System.out.printf("%.1f", in.concreteStrengths[i]);
-                if (i < in.concreteStrengths.length - 1) System.out.print(", ");
-            }
-            System.out.println();
-            System.out.printf("   >>> R̄ = ΣRᵢ / n = %.2f МПа%n", out.avgConcreteStrength);
+            printReport154(in.concreteStrengths, out.avgConcreteStrength);
         }
 
-        // 15.5
         if (in.deflections != null && in.deflections.length > 0) {
-            System.out.println("\n[15.5. Испытание пролётных строений (ф. 15.3)]");
-            System.out.printf("   Число балок m = %d%n", in.deflections.length);
-            System.out.printf("   Целевая балка (индекс %d):%n", in.targetBeamIndex);
-
-            for (int i = 0; i < in.deflections.length; i++) {
-                String marker = (i == in.targetBeamIndex) ? " <---" : "";
-                System.out.printf("   │ # %3d │ fᵢ = %10.3f │ Iᵢ = %10.6f │ fᵢ·Iᵢ = %12.6f │%s%n",
-                    i + 1, in.deflections[i], in.inertias[i],
-                    in.deflections[i] * in.inertias[i], marker);
-            }
-
-            System.out.printf("   Σ(fᵢ·Iᵢ) = %.6f%n", out.sumFiIi);
-            System.out.printf("   f·I (балка %d) = %.6f%n", in.targetBeamIndex + 1, out.fTargetITarget);
-            System.out.printf("   >>> ε_M = (f·I) / Σ(fᵢ·Iᵢ) = %.4f%n", out.epsilonM);
+            printReport155(in.deflections, in.inertias, in.targetBeamIndex, out.sumFiIi, out.fTargetITarget, out.epsilonM);
         }
-
     }
 
     public static InspectionOutput calculateAndReport(InspectionInput in) {

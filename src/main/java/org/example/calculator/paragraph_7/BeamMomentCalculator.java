@@ -10,9 +10,6 @@ public class BeamMomentCalculator {
     private static final double[] KC_POINTS_ALPHA_05 = {49.03, 34.25, 26.73, 21.14, 18.99, 17.82, 17.06, 16.48, 16.02, 15.63, 15.28, 14.68, 14.16, 13.71, 13.30, 12.92, 12.12, 11.46};
 
     public static void calculateAndPrintReport(BridgeContext ctx) {
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ ГЛАВНОЙ БАЛКИ ПО ИЗГИБАЮЩЕМУ МОМЕНТУ [п. 7.2.5-7.2.6]");
-        System.out.println("============================================================");
 
         double Rb_kPa = ctx.Rb * 1000;
         double Rs_kPa = ctx.Rs * 1000;
@@ -107,9 +104,5 @@ public class BeamMomentCalculator {
         ctx.K_beam_moment = ctx.k_beam_moment / (ctx.kc_beam * mu_beam);
         System.out.printf("   КЛАСС БАЛКИ K = k / (kc·(1+μ)) = %.2f / (%.2f·%.3f) = %.2f (ф. 4.1)%n",
                 ctx.k_beam_moment, ctx.kc_beam, mu_beam, ctx.K_beam_moment);
-
-        System.out.println("\n============================================================");
-        System.out.println(" РАСЧЕТ ЗАВЕРШЕН");
-        System.out.println("============================================================\n");
     }
 }

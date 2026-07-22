@@ -5,9 +5,6 @@ import org.example.context.BridgeContext;
 public class SlabCalculator {
 
     public static void calculateAndPrintReport(BridgeContext ctx) {
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ ПЛИТЫ БАЛЛАСТНОГО КОРЫТА НА ПРОЧНОСТЬ [п. 7.2]");
-        System.out.println("============================================================");
 
         double b = 1.0; // Расчетная ширина плиты, м
 
@@ -157,12 +154,11 @@ public class SlabCalculator {
         // ИТОГ
         // =====================================================================
         System.out.println("\n============================================================");
-        System.out.println(" ИТОГОВЫЙ РЕЗУЛЬТАТ ПО ПЛИТЕ");
         System.out.println("============================================================");
         System.out.printf("   Класс монолитного участка (I-I):  K = %.2f%n", ctx.K_monolithic);
         System.out.printf("   Класс внешней консоли (III-III):  K = %.2f%n", ctx.K_external_cantilever);
         double minK = Math.min(ctx.K_monolithic, ctx.K_external_cantilever);
-        System.out.printf("   >>> МИНИМАЛЬНЫЙ КЛАСС ПЛИТЫ:      K = %.2f <<<%n", minK);
+        System.out.printf("   МИНИМАЛЬНЫЙ КЛАСС ПЛИТЫ:      K = %.2f%n", minK);
         System.out.println("============================================================\n");
     }
 

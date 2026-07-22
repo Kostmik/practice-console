@@ -472,19 +472,10 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   color: #34495e;
 }
 
-.schemes-table tbody tr {
-  transition: background 0.2s;
-}
+.schemes-table tbody tr { transition: background 0.2s; }
+.schemes-table tbody tr:hover { background: #f8f9fa; }
+.schemes-table tbody tr:last-child td { border-bottom: none; }
 
-.schemes-table tbody tr:hover {
-  background: #f8f9fa;
-}
-
-.schemes-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* Бейдж с процентом */
 .percent-badge {
   display: inline-block;
   padding: 0.3rem 0.8rem;
@@ -495,89 +486,4 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   font-size: 0.9rem;
   min-width: 60px;
   text-align: center;
-}
-
-.result-table {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  max-width: 600px;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-.result-table h4 {
-  margin: 0 0 1rem 0;
-  color: #2c3e50;
-  font-size: 1.1rem;
-  border-left: 4px solid #3498db;
-  padding-left: 0.75rem;
-}
-
-.info-row {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1rem;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-.calc-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.95rem;
-}
-
-.calc-table th {
-  background: #34495e;
-  color: white;
-  padding: 0.75rem;
-  text-align: center;
-  font-weight: 600;
-}
-
-.calc-table td {
-  padding: 0.6rem;
-  text-align: center;
-  border-bottom: 1px solid #ecf0f1;
-}
-
-.calc-table tbody tr.highlight {
-  background: #e8f4f8;
-  font-weight: 600;
-}
-
-.calc-table tfoot {
-  background: #f8f9fa;
-  font-weight: bold;
-}
-
-.calc-table tfoot td {
-  border-top: 2px solid #3498db;
-}
-
-.result-summary {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #ecf0f1;
-}
-
-.formula {
-  padding: 0.5rem 0;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-.formula.result {
-  background: #eafaf1;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border-left: 4px solid #27ae60;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.formula strong {
-  color: #2c3e50;
 }

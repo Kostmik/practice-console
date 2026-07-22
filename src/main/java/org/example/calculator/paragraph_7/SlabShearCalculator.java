@@ -8,9 +8,6 @@ public class SlabShearCalculator {
      * Расчет плиты балластного корыта по поперечной силе (п. 7.2.4)
      */
     public static void calculateAndPrintReport(BridgeContext ctx) {
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ ПЛИТЫ ПО ПОПЕРЕЧНОЙ СИЛЕ [п. 7.2.4]");
-        System.out.println("============================================================");
 
         double b = 1.0; // Расчетная ширина плиты, м
 
@@ -85,12 +82,11 @@ public class SlabShearCalculator {
         // ИТОГ
         // =====================================================================
         System.out.println("\n============================================================");
-        System.out.println(" ИТОГОВЫЙ РЕЗУЛЬТАТ ПО ПОПЕРЕЧНОЙ СИЛЕ");
         System.out.println("============================================================");
         System.out.printf("   Класс монолитного участка (II-II):  K = %.2f%n", ctx.K_shear_monolithic);
         System.out.printf("   Класс внешней консоли (III-III):    K = %.2f%n", ctx.K_shear_external);
         double minK = Math.min(ctx.K_shear_monolithic, ctx.K_shear_external);
-        System.out.printf("   >>> МИНИМАЛЬНЫЙ КЛАСС ПО ПОПЕРЕЧНОЙ СИЛЕ: K = %.2f <<<%n", minK);
+        System.out.printf("   МИНИМАЛЬНЫЙ КЛАСС ПО ПОПЕРЕЧНОЙ СИЛЕ: K = %.2f %n", minK);
         System.out.println("============================================================\n");
     }
 

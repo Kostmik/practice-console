@@ -1,4 +1,4 @@
-const { createApp, ref, reactive, computed, onMounted } = Vue;
+const { createApp, ref, reactive, computed, watch, onMounted } = Vue;
 
 const app = createApp({
   setup() {
@@ -35,9 +35,9 @@ const app = createApp({
 
     function goToPrevSection() {
       if (hasPrevSection.value) {
-          error.value = '';
-          isLoading.value = false;
-          page.value = sections[currentSectionIndex.value - 1].key;
+        error.value = '';
+        isLoading.value = false;
+        page.value = sections[currentSectionIndex.value - 1].key;
       }
     }
 
@@ -92,17 +92,13 @@ const app = createApp({
       }
       localStorage.setItem('bridgePassport', JSON.stringify(bridgeData));
 
-      // Очищаем устаревшие результаты при изменении паспорта
-      localStorage.removeItem('materialsResult');
-      localStorage.removeItem('loadsPermResult');
-      localStorage.removeItem('loadsDynBeamResult');
-      localStorage.removeItem('loadsDynSlabResult');
-      localStorage.removeItem('loadsShareResult');
-      localStorage.removeItem('slabStrengthResult');
-      localStorage.removeItem('slabShearResult');
-      localStorage.removeItem('slabFatigueResult');
-      localStorage.removeItem('strengtheningResult');
-      localStorage.removeItem('inspectionResult');
+      const keysToClear = [
+        'materialsResult', 'loadsPermResult', 'loadsDynBeamResult', 'loadsDynSlabResult',
+        'loadsShareResult', 'slabStrengthResult', 'slabShearResult', 'slabFatigueResult',
+        'beamMomentResult', 'beamShearResult', 'beamFatigueResult',
+        'inspection153Result', 'inspection154Result', 'inspection155Result'
+      ];
+      keysToClear.forEach(key => localStorage.removeItem(key));
 
       materialsResult.value = null;
       loadsPermResult.value = null;
@@ -112,8 +108,12 @@ const app = createApp({
       slabStrengthResult.value = null;
       slabShearResult.value = null;
       slabFatigueResult.value = null;
-      strengtheningResult.value = null;
-      inspectionResult.value = null;
+      beamMomentResult.value = null;
+      beamShearResult.value = null;
+      beamFatigueResult.value = null;
+      inspection153Result.value = null;
+      inspection154Result.value = null;
+      inspection155Result.value = null;
 
       showPassportForm.value = false;
       alert('✅ Паспорт обновлён!\n\nВнимание: предыдущие результаты расчётов автоматически сброшены.');
@@ -123,11 +123,25 @@ const app = createApp({
       try {
         const saved = localStorage.getItem('bridgePassport');
         if (saved) {
-          const data = JSON.parse(saved);
-          Object.assign(bridgeData, data);
+          Object.assign(bridgeData, {
+            spanLength: 10.8,
+            ballastThickness: 0.25,
+            trackType: 1,
+            sleeperType: 1,
+            concreteStrengthR: 23.0,
+            distanceBetweenBeams: 1.8,
+            trackOffsetLeft: 0.2,
+            trackOffsetRight: 0.2,
+            mBeams: 2,
+            rebarType: 1,
+            designYear: 1931,
+            loadType: 'Н7',
+            ...JSON.parse(saved)
+          });
         }
       } catch (e) {
         console.error('Ошибка загрузки паспорта:', e);
+        localStorage.removeItem('bridgePassport');
       }
     }
 
@@ -180,7 +194,10 @@ const app = createApp({
     const materialsResult = ref(null);
 
     async function calculateMaterials() {
-      if (!isPassportFilled.value) { error.value = 'Сначала заполните паспорт'; return; }
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
       materialsResult.value = null;
       showDetailedReport.value = false;
       const data = await api('/api/v1/materials/calculate', {
@@ -201,15 +218,19 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 5. РАЗДЕЛ 6.1-6.3: ПОСТОЯННЫЕ НАГРУЗКИ
+    // 5. РАЗДЕЛ 6: НАГРУЗКИ
     // ==========================================================
     const loadsPermForm = reactive({ hSlab: 0.26, vConcrete: 30.6, pDevices: 0, sBallast: 2.06, mBeams: 2 });
     const loadsPermResult = ref(null);
     const showPermReport = ref(false);
 
     async function calculatePermanentLoads() {
-      if (!isPassportFilled.value) { error.value = 'Сначала заполните паспорт'; return; }
-      loadsPermResult.value = null; showPermReport.value = false;
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
+      loadsPermResult.value = null;
+      showPermReport.value = false;
       const data = await api('/api/v1/loads/permanent', {
         method: 'POST',
         body: JSON.stringify({ commonData: getCommonData(), ...loadsPermForm })
@@ -220,20 +241,20 @@ const app = createApp({
       }
     }
 
-    // ==========================================================
-    // 6. РАЗДЕЛ 6.4: ДИНАМИЧЕСКИЙ КОЭФФИЦИЕНТ
-    // ==========================================================
     const loadsDynBeamForm = reactive({ lambda: 10.8 });
     const loadsDynSlabForm = reactive({ useMaxCoefficient: true, lambda: 2.0 });
-
     const loadsDynBeamResult = ref(null);
     const loadsDynSlabResult = ref(null);
     const showDynBeamReport = ref(false);
     const showDynSlabReport = ref(false);
 
     async function calculateDynamicCoeffBeam() {
-      if (!isPassportFilled.value) { error.value = 'Сначала заполните паспорт'; return; }
-      loadsDynBeamResult.value = null; showDynBeamReport.value = false;
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
+      loadsDynBeamResult.value = null;
+      showDynBeamReport.value = false;
       const data = await api('/api/v1/loads/dynamic-coeff', {
         method: 'POST',
         body: JSON.stringify({
@@ -250,8 +271,12 @@ const app = createApp({
     }
 
     async function calculateDynamicCoeffSlab() {
-      if (!isPassportFilled.value) { error.value = 'Сначала заполните паспорт'; return; }
-      loadsDynSlabResult.value = null; showDynSlabReport.value = false;
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
+      loadsDynSlabResult.value = null;
+      showDynSlabReport.value = false;
       const data = await api('/api/v1/loads/dynamic-coeff', {
         method: 'POST',
         body: JSON.stringify({
@@ -267,16 +292,17 @@ const app = createApp({
       }
     }
 
-    // ==========================================================
-    // 7. РАЗДЕЛ 6.6-6.7: ДОЛИ ВРЕМЕННОЙ НАГРУЗКИ
-    // ==========================================================
     const loadsShareForm = reactive({ isMonolithic: true, xRatio: 0.5 });
     const loadsShareResult = ref(null);
     const showShareReport = ref(false);
 
     async function calculateShare() {
-      if (!isPassportFilled.value) { error.value = 'Сначала заполните паспорт'; return; }
-      loadsShareResult.value = null; showShareReport.value = false;
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
+      loadsShareResult.value = null;
+      showShareReport.value = false;
       const data = await api('/api/v1/loads/share', {
         method: 'POST',
         body: JSON.stringify({ commonData: getCommonData(), ...loadsShareForm })
@@ -288,9 +314,9 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 8. РАЗДЕЛ 7: ПЛИТА НА ПРОЧНОСТЬ
+    // 6. РАЗДЕЛ 7: ПЛИТА (ОБЪЕДИНЁННАЯ ФОРМА, КАК У БАЛКИ)
     // ==========================================================
-    const slabStrengthForm = reactive({
+    const slabForm = reactive({
       slabHeight: 0.26,
       asTensile: 0.026,
       asCompressive: 0.026,
@@ -304,11 +330,19 @@ const app = createApp({
       hbPrime: 0.35,
       hbDoubleprime: 0.35,
       mpMonolithic: 0,
-      mpExternalCantilever: 12.5
+      mpExternalCantilever: 12.5,
+      P0: 0.65,
+      pt: 0.25,
+      lt: 2.7,
+      lk: 1.05
     });
 
     const slabStrengthResult = ref(null);
     const showSlabStrengthReport = ref(false);
+    const slabShearResult = ref(null);
+    const showSlabShearReport = ref(false);
+    const slabFatigueResult = ref(null);
+    const showSlabFatigueReport = ref(false);
 
     const slabReadiness = computed(() => {
       const missing = [];
@@ -318,30 +352,19 @@ const app = createApp({
       return { missing, ready: missing.length === 0 };
     });
 
-    async function calculateSlabStrength() {
-      if (!isPassportFilled.value) {
-        error.value = 'Сначала заполните паспорт объекта';
-        return;
-      }
-
-      // Проверка зависимостей
+    const slabFatigueReadiness = computed(() => {
       const missing = [];
-      if (!materialsResult.value) missing.push('• Раздел 5: Характеристики материалов');
-      if (!loadsPermResult.value) missing.push('• Раздел 6.1-6.3: Постоянные нагрузки');
-      if (!loadsDynSlabResult.value) missing.push('• Раздел 6.4: Динамический коэффициент для плиты');
+      if (!slabStrengthResult.value) missing.push('Прочность плиты');
+      return { missing, ready: missing.length === 0 };
+    });
 
-      if (missing.length > 0) {
-        alert(
-          '⚠️ Для расчёта плиты необходимо сначала выполнить:\n\n' +
-          missing.join('\n') +
-          '\n\nПожалуйста, перейдите в соответствующие разделы и выполните расчёты.'
-        );
+    async function calculateSlabStrength() {
+      if (!slabReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + slabReadiness.value.missing.join(', '));
         return;
       }
-
       slabStrengthResult.value = null;
       showSlabStrengthReport.value = false;
-
       const loadsForSlab = {
         gammaReinforcedConcrete: loadsPermResult.value.gammaReinforcedConcrete,
         gammaBallastWithTrack: loadsPermResult.value.gammaBallastWithTrack,
@@ -352,45 +375,28 @@ const app = createApp({
         nk: loadsPermResult.value.nk,
         dynamicCoeffSlab: loadsDynSlabResult.value.dynamicCoeff
       };
-
       const data = await api('/api/v1/slab/strength', {
         method: 'POST',
         body: JSON.stringify({
           commonData: getCommonData(),
           materials: materialsResult.value,
           loads: loadsForSlab,
-          ...slabStrengthForm
+          ...slabForm
         })
       });
-
       if (data) {
         slabStrengthResult.value = data;
         localStorage.setItem('slabStrengthResult', JSON.stringify(data));
       }
     }
 
-    // ==========================================================
-    // 9. РАЗДЕЛ 7.2.4: ПЛИТА ПО ПОПЕРЕЧНОЙ СИЛЕ
-    // ==========================================================
-    const slabShearForm = reactive({ P0: 0.65, pt: 0.25, lt: 2.7, lk: 1.05 });
-    const slabShearResult = ref(null);
-    const showSlabShearReport = ref(false);
-
-    const slabShearReadiness = computed(() => {
-      const missing = [];
-      if (!materialsResult.value) missing.push('Материалы');
-      if (!loadsPermResult.value) missing.push('Пост. нагрузки');
-      if (!loadsDynSlabResult.value) missing.push('Динамика');
-      return { missing, ready: missing.length === 0 };
-    });
-
     async function calculateSlabShear() {
-      if (!slabShearReadiness.value.ready) {
-        alert('⚠️ Сначала выполните расчеты: ' + slabShearReadiness.value.missing.join(', '));
+      if (!slabReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + slabReadiness.value.missing.join(', '));
         return;
       }
-      slabShearResult.value = null; showSlabShearReport.value = false;
-
+      slabShearResult.value = null;
+      showSlabShearReport.value = false;
       const loadsForSlab = {
         gammaReinforcedConcrete: loadsPermResult.value.gammaReinforcedConcrete,
         gammaBallastWithTrack: loadsPermResult.value.gammaBallastWithTrack,
@@ -401,15 +407,13 @@ const app = createApp({
         nk: loadsPermResult.value.nk,
         dynamicCoeffSlab: loadsDynSlabResult.value.dynamicCoeff
       };
-
       const data = await api('/api/v1/slab/shear', {
         method: 'POST',
         body: JSON.stringify({
           commonData: getCommonData(),
           materials: materialsResult.value,
           loads: loadsForSlab,
-          ...slabStrengthForm,   // ПЕРЕДАЁМ ГЕОМЕТРИЮ!
-          ...slabShearForm       // ПЕРЕДАЁМ СПЕЦИФИКУ ПОПЕРЕЧКИ
+          ...slabForm
         })
       });
       if (data) {
@@ -418,25 +422,13 @@ const app = createApp({
       }
     }
 
-    // ==========================================================
-    // 10. РАЗДЕЛ 7.3.1: ПЛИТА НА ВЫНОСЛИВОСТЬ
-    // ==========================================================
-    const slabFatigueResult = ref(null);
-    const showSlabFatigueReport = ref(false);
-
-    const slabFatigueReadiness = computed(() => {
-      const missing = [];
-      if (!slabStrengthResult.value) missing.push('Прочность плиты (7.2)');
-      return { missing, ready: missing.length === 0 };
-    });
-
     async function calculateSlabFatigue() {
       if (!slabFatigueReadiness.value.ready) {
-        alert('⚠️ Сначала выполните расчет плиты на прочность (7.2)');
+        alert('⚠️ Сначала выполните расчет плиты на прочность');
         return;
       }
-      slabFatigueResult.value = null; showSlabFatigueReport.value = false;
-
+      slabFatigueResult.value = null;
+      showSlabFatigueReport.value = false;
       const loadsForSlab = {
         gammaReinforcedConcrete: loadsPermResult.value.gammaReinforcedConcrete,
         gammaBallastWithTrack: loadsPermResult.value.gammaBallastWithTrack,
@@ -447,14 +439,13 @@ const app = createApp({
         nk: loadsPermResult.value.nk,
         dynamicCoeffSlab: loadsDynSlabResult.value.dynamicCoeff
       };
-
       const data = await api('/api/v1/slab/fatigue', {
         method: 'POST',
         body: JSON.stringify({
           commonData: getCommonData(),
           materials: materialsResult.value,
           loads: loadsForSlab,
-          ...slabStrengthForm    // ПЕРЕДАЁМ ГЕОМЕТРИЮ!
+          ...slabForm
         })
       });
       if (data) {
@@ -464,109 +455,255 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 14. РАЗДЕЛ 14: УСИЛЕНИЕ УГЛЕВОЛОКНОМ (ТАБЛИЦА)
+    // 7. РАЗДЕЛ 7: ГЛАВНАЯ БАЛКА
     // ==========================================================
-    const strengtheningSchemes = ref([]);
+    const beamForm = reactive({
+      beamHeight: 5,
+      beamWidth: 0.35,
+      bf: 2.4,
+      hf: 0.26,
+      asBeamTensile: 0.07,
+      asBeamCompressive: 0.05,
+      asBeamTensileArea: 0.003079,
+      asBeamCompressiveArea: 0.000942,
+      asw: 0.000201,
+      sStirrups: 0.15,
+      sumAsi: 0.001257,
+      alphaBent: 45,
+      omegaP: 14.58,
+      omegaK: 7.29
+    });
 
-    async function loadStrengtheningSchemes() {
-      try {
-        const data = await api('/api/v1/carbonRecs/schemes');
-        if (data) {
-          strengtheningSchemes.value = data;
-        }
-      } catch (e) {
-        error.value = e.message;
+    const beamMomentResult = ref(null);
+    const beamShearResult = ref(null);
+    const beamFatigueResult = ref(null);
+    const showBeamMomentReport = ref(false);
+    const showBeamShearReport = ref(false);
+    const showBeamFatigueReport = ref(false);
+
+    const beamReadiness = computed(() => {
+      const missing = [];
+      if (!materialsResult.value) missing.push('Материалы');
+      if (!loadsPermResult.value) missing.push('Пост. нагрузки');
+      if (!loadsDynBeamResult.value) missing.push('Динамика балки');
+      if (!loadsShareResult.value) missing.push('Доли нагрузки');
+      return { missing, ready: missing.length === 0 };
+    });
+
+    const beamFatigueReadiness = computed(() => {
+      const missing = [];
+      if (!beamMomentResult.value) missing.push('Момент балки');
+      return { missing, ready: missing.length === 0 };
+    });
+
+    function getBeamRequestData() {
+      return {
+        commonData: getCommonData(),
+        materials: materialsResult.value,
+        ppBeam: loadsPermResult.value ? loadsPermResult.value.ppBeam : null,
+        pbBeam: loadsPermResult.value ? loadsPermResult.value.pbBeam : null,
+        np: loadsPermResult.value ? loadsPermResult.value.np : null,
+        npPrime: loadsPermResult.value ? loadsPermResult.value.npPrime : null,
+        nk: loadsPermResult.value ? loadsPermResult.value.nk : null,
+        epsilonM: loadsShareResult.value ? loadsShareResult.value.epsilonM_Beam1 : null,
+        epsilonQ: loadsShareResult.value ? loadsShareResult.value.epsilonQ_Beam1 : null,
+        dynamicCoeffBeam: loadsDynBeamResult.value ? loadsDynBeamResult.value.dynamicCoeff : null,
+        ...beamForm
+      };
+    }
+
+    async function calculateBeamMoment() {
+      if (!beamReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + beamReadiness.value.missing.join(', '));
+        return;
+      }
+      beamMomentResult.value = null;
+      showBeamMomentReport.value = false;
+      const data = await api('/api/v1/beam/moment', {
+        method: 'POST',
+        body: JSON.stringify(getBeamRequestData())
+      });
+      if (data) {
+        beamMomentResult.value = data;
+        localStorage.setItem('beamMomentResult', JSON.stringify(data));
+      }
+    }
+
+    async function calculateBeamShear() {
+      if (!beamReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + beamReadiness.value.missing.join(', '));
+        return;
+      }
+      beamShearResult.value = null;
+      showBeamShearReport.value = false;
+      const data = await api('/api/v1/beam/shear', {
+        method: 'POST',
+        body: JSON.stringify(getBeamRequestData())
+      });
+      if (data) {
+        beamShearResult.value = data;
+        localStorage.setItem('beamShearResult', JSON.stringify(data));
+      }
+    }
+
+    async function calculateBeamFatigue() {
+      if (!beamFatigueReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчет балки по моменту');
+        return;
+      }
+      beamFatigueResult.value = null;
+      showBeamFatigueReport.value = false;
+      const data = await api('/api/v1/beam/fatigue', {
+        method: 'POST',
+        body: JSON.stringify(getBeamRequestData())
+      });
+      if (data) {
+        beamFatigueResult.value = data;
+        localStorage.setItem('beamFatigueResult', JSON.stringify(data));
       }
     }
 
     // ==========================================================
-    // 15. РАЗДЕЛ 15: ОБСЛЕДОВАНИЕ И ИСПЫТАНИЕ
+    // 8. РАЗДЕЛ 14: УСИЛЕНИЕ
     // ==========================================================
-    const inspectionForm = reactive({
-      aPrime: null,
-      bPrime: null,
-      b0Prime: null,
-      concreteStrengthInput: '',
-      deflectionsInput: '',
-      momentsInput: '',
+    const strengtheningSchemes = ref([
+      { number: 1, description: 'Холст на нижней грани', increasePercent: 3 },
+      { number: 2, description: 'То же, но с устройством пологих обойм', increasePercent: 5 },
+      { number: 3, description: 'То же, но с устройством вертикальных обойм', increasePercent: 7 },
+      { number: 4, description: 'Холст на нижней грани "до опор"', increasePercent: 7 },
+      { number: 5, description: 'U-образная обойма', increasePercent: 26 },
+      { number: 6, description: 'Ламель на нижней грани с устройством вертикальных обойм', increasePercent: 11 },
+      { number: 7, description: 'То же, но с устройством дополнительных обойм', increasePercent: 22 }
+    ]);
+
+    // ==========================================================
+    // 9. РАЗДЕЛ 15: ОБСЛЕДОВАНИЕ
+    // ==========================================================
+    const inspection153Form = reactive({
+      aPrime: 0.150,
+      bPrime: 0.100,
+      b0Prime: 1.520
+    });
+    const inspection153Result = ref(null);
+    const showInspection153Report = ref(false);
+
+    async function calculateInspection153() {
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
+      error.value = '';
+      inspection153Result.value = null;
+      showInspection153Report.value = false;
+      const data = await api('/api/v1/inspection/153', {
+        method: 'POST',
+        body: JSON.stringify({
+          aPrime: inspection153Form.aPrime,
+          bPrime: inspection153Form.bPrime,
+          b0Prime: inspection153Form.b0Prime
+        })
+      });
+      if (data) {
+        inspection153Result.value = data;
+        localStorage.setItem('inspection153Result', JSON.stringify(data));
+      }
+    }
+
+    const inspection154Form = reactive({
+      strengths: [23.5]
+    });
+    const inspection154Result = ref(null);
+    const showInspection154Report = ref(false);
+
+    function addStrength() {
+      inspection154Form.strengths.push(23.5);
+    }
+
+    function removeStrength(index) {
+      if (inspection154Form.strengths.length > 1) {
+        inspection154Form.strengths.splice(index, 1);
+      }
+    }
+
+    async function calculateInspection154() {
+      if (!isPassportFilled.value) {
+        error.value = 'Сначала заполните паспорт';
+        return;
+      }
+      error.value = '';
+      const validStrengths = inspection154Form.strengths
+        .map(s => parseFloat(s))
+        .filter(n => !isNaN(n) && n > 0);
+
+      if (validStrengths.length === 0) {
+        error.value = 'Введите хотя бы одно корректное значение';
+        return;
+      }
+
+      inspection154Result.value = null;
+      showInspection154Report.value = false;
+      const data = await api('/api/v1/inspection/154', {
+        method: 'POST',
+        body: JSON.stringify({ concreteStrengths: validStrengths })
+      });
+      if (data) {
+        inspection154Result.value = data;
+        localStorage.setItem('inspection154Result', JSON.stringify(data));
+      }
+    }
+
+    const inspection155Form = reactive({
+      deflections: [],
+      inertias: [],
       targetBeamIndex: 0
     });
-    const inspectionResult = ref(null);
-    const showInspectionReport = ref(false);
+    const inspection155Result = ref(null);
+    const showInspection155Report = ref(false);
 
-    async function calculateInspection() {
+    watch(() => bridgeData.mBeams, (newCount) => {
+      while (inspection155Form.deflections.length < newCount) {
+        inspection155Form.deflections.push(5.0);
+        inspection155Form.inertias.push(0.125);
+      }
+      inspection155Form.deflections.length = newCount;
+      inspection155Form.inertias.length = newCount;
+      if (inspection155Form.targetBeamIndex >= newCount) {
+        inspection155Form.targetBeamIndex = 0;
+      }
+    }, { immediate: true });
+
+    async function calculateInspection155() {
       if (!isPassportFilled.value) {
-        error.value = 'Сначала заполните паспорт объекта';
+        error.value = 'Сначала заполните паспорт';
         return;
       }
-
-      // Парсинг массивов из строк
-      const parseArray = (str) => {
-        return str.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-      };
-
-      const concreteStrengths = parseArray(inspectionForm.concreteStrengthInput);
-      const deflections = parseArray(inspectionForm.deflectionsInput);
-      const inertias = parseArray(inspectionForm.momentsInput);
-
-      // Валидация
-      if (inspectionForm.aPrime === null || inspectionForm.bPrime === null || inspectionForm.b0Prime === null) {
-        error.value = 'Заполните все поля для формулы 15.3';
-        return;
-      }
-      if (concreteStrengths.length === 0) {
-        error.value = 'Введите хотя бы одно измерение прочности бетона';
-        return;
-      }
-
-      // ВАЖНО: количество балок берётся из паспорта
-      const mBeams = bridgeData.mBeams;
-
-      if (deflections.length !== mBeams) {
-        error.value = `Количество прогибов должно быть равно числу балок (${mBeams}). Введите ${mBeams} значений через запятую.`;
-        return;
-      }
-      if (inertias.length !== mBeams) {
-        error.value = `Количество моментов инерции должно быть равно числу балок (${mBeams}). Введите ${mBeams} значений через запятую.`;
-        return;
-      }
-      if (inspectionForm.targetBeamIndex < 0 || inspectionForm.targetBeamIndex >= mBeams) {
-        error.value = `Индекс целевой балки должен быть от 0 до ${mBeams - 1}`;
-        return;
-      }
-
-      isLoading.value = true;
       error.value = '';
-      inspectionResult.value = null;
-      showInspectionReport.value = false;
+      const validDeflections = inspection155Form.deflections.map(d => parseFloat(d)).filter(n => !isNaN(n));
+      const validInertias = inspection155Form.inertias.map(i => parseFloat(i)).filter(n => !isNaN(n));
 
-      try {
-        const data = await api('/api/v1/inspection/calculate', {
-          method: 'POST',
-          body: JSON.stringify({
-            aPrime: inspectionForm.aPrime,
-            bPrime: inspectionForm.bPrime,
-            b0Prime: inspectionForm.b0Prime,
-            concreteStrengths: concreteStrengths,
-            deflections: deflections,
-            inertias: inertias,
-            targetBeamIndex: inspectionForm.targetBeamIndex
-          })
-        });
+      if (validDeflections.length !== bridgeData.mBeams || validInertias.length !== bridgeData.mBeams) {
+        error.value = `Заполните все ${bridgeData.mBeams} полей`;
+        return;
+      }
 
-        if (data) {
-          inspectionResult.value = data;
-          localStorage.setItem('inspectionResult', JSON.stringify(data));
-        }
-      } catch (e) {
-        error.value = e.message;
-      } finally {
-        isLoading.value = false;
+      inspection155Result.value = null;
+      showInspection155Report.value = false;
+      const data = await api('/api/v1/inspection/155', {
+        method: 'POST',
+        body: JSON.stringify({
+          deflections: validDeflections,
+          inertias: validInertias,
+          targetBeamIndex: inspection155Form.targetBeamIndex
+        })
+      });
+      if (data) {
+        inspection155Result.value = data;
+        localStorage.setItem('inspection155Result', JSON.stringify(data));
       }
     }
 
     // ==========================================================
-    // 11. УТИЛИТЫ
+    // 10. УТИЛИТЫ
     // ==========================================================
     function formatNum(val, digits = 2) {
       if (val === null || val === undefined || val === '') return '—';
@@ -609,17 +746,12 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 12. ИНИЦИАЛИЗАЦИЯ И ВОЗВРАТ
+    // 11. ИНИЦИАЛИЗАЦИЯ И ВОЗВРАТ
     // ==========================================================
     onMounted(() => {
       showPassportForm.value = false;
       showDetailedReport.value = false;
-
       loadPassport();
-
-      if (isPassportFilled.value) {
-          loadStrengtheningSchemes();
-      }
 
       const safeParse = (key) => {
         try {
@@ -639,8 +771,12 @@ const app = createApp({
       slabStrengthResult.value = safeParse('slabStrengthResult');
       slabShearResult.value = safeParse('slabShearResult');
       slabFatigueResult.value = safeParse('slabFatigueResult');
-      strengtheningResult.value = safeParse('strengtheningResult');
-      inspectionResult.value = safeParse('inspectionResult');
+      beamMomentResult.value = safeParse('beamMomentResult');
+      beamShearResult.value = safeParse('beamShearResult');
+      beamFatigueResult.value = safeParse('beamFatigueResult');
+      inspection153Result.value = safeParse('inspection153Result');
+      inspection154Result.value = safeParse('inspection154Result');
+      inspection155Result.value = safeParse('inspection155Result');
     });
 
     return {
@@ -655,23 +791,28 @@ const app = createApp({
       savePassport, getCommonData,
       // Раздел 5
       materialsResult, calculateMaterials, toggleDetailedReport, parseReport,
-      // Раздел 6.1-6.3
+      // Раздел 6
       loadsPermForm, loadsPermResult, showPermReport, calculatePermanentLoads,
-      // Раздел 6.4
       loadsDynBeamForm, loadsDynBeamResult, showDynBeamReport, calculateDynamicCoeffBeam,
       loadsDynSlabForm, loadsDynSlabResult, showDynSlabReport, calculateDynamicCoeffSlab,
-      // Раздел 6.6-6.7
       loadsShareForm, loadsShareResult, showShareReport, calculateShare,
-      // Раздел 7: Прочность
-      slabStrengthForm, slabStrengthResult, showSlabStrengthReport, calculateSlabStrength,
-      slabReadiness,
-      // Раздел 7: Поперечная сила и выносливость
-      slabShearForm, slabShearResult, showSlabShearReport, calculateSlabShear, slabShearReadiness,
-      slabFatigueResult, showSlabFatigueReport, calculateSlabFatigue, slabFatigueReadiness,
+      // Раздел 7: Плита (объединённая)
+      slabForm, slabReadiness, slabFatigueReadiness,
+      slabStrengthResult, showSlabStrengthReport, calculateSlabStrength,
+      slabShearResult, showSlabShearReport, calculateSlabShear,
+      slabFatigueResult, showSlabFatigueReport, calculateSlabFatigue,
+      // Раздел 7: Балка
+      beamForm, beamReadiness, beamFatigueReadiness,
+      beamMomentResult, showBeamMomentReport, calculateBeamMoment,
+      beamShearResult, showBeamShearReport, calculateBeamShear,
+      beamFatigueResult, showBeamFatigueReport, calculateBeamFatigue,
       // Раздел 14
-      strengtheningSchemes, loadStrengtheningSchemes,
+      strengtheningSchemes,
       // Раздел 15
-      inspectionForm, inspectionResult, showInspectionReport, calculateInspection,
+      inspection153Form, inspection153Result, showInspection153Report, calculateInspection153,
+      inspection154Form, inspection154Result, showInspection154Report, calculateInspection154,
+      addStrength, removeStrength,
+      inspection155Form, inspection155Result, showInspection155Report, calculateInspection155,
       // Утилиты
       formatNum
     };
