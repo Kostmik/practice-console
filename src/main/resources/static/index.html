@@ -203,6 +203,22 @@
                     <h3>🏗️ Раздел 7 (Балка)</h3>
                     <p>Расчёт главной балки на прочность и выносливость</p>
                 </div>
+                <div class="card" @click="goToSection('board')">
+                    <h3>🧱 Раздел 10</h3>
+                    <p>Расчёт продольного борта балластного корыта</p>
+                </div>
+                <div class="card" @click="goToSection('curved')">
+                    <h3>🌀 Раздел 11</h3>
+                    <p>Доли нагрузки на балку для пролёта на кривой</p>
+                </div>
+                <div class="card" @click="goToSection('defect')">
+                    <h3>🩹 Раздел 12</h3>
+                    <p>Учёт влияния дефектов и повреждений</p>
+                </div>
+                <div class="card" @click="goToSection('carbon')">
+                    <h3>🧵 Раздел 13</h3>
+                    <p>Расчёт усиления композиционными материалами</p>
+                </div>
                 <div class="card" @click="goToSection('strengthening')">
                     <h3>🔧 Раздел 14</h3>
                     <p>Рекомендации по усилению углеволокном</p></div>
@@ -1007,6 +1023,1496 @@
                         {{ showBeamFatigueReport ? '▲ Скрыть' : '▼ Показать' }}
                     </button>
                     <div v-if="showBeamFatigueReport" class="detailed-report" v-html="parseReport(beamFatigueResult.detailedReport)"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- РАЗДЕЛ 10: ПРОДОЛЬНЫЙ БОРТ -->
+        <section v-if="page==='board'" class="section">
+            <h2 class="section-title">Раздел 10: Расчёт продольного борта</h2>
+            <p class="description">
+                Грузоподъёмность продольного борта балластного корыта по прочности на изгиб (10.1),
+                по поперечной силе (10.2) и по выносливости бетона и арматуры (10.3).
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else>
+                <!-- ============================================================ -->
+                <!-- ГЕОМЕТРИЯ БОРТА И БАЛЛАСТНОЙ ПРИЗМЫ                           -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Геометрия борта и балластной призмы
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Толщина балласта под шпалой h_b (м):</label>
+                            <input v-model.number="boardForm.hb" type="number" step="0.01" placeholder="0.55">
+                        </div>
+                        <div class="form-group">
+                            <label>Плечо балластной призмы x (м):</label>
+                            <input v-model.number="boardForm.xShoulder" type="number" step="0.01" placeholder="0.30">
+                        </div>
+                        <div class="form-group">
+                            <label>Высота борта H_br (м):</label>
+                            <input v-model.number="boardForm.hbr" type="number" step="0.01" placeholder="0.60">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Длина шпалы l_s (м):</label>
+                            <input v-model.number="boardForm.ls" type="number" step="0.01" placeholder="2.70">
+                        </div>
+                        <div class="form-group">
+                            <label>Расчётная ширина борта b (м):</label>
+                            <input v-model.number="boardForm.b" type="number" step="0.1" placeholder="1.0">
+                        </div>
+                        <div class="form-group">
+                            <label>Угол внутр. трения балласта φ (°):</label>
+                            <input v-model.number="boardForm.phiFrictionDeg" type="number" step="1" placeholder="40">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- СЕЧЕНИЕ БОРТА И АРМАТУРА                                      -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Сечение борта и арматура
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Рабочая высота сечения h₀ (м):</label>
+                            <input v-model.number="boardForm.h0" type="number" step="0.01" placeholder="0.25">
+                        </div>
+                        <div class="form-group">
+                            <label>Площадь растянутой арм. As (м²):</label>
+                            <input v-model.number="boardForm.asArea" type="number" step="0.000001" placeholder="0.000565">
+                        </div>
+                        <div class="form-group">
+                            <label>Площадь сжатой арм. As' (м²):</label>
+                            <input v-model.number="boardForm.asPrimeArea" type="number" step="0.000001" placeholder="0.000283">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Расстояние до сжатой арм. a' (м):</label>
+                            <input v-model.number="boardForm.asPrimeDist" type="number" step="0.001" placeholder="0.04">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ПОПЕРЕЧНАЯ АРМАТУРА (ДЛЯ ф. 7.17)                             -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Поперечная арматура
+                </h3>
+                <div class="form-container">
+                    <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Для сплошного борта без хомутов и отгибов оставьте нули.
+                        При c = 0 длина проекции наклонного сечения принимается равной h₀.
+                    </p>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Проекция наклонного сечения c (м):</label>
+                            <input v-model.number="boardForm.cShear" type="number" step="0.01" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Шаг хомутов s (м):</label>
+                            <input v-model.number="boardForm.sStirrup" type="number" step="0.01" placeholder="0.20">
+                        </div>
+                        <div class="form-group">
+                            <label>Площадь ветви хомутов Asw (м²):</label>
+                            <input v-model.number="boardForm.asw" type="number" step="0.000001" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Сумма A_si·sinα отогнутых стержней (м²):</label>
+                            <input v-model.number="boardForm.sumAsiSinAlpha" type="number" step="0.000001" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ПОСТОЯННЫЕ НАГРУЗКИ НА БОРТ                                   -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Постоянные нагрузки на борт (ф. 10.7, 10.10)
+                </h3>
+                <div class="form-container">
+                    <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                        При отсутствии тротуара и перил все значения оставьте нулевыми.
+                    </p>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Вес тротуара и перил p_t (кН/м):</label>
+                            <input v-model.number="boardForm.pt" type="number" step="0.1" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Плечо тротуара y_t (м):</label>
+                            <input v-model.number="boardForm.yt" type="number" step="0.01" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Сосредоточенная нагрузка P₀ (кН):</label>
+                            <input v-model.number="boardForm.p0" type="number" step="0.1" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Параметр l_t (м):</label>
+                            <input v-model.number="boardForm.lt" type="number" step="0.01" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Параметр l_k (м):</label>
+                            <input v-model.number="boardForm.lk" type="number" step="0.01" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- УЧАСТОК ПУТИ И ВЫНОСЛИВОСТЬ                                   -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Участок пути и параметры выносливости
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Тип участка (табл. 10.3):</label>
+                            <select v-model.number="boardForm.track">
+                                <option :value="1">Прямая</option>
+                                <option :value="2">Кривая R = 600 м</option>
+                                <option :value="3">Кривая R = 300 м</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Радиус кривой R (м), 0 — прямая:</label>
+                            <input v-model.number="boardForm.curveRadius" type="number" step="10" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Коэффициент ε (Приложение 3):</label>
+                            <input v-model.number="boardForm.epsilonDyn" type="number" step="0.01" placeholder="1.0">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Асимметрия цикла бетона ρ_b:</label>
+                            <input v-model.number="boardForm.rhoB" type="number" step="0.01" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Асимметрия цикла арматуры ρ_s:</label>
+                            <input v-model.number="boardForm.rhoS" type="number" step="0.01" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Эталонная нагрузка k_c (кН/м), 0 — не считать класс:</label>
+                            <input v-model.number="boardForm.kc" type="number" step="0.1" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- КНОПКА РАСЧЁТА                                                -->
+                <!-- ============================================================ -->
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <p style="color: #666; font-size: 0.95rem;">
+                                Расчётные сопротивления берутся из Раздела 5, коэффициенты надёжности
+                                и удельный вес балласта — из Раздела 6.
+                            </p>
+                            <div v-if="boardReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">
+                                ⚠️ Не готовы: {{ boardReadiness.missing.join(', ') }}
+                            </div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">
+                                ✅ Все зависимости рассчитаны
+                            </div>
+                            <button @click="calculateBoard" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать продольный борт' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- РЕЗУЛЬТАТЫ                                                    -->
+                <!-- ============================================================ -->
+                <div v-if="boardResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Давление балласта σ_b,max:</span>
+                            <span class="value">{{ formatNum(boardResult.sigmaBmax, 3) }} кН/м²</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Момент от пост. нагрузок M_p:</span>
+                            <span class="value">{{ formatNum(boardResult.mp, 4) }} кН·м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Попереч. сила от пост. нагрузок Q_p:</span>
+                            <span class="value">{{ formatNum(boardResult.qp, 3) }} кН</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Предельный момент M:</span>
+                            <span class="value">{{ formatNum(boardResult.mLimit, 4) }} кН·м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Предельная попереч. сила Q:</span>
+                            <span class="value">{{ formatNum(boardResult.qLimit, 3) }} кН</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">F(a,z) — табл. 10.2:</span>
+                            <span class="value">{{ formatNum(boardResult.fCoeff, 3) }} 1/м²</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Ф(a,z) — табл. 10.4:</span>
+                            <span class="value">{{ formatNum(boardResult.phiCoeff, 3) }} 1/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">R_bf (выносливость бетона):</span>
+                            <span class="value">{{ formatNum(boardResult.rbf, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">R_sf (выносливость арматуры):</span>
+                            <span class="value">{{ formatNum(boardResult.rsf, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Высота сжатой зоны x':</span>
+                            <span class="value">{{ formatNum(boardResult.xFatigue, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Момент инерции I_red:</span>
+                            <span class="value">{{ formatNum(boardResult.iRed, 6) }} м⁴</span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 1.5rem;">Допускаемые временные нагрузки</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">k по моменту (10.1):</span>
+                            <span class="value">{{ formatNum(boardResult.kMoment, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">k по поперечной силе (10.9):</span>
+                            <span class="value">{{ formatNum(boardResult.kShear, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">k по выносл. бетона (10.11):</span>
+                            <span class="value">{{ formatNum(boardResult.kFatigueConcrete, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">k по выносл. арматуры (10.12):</span>
+                            <span class="value">{{ formatNum(boardResult.kFatigueRebar, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ОПРЕДЕЛЯЮЩАЯ НАГРУЗКА k:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(boardResult.kGoverning, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Определяет:</span>
+                            <span class="value" style="font-size: 0.95rem;">{{ boardResult.governingCase }}</span>
+                        </div>
+                        <div v-if="boardResult.classK !== null && boardResult.classK !== undefined"
+                             class="result-item" style="background: #fff3cd;">
+                            <span class="label">КЛАСС БОРТА K:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(boardResult.classK, 2) }}</span>
+                        </div>
+                    </div>
+
+                    <button @click="showBoardReport = !showBoardReport" class="btn-toggle-report">
+                        {{ showBoardReport ? '▲ Скрыть' : '▼ Показать' }}
+                    </button>
+                    <div v-if="showBoardReport" class="detailed-report" v-html="parseReport(boardResult.detailedReport)"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- РАЗДЕЛ 11: ПРОЛЁТ НА КРИВОЙ -->
+        <section v-if="page==='curved'" class="section">
+            <h2 class="section-title">Раздел 11: Пролётное строение на кривой</h2>
+            <p class="description">
+                Определение долей временной вертикальной нагрузки ε_M и ε_Q, приходящихся на главные
+                балки монолитного пролётного строения с ненапрягаемой арматурой, расположенного на кривой.
+                Полученные доли подставляются в расчёт балки вместо долей по п. 6.6–6.7.
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else>
+                <!-- ============================================================ -->
+                <!-- ГЕОМЕТРИЯ ПОПЕРЕЧНОГО СЕЧЕНИЯ                                 -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Геометрия поперечного сечения
+                </h3>
+                <div class="form-container">
+                    <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Расчётный пролёт l = {{ bridgeData.spanLength }} м, расстояние между осями балок
+                        c = {{ bridgeData.distanceBetweenBeams }} м и толщина балласта h_b = {{ bridgeData.ballastThickness }} м
+                        берутся из паспорта объекта.
+                    </p>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Ширина ребра b (м):</label>
+                            <input v-model.number="curvedForm.b" type="number" step="0.01" placeholder="0.35">
+                        </div>
+                        <div class="form-group">
+                            <label>Полная высота балки h (м):</label>
+                            <input v-model.number="curvedForm.h" type="number" step="0.01" placeholder="1.20">
+                        </div>
+                        <div class="form-group">
+                            <label>Толщина плиты между рёбрами h₁ (м):</label>
+                            <input v-model.number="curvedForm.h1" type="number" step="0.01" placeholder="0.26">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Толщина плиты консоли h₂ (м):</label>
+                            <input v-model.number="curvedForm.h2" type="number" step="0.01" placeholder="0.20">
+                        </div>
+                        <div class="form-group">
+                            <label>Параметр l_k (м), c₁ = l_k + 0,5·b:</label>
+                            <input v-model.number="curvedForm.lk" type="number" step="0.01" placeholder="0.60">
+                        </div>
+                        <div class="form-group">
+                            <label>Расстояние до растянутой арм. a_s (м):</label>
+                            <input v-model.number="curvedForm.asDist" type="number" step="0.001" placeholder="0.07">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Площадь растянутой арм. A_s (м²):</label>
+                            <input v-model.number="curvedForm.asArea" type="number" step="0.000001" placeholder="0.003079">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ВЕРХНЕЕ СТРОЕНИЕ ПУТИ                                         -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Верхнее строение пути
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Высота рельса h_p (м):</label>
+                            <input v-model.number="curvedForm.hp" type="number" step="0.001" placeholder="0.180">
+                        </div>
+                        <div class="form-group">
+                            <label>Высота шпалы h_s (м):</label>
+                            <input v-model.number="curvedForm.hs" type="number" step="0.001" placeholder="0.193">
+                        </div>
+                        <div class="form-group">
+                            <label>Длина шпалы l_s (м):</label>
+                            <input v-model.number="curvedForm.ls" type="number" step="0.01" placeholder="2.70">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Высота приложения нагрузки h_t (м):</label>
+                            <input v-model.number="curvedForm.ht" type="number" step="0.1" placeholder="2.2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ПАРАМЕТРЫ КРИВОЙ                                              -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Параметры кривой и положение пути
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Радиус кривой R (м):</label>
+                            <input v-model.number="curvedForm.curveRadius" type="number" step="10" placeholder="600">
+                        </div>
+                        <div class="form-group">
+                            <label>Наибольшая скорость v (км/ч):</label>
+                            <input v-model.number="curvedForm.speed" type="number" step="5" placeholder="80">
+                        </div>
+                        <div class="form-group">
+                            <label>Возвышение наружного рельса Δh (м):</label>
+                            <input v-model.number="curvedForm.cantElevation" type="number" step="0.005" placeholder="0.100">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Расстояние между осями головок рельсов b₀ (м):</label>
+                            <input v-model.number="curvedForm.b0" type="number" step="0.01" placeholder="1.60">
+                        </div>
+                        <div class="form-group">
+                            <label>Смещение оси пути l' (м), участок 0,25l…0,75l:</label>
+                            <input v-model.number="curvedForm.lPrime" type="number" step="0.001" placeholder="0.030">
+                        </div>
+                        <div class="form-group">
+                            <label>Смещение оси пути l'' (м), участки у опор:</label>
+                            <input v-model.number="curvedForm.lDoublePrime" type="number" step="0.001" placeholder="0.030">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Коэффициент Θ:</label>
+                            <input v-model.number="curvedForm.theta" type="number" step="0.01" placeholder="1.0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- КНОПКА РАСЧЁТА                                                -->
+                <!-- ============================================================ -->
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <p style="color: #666; font-size: 0.95rem;">
+                                Модули упругости E_s и E_b берутся из Раздела 5, базовый динамический
+                                коэффициент μ₀ — из Раздела 6.4 (динамика балки).
+                            </p>
+                            <div v-if="curvedReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">
+                                ⚠️ Не готовы: {{ curvedReadiness.missing.join(', ') }}
+                            </div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">
+                                ✅ Все зависимости рассчитаны
+                            </div>
+                            <button @click="calculateCurved" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать доли нагрузки на кривой' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- РЕЗУЛЬТАТЫ                                                    -->
+                <!-- ============================================================ -->
+                <div v-if="curvedResult" class="result-box">
+                    <h3>Геометрия и жёсткостные характеристики</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">sin α (11.14):</span>
+                            <span class="value">{{ formatNum(curvedResult.sinAlpha, 5) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">cos α (11.14):</span>
+                            <span class="value">{{ formatNum(curvedResult.cosAlpha, 5) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">c₁ = l_k + 0,5·b (11.9):</span>
+                            <span class="value">{{ formatNum(curvedResult.c1, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">H = h − 0,5·h₁ − a_s (11.9):</span>
+                            <span class="value">{{ formatNum(curvedResult.bigH, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">I_y′ (11.10, для d):</span>
+                            <span class="value">{{ formatNum(curvedResult.iyPrime10, 6) }} м⁴</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">I_y′ (11.7, для кручения):</span>
+                            <span class="value">{{ formatNum(curvedResult.iyPrime7, 6) }} м⁴</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">d (11.8):</span>
+                            <span class="value">{{ formatNum(curvedResult.d, 6) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">ω = 0,5·c·(H−d) (11.6):</span>
+                            <span class="value">{{ formatNum(curvedResult.omega, 6) }} м²</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">ω_D / ω_κ / y (11.13):</span>
+                            <span class="value" style="font-size: 0.95rem;">
+                                {{ formatNum(curvedResult.omegaD, 4) }} / {{ formatNum(curvedResult.omegaK, 4) }} / {{ formatNum(curvedResult.y, 4) }}
+                            </span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">I_к (11.5):</span>
+                            <span class="value">{{ formatNum(curvedResult.ik, 6) }} м⁴</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">I_ω (11.12):</span>
+                            <span class="value">{{ formatNum(curvedResult.iOmega, 6) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">m = √(0,42·I_к/I_ω) (11.11):</span>
+                            <span class="value">{{ formatNum(curvedResult.m, 5) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">g = 0,5·m·l:</span>
+                            <span class="value">{{ formatNum(curvedResult.g, 4) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">γ (табл. 11.1):</span>
+                            <span class="value">{{ formatNum(curvedResult.gamma, 4) }}</span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 1.5rem;">Смещение вертикальной нагрузки</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Δl_M, поезд движется (11.2):</span>
+                            <span class="value">{{ formatNum(curvedResult.dlMMoving, 5) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Δl_Q, поезд движется (11.3):</span>
+                            <span class="value">{{ formatNum(curvedResult.dlQMoving, 5) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Δl, поезд стоит (11.4):</span>
+                            <span class="value">{{ formatNum(curvedResult.dlStanding, 5) }} м</span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 1.5rem;">Доли нагрузки ε (11.1)</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="schemes-table">
+                            <thead>
+                            <tr>
+                                <th>Случай</th>
+                                <th style="width: 130px;">ε_M, балка 1</th>
+                                <th style="width: 130px;">ε_Q, балка 1</th>
+                                <th style="width: 130px;">ε_M, балка 2</th>
+                                <th style="width: 130px;">ε_Q, балка 2</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Поезд движется</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsMBeam1, 4) }}</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsQBeam1, 4) }}</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsMBeam2, 4) }}</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsQBeam2, 4) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Поезд стоит</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsMBeam1Standing, 4) }}</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsQBeam1Standing, 4) }}</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsMBeam2Standing, 4) }}</td>
+                                <td style="text-align: center;">{{ formatNum(curvedResult.epsQBeam2Standing, 4) }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="result-grid" style="margin-top: 1rem;">
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ОПРЕДЕЛЯЮЩАЯ ДОЛЯ ε_M:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(curvedResult.epsMDesign, 4) }}</span>
+                        </div>
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ОПРЕДЕЛЯЮЩАЯ ДОЛЯ ε_Q:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(curvedResult.epsQDesign, 4) }}</span>
+                        </div>
+                    </div>
+                    <p style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem; font-style: italic;">
+                        Эти доли подставляются в расчёт главной балки (Раздел 7) вместо долей,
+                        полученных по п. 6.6–6.7 для прямого участка.
+                    </p>
+
+                    <button @click="showCurvedReport = !showCurvedReport" class="btn-toggle-report">
+                        {{ showCurvedReport ? '▲ Скрыть' : '▼ Показать' }}
+                    </button>
+                    <div v-if="showCurvedReport" class="detailed-report" v-html="parseReport(curvedResult.detailedReport)"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- РАЗДЕЛ 12: ДЕФЕКТЫ -->
+        <section v-if="page==='defect'" class="section">
+            <h2 class="section-title">Раздел 12: Учёт влияния дефектов</h2>
+            <p class="description">
+                Раздел не даёт грузоподъёмности напрямую — он корректирует величины, входящие
+                в расчёты разделов 7–9: фактическую площадь арматуры, высоту сжатой зоны при
+                трещинах и предельный изгибающий момент при раковинах и сколах бетона.
+                Выберите вид дефекта — форма подстроится.
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else>
+                <!-- ============================================================ -->
+                <!-- ВЫБОР ВИДА ДЕФЕКТА                                            -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Вид дефекта
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Что учитываем:</label>
+                            <select v-model="defectForm.defectType">
+                                <option value="CORROSION">12.2 — Ослабление арматуры коррозией / выключенные стержни</option>
+                                <option value="CRACK_IN_COMPRESSION">12.3 — Трещина, заходящая в сжатую зону</option>
+                                <option value="VOID_RECTANGULAR">12.4 — Раковина / скол, прямоугольное сечение</option>
+                                <option value="VOID_TSECTION">12.4 — Раковина / скол, тавровое сечение</option>
+                                <option value="VOID_PRESTRESSED">12.5 — Раковина / скол, напрягаемая арматура</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- 12.2 — КОРРОЗИЯ АРМАТУРЫ                                      -->
+                <!-- ============================================================ -->
+                <div v-if="defectForm.defectType === 'CORROSION'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        12.2. Ослабление арматуры коррозией (ф. 12.1)
+                    </h3>
+                    <div class="form-container">
+                        <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                            Площади стержней входят в формулу только отношением, поэтому единицы
+                            можно брать любые согласованные (см², мм², м²) — главное, одинаковые.
+                        </p>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Число стержней рабочей арматуры n:</label>
+                                <input v-model.number="defectForm.nBars" type="number" step="1" placeholder="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Площадь одного стержня f_a (см²):</label>
+                                <input v-model.number="defectForm.faOne" type="number" step="0.01" placeholder="3.14">
+                            </div>
+                            <div class="form-group">
+                                <label>Выключено из работы стержней n₂:</label>
+                                <input v-model.number="defectForm.nDisconnected" type="number" step="1" placeholder="0">
+                            </div>
+                        </div>
+
+                        <p style="color: #666; margin: 1rem 0 0.5rem; font-size: 0.95rem;">
+                            Потери сечения от коррозии f_i по каждому повреждённому стержню (см²):
+                        </p>
+                        <div v-for="(loss, index) in defectForm.corrodedLoss" :key="index" class="form-row-3"
+                             style="align-items: flex-end; margin-bottom: 0.5rem;">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Стержень №{{ index + 1 }} — потеря f_i (см²):</label>
+                                <input type="number" v-model.number="defectForm.corrodedLoss[index]" step="0.01" placeholder="0.30">
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: flex-end;">
+                                <button @click="removeCorrodedBar(index)" class="btn-archive" style="width: 100%;">
+                                    ✕ Удалить
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-row-3" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <button @click="addCorrodedBar" class="btn-archive" style="width: auto;">
+                                    ➕ Добавить стержень
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ОБЩИЕ ДАННЫЕ СЕЧЕНИЯ (для всех видов, кроме коррозии)          -->
+                <!-- ============================================================ -->
+                <div v-if="defectForm.defectType !== 'CORROSION'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Сечение и арматура
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Ширина сечения / ребра b (м):</label>
+                                <input v-model.number="defectForm.b" type="number" step="0.01" placeholder="0.35">
+                            </div>
+                            <div class="form-group">
+                                <label>Рабочая высота сечения h₀ (м):</label>
+                                <input v-model.number="defectForm.h0" type="number" step="0.01" placeholder="1.13">
+                            </div>
+                            <div class="form-group">
+                                <label>Расстояние до сжатой арм. a'_s (м):</label>
+                                <input v-model.number="defectForm.asPrime" type="number" step="0.001" placeholder="0.05">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Площадь растянутой арм. A_s (м²):</label>
+                                <input v-model.number="defectForm.asArea" type="number" step="0.000001" placeholder="0.003079">
+                            </div>
+                            <div class="form-group">
+                                <label>Площадь сжатой арм. A'_s (м²):</label>
+                                <input v-model.number="defectForm.asPrimeArea" type="number" step="0.000001" placeholder="0.000942">
+                            </div>
+                        </div>
+
+                        <!-- Тавровое сечение -->
+                        <div v-if="defectForm.defectType === 'VOID_TSECTION' || defectForm.defectType === 'VOID_PRESTRESSED'"
+                             class="form-row-3">
+                            <div class="form-group">
+                                <label>Ширина сжатого пояса b'_f (м):</label>
+                                <input v-model.number="defectForm.bfPrime" type="number" step="0.01" placeholder="2.40">
+                            </div>
+                            <div class="form-group">
+                                <label>Толщина сжатого пояса h'_f (м):</label>
+                                <input v-model.number="defectForm.hfPrime" type="number" step="0.01" placeholder="0.26">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- 12.3 — ТРЕЩИНА В СЖАТОЙ ЗОНЕ                                  -->
+                <!-- ============================================================ -->
+                <div v-if="defectForm.defectType === 'CRACK_IN_COMPRESSION'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        12.3. Данные испытания (ф. 12.2–12.3)
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Высота сжатой зоны по эпюре x̄_φ (м):</label>
+                                <input v-model.number="defectForm.xBarPhi" type="number" step="0.001" placeholder="0.180">
+                            </div>
+                            <div class="form-group">
+                                <label>Момент от испытательной нагрузки M̄ (кН·м):</label>
+                                <input v-model.number="defectForm.mBar" type="number" step="1" placeholder="800">
+                            </div>
+                            <div class="form-group">
+                                <label>Предельный момент M по разд. 7 (кН·м), 0 — посчитать:</label>
+                                <input v-model.number="defectForm.mUlt" type="number" step="1" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- 12.4-12.5 — РАКОВИНА / СКОЛ                                   -->
+                <!-- ============================================================ -->
+                <div v-if="defectForm.defectType === 'VOID_RECTANGULAR' || defectForm.defectType === 'VOID_TSECTION' || defectForm.defectType === 'VOID_PRESTRESSED'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Параметры раковины / скола (ф. 12.5)
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Площадь ослабления A₀ (м²):</label>
+                                <input v-model.number="defectForm.a0Area" type="number" step="0.0001" placeholder="0.0150">
+                            </div>
+                            <div class="form-group">
+                                <label>Плечо ослабления a₀ (м):</label>
+                                <input v-model.number="defectForm.a0Dist" type="number" step="0.01" placeholder="1.05">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- 12.5 — НАПРЯГАЕМАЯ АРМАТУРА                                   -->
+                <!-- ============================================================ -->
+                <div v-if="defectForm.defectType === 'VOID_PRESTRESSED'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        12.5. Напрягаемая арматура (ф. 12.7)
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Сопротивление напрягаемой арм. R_p (МПа):</label>
+                                <input v-model.number="defectForm.rp" type="number" step="1" placeholder="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Напряжение σ'_pc (МПа):</label>
+                                <input v-model.number="defectForm.sigmaPc" type="number" step="1" placeholder="300">
+                            </div>
+                            <div class="form-group">
+                                <label>Площадь напрягаемой арм. A_p (м²):</label>
+                                <input v-model.number="defectForm.apArea" type="number" step="0.000001" placeholder="0.001200">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Площадь A'_p в сжатой зоне (м²):</label>
+                                <input v-model.number="defectForm.apPrimeArea" type="number" step="0.000001" placeholder="0.000300">
+                            </div>
+                            <div class="form-group">
+                                <label>Расстояние до центра A'_p (м):</label>
+                                <input v-model.number="defectForm.apPrimeDist" type="number" step="0.001" placeholder="0.06">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- КНОПКА РАСЧЁТА                                                -->
+                <!-- ============================================================ -->
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <p v-if="defectForm.defectType === 'CORROSION'" style="color: #666; font-size: 0.95rem;">
+                                Расчёт по ф. 12.1 не зависит от характеристик материалов — считает только отношение площадей.
+                            </p>
+                            <p v-else style="color: #666; font-size: 0.95rem;">
+                                Расчётные сопротивления бетона и арматуры берутся из Раздела 5.
+                            </p>
+                            <div v-if="defectReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">
+                                ⚠️ Не готовы: {{ defectReadiness.missing.join(', ') }}
+                            </div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">
+                                ✅ Все зависимости рассчитаны
+                            </div>
+                            <button @click="calculateDefect" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Учесть дефект' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- РЕЗУЛЬТАТЫ                                                    -->
+                <!-- ============================================================ -->
+                <div v-if="defectResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+
+                    <!-- 12.2 -->
+                    <div v-if="defectResult.defectType === 'CORROSION'" class="result-grid">
+                        <div class="result-item">
+                            <span class="label">A_s = n·f_a (без ослабления):</span>
+                            <span class="value">{{ formatNum(defectResult.asFull, 4) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">A_si (фактическая):</span>
+                            <span class="value">{{ formatNum(defectResult.asActual, 4) }}</span>
+                        </div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">КОЭФФИЦИЕНТ j = A_si / A_s:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(defectResult.j, 4) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- 12.3 -->
+                    <div v-else-if="defectResult.defectType === 'CRACK_IN_COMPRESSION'" class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Условие 12.2 (M̄ ≥ 0,8·M):</span>
+                            <span class="value" style="font-size: 1rem;">
+                                {{ defectResult.condition122 ? 'выполнено — x_φ = x̄_φ' : 'не выполнено — x_φ по ф. 12.3' }}
+                            </span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Стабильная высота сжатой зоны x_φ:</span>
+                            <span class="value">{{ formatNum(defectResult.xPhi, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Расчётная высота x (разд. 7):</span>
+                            <span class="value">{{ formatNum(defectResult.xDesign, 4) }} м</span>
+                        </div>
+                        <div class="result-item" :style="defectResult.crackReducesCapacity ? 'background: #f8d7da;' : 'background: #d4edda;'">
+                            <span class="label">Влияние трещины:</span>
+                            <span class="value" style="font-size: 1rem;">
+                                {{ defectResult.crackReducesCapacity ? 'снижает несущую способность' : 'не снижает' }}
+                            </span>
+                        </div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">ПРЕДЕЛЬНЫЙ МОМЕНТ М:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(defectResult.mCrack, 2) }} кН·м</span>
+                        </div>
+                    </div>
+
+                    <!-- 12.4-12.7 -->
+                    <div v-else class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Высота сжатой зоны x₀:</span>
+                            <span class="value">{{ formatNum(defectResult.x0, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Момент при x₀ (без вычета):</span>
+                            <span class="value">{{ formatNum(defectResult.mx0, 2) }} кН·м</span>
+                        </div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">M₀ = M − R_b·A₀·a₀ (ф. 12.5):</span>
+                            <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(defectResult.m0, 2) }} кН·м</span>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem; font-style: italic;">
+                        {{ defectResult.note }}
+                    </p>
+
+                    <button @click="showDefectReport = !showDefectReport" class="btn-toggle-report">
+                        {{ showDefectReport ? '▲ Скрыть' : '▼ Показать' }}
+                    </button>
+                    <div v-if="showDefectReport" class="detailed-report" v-html="parseReport(defectResult.detailedReport)"></div>
+                </div>
+            </div>
+        </section>
+        <!-- РАЗДЕЛ 13: УСИЛЕНИЕ УГЛЕВОЛОКНОМ -->
+        <section v-if="page==='carbon'" class="section">
+            <h2 class="section-title">Раздел 13: Усиление композиционными материалами</h2>
+            <p class="description">
+                Расчёт усиления пролётного строения материалами на основе углеродного волокна.
+                Раздел объединяет пять независимых проверок усиленной балки — выберите нужную ниже.
+                Характеристики бетона и арматуры принимаются по Разделу 5, предельные M и Q
+                неусиленного сечения — по Разделу 7.
+            </p>
+
+            <div v-if="!isPassportFilled" class="warning">
+                ⚠️ Сначала заполните и сохраните паспорт объекта на главной странице.
+            </div>
+
+            <div v-else>
+                <!-- ============================================================ -->
+                <!-- ВЫБОР РЕЖИМА                                                  -->
+                <!-- ============================================================ -->
+                <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                    Выполняемая проверка
+                </h3>
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Режим расчёта:</label>
+                            <select v-model="carbonForm.mode">
+                                <option value="STRENGTH_MOMENT">13.2 — Прочность нормального сечения по изгибающему моменту</option>
+                                <option value="STRENGTH_SHEAR">13.2 — Прочность наклонного сечения по поперечной силе</option>
+                                <option value="INCLINED_MOMENT">13.2 — Изгибающий момент в наклонном сечении</option>
+                                <option value="FATIGUE">13.3 — Выносливость усиленного сечения</option>
+                                <option value="TECHNOLOGY">13.4 — Учёт технологии усиления</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row-3" v-if="carbonForm.mode !== 'TECHNOLOGY'">
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Тип конструкции усиления (табл. 13.4, коэффициент k_s):</label>
+                            <select v-model="carbonForm.reinfType">
+                                <option value="SHEET_BOTTOM_FREE">Холст на нижней грани без закрепления (k_s = 0,41)</option>
+                                <option value="SHEET_BOTTOM_ANCHORED">Холст на нижней грани с закреплением вертикальными холстами (k_s = 0,49)</option>
+                                <option value="U_JACKET_FREE">U-образная обойма без закрепления (k_s = 0,46)</option>
+                                <option value="U_JACKET_ANCHORED">U-образная обойма с закреплением вертикальными холстами (k_s = 0,49)</option>
+                                <option value="PLATE_ANCHORED">Пластины с закреплением холстами или U-образной обоймой (k_s = 0,45)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                        Ниже показаны только поля, нужные для выбранной проверки.
+                    </p>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- МАТЕРИАЛ УСИЛЕНИЯ                                             -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode !== 'TECHNOLOGY'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Материал усиления (таблицы 13.1–13.3)
+                    </h3>
+                    <div class="form-container">
+                        <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                            R_f и E_f принимаются по паспорту материала. Толщина слоя и единичная
+                            ширина полосы задаются в миллиметрах — так они входят в формулу 13.2.
+                        </p>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Модуль упругости E_f (МПа):</label>
+                                <input v-model.number="carbonForm.ef" type="number" step="1000" placeholder="240000">
+                            </div>
+                            <div class="form-group">
+                                <label>Сопротивление на растяжение R_f (МПа):</label>
+                                <input v-model.number="carbonForm.rf" type="number" step="10" placeholder="2000">
+                            </div>
+                            <div class="form-group">
+                                <label>Толщина одного слоя t_f (мм):</label>
+                                <input v-model.number="carbonForm.tfLayerMm" type="number" step="0.01" placeholder="0.13">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Количество слоёв:</label>
+                                <input v-model.number="carbonForm.nLayers" type="number" step="1" placeholder="2">
+                            </div>
+                            <div class="form-group">
+                                <label>Единичная ширина полосы b_f (мм):</label>
+                                <input v-model.number="carbonForm.bUnitMm" type="number" step="1" placeholder="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Предельная деформация бетона ε_b,ult:</label>
+                                <input v-model.number="carbonForm.epsBult" type="number" step="0.0001" placeholder="0.0033">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ГЕОМЕТРИЯ СЕЧЕНИЯ                                             -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode !== 'TECHNOLOGY'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Геометрия сечения балки
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Ширина ребра b (м):</label>
+                                <input v-model.number="carbonForm.b" type="number" step="0.01" placeholder="0.35">
+                            </div>
+                            <div class="form-group">
+                                <label>Ширина сжатого пояса b'_f (м):</label>
+                                <input v-model.number="carbonForm.bfPrime" type="number" step="0.01" placeholder="2.40">
+                            </div>
+                            <div class="form-group">
+                                <label>Толщина сжатого пояса h'_f (м):</label>
+                                <input v-model.number="carbonForm.hfPrime" type="number" step="0.01" placeholder="0.26">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Полная высота балки h (м):</label>
+                                <input v-model.number="carbonForm.h" type="number" step="0.01" placeholder="1.20">
+                            </div>
+                            <div class="form-group">
+                                <label>Рабочая высота сечения h₀ (м):</label>
+                                <input v-model.number="carbonForm.h0" type="number" step="0.01" placeholder="1.13">
+                            </div>
+                            <div class="form-group">
+                                <label>Расстояние до сжатой арм. a'_s (м):</label>
+                                <input v-model.number="carbonForm.asPrimeDist" type="number" step="0.001" placeholder="0.05">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Расстояние до растянутой арм. a_s (м):</label>
+                                <input v-model.number="carbonForm.asDist" type="number" step="0.001" placeholder="0.07">
+                            </div>
+                            <div class="form-group" v-if="carbonForm.mode === 'STRENGTH_MOMENT'">
+                                <label>Высота полок U-обоймы d (м), ф. 13.3:</label>
+                                <input v-model.number="carbonForm.dJacket" type="number" step="0.01" placeholder="0.30">
+                            </div>
+                            <div class="form-group" v-if="carbonForm.mode === 'FATIGUE'">
+                                <label>Расстояние до ближайшего ряда арм. a_u (м):</label>
+                                <input v-model.number="carbonForm.au" type="number" step="0.001" placeholder="0.07">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- АРМАТУРА                                                      -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode !== 'TECHNOLOGY'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Арматура сечения
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Площадь растянутой арм. A_s (м²):</label>
+                                <input v-model.number="carbonForm.asArea" type="number" step="0.000001" placeholder="0.003079">
+                            </div>
+                            <div class="form-group">
+                                <label>Площадь сжатой арм. A'_s (м²):</label>
+                                <input v-model.number="carbonForm.asPrimeArea" type="number" step="0.000001" placeholder="0.000942">
+                            </div>
+                        </div>
+                        <div class="form-row-3" v-if="carbonForm.mode === 'STRENGTH_SHEAR' || carbonForm.mode === 'INCLINED_MOMENT'">
+                            <div class="form-group">
+                                <label>Площадь ветви хомутов A_sw (м²):</label>
+                                <input v-model.number="carbonForm.asw" type="number" step="0.000001" placeholder="0.000201">
+                            </div>
+                            <div class="form-group">
+                                <label>Шаг хомутов s (м):</label>
+                                <input v-model.number="carbonForm.sStirrup" type="number" step="0.01" placeholder="0.15">
+                            </div>
+                            <div class="form-group">
+                                <label>Сопротивление хомутов R_sw (МПа):</label>
+                                <input v-model.number="carbonForm.rsw" type="number" step="1" placeholder="155">
+                            </div>
+                        </div>
+                        <div class="form-row-3" v-if="carbonForm.mode === 'STRENGTH_SHEAR'">
+                            <div class="form-group">
+                                <label>Σ A_si·sinα отогнутых стержней (м²):</label>
+                                <input v-model.number="carbonForm.sumAsiSinAlpha" type="number" step="0.000001" placeholder="0.000889">
+                            </div>
+                            <div class="form-group">
+                                <label>Проекция наклонного сечения c (м), 0 — по ф. 13.14:</label>
+                                <input v-model.number="carbonForm.cShear" type="number" step="0.01" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-row-3" v-if="carbonForm.mode === 'INCLINED_MOMENT'">
+                            <div class="form-group">
+                                <label>Σ A_si отогнутых стержней (м²):</label>
+                                <input v-model.number="carbonForm.sumAsi" type="number" step="0.000001" placeholder="0.001257">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ПЛОЩАДИ МАТЕРИАЛА УСИЛЕНИЯ                                    -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode !== 'TECHNOLOGY'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Площади материала усиления
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>На нижней грани A_f1 (м²):</label>
+                                <input v-model.number="carbonForm.af1" type="number" step="0.000001" placeholder="0.000260">
+                            </div>
+                            <div class="form-group">
+                                <label>На боковых гранях A_f2 (м²):</label>
+                                <input v-model.number="carbonForm.af2" type="number" step="0.000001" placeholder="0.000260">
+                            </div>
+                            <div class="form-group" v-if="carbonForm.mode === 'FATIGUE'">
+                                <label>A'_f в моменте инерции (м²):</label>
+                                <input v-model.number="carbonForm.afPrimeArea" type="number" step="0.000001" placeholder="0.000260">
+                            </div>
+                        </div>
+                        <div class="form-row-3" v-if="carbonForm.mode === 'STRENGTH_SHEAR' || carbonForm.mode === 'INCLINED_MOMENT'">
+                            <div class="form-group">
+                                <label>Σ вертикальных холстов A_fw (м²):</label>
+                                <input v-model.number="carbonForm.afw" type="number" step="0.000001" placeholder="0.000500">
+                            </div>
+                            <div class="form-group">
+                                <label>Σ наклонных холстов A_fi (м²):</label>
+                                <input v-model.number="carbonForm.afi" type="number" step="0.000001" placeholder="0">
+                            </div>
+                            <div class="form-group" v-if="carbonForm.mode === 'STRENGTH_SHEAR'">
+                                <label>Угол наклона холстов φ (град):</label>
+                                <input v-model.number="carbonForm.phiFiberDeg" type="number" step="1" placeholder="90">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ПЛЕЧИ z (ТОЛЬКО НАКЛОННОЕ СЕЧЕНИЕ)                            -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode === 'INCLINED_MOMENT'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Плечи внутренних усилий относительно центра сжатой зоны (ф. 13.18)
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>z_s — растянутая арматура (м):</label>
+                                <input v-model.number="carbonForm.zS" type="number" step="0.01" placeholder="1.13">
+                            </div>
+                            <div class="form-group">
+                                <label>z_sw — хомуты (м):</label>
+                                <input v-model.number="carbonForm.zSw" type="number" step="0.01" placeholder="0.50">
+                            </div>
+                            <div class="form-group">
+                                <label>z_si — отогнутые стержни (м):</label>
+                                <input v-model.number="carbonForm.zSi" type="number" step="0.01" placeholder="0.80">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>z_c1 — материал на нижней грани (м):</label>
+                                <input v-model.number="carbonForm.zC1" type="number" step="0.01" placeholder="1.20">
+                            </div>
+                            <div class="form-group">
+                                <label>z_c2 — материал на боковых гранях (м):</label>
+                                <input v-model.number="carbonForm.zC2" type="number" step="0.01" placeholder="1.05">
+                            </div>
+                            <div class="form-group">
+                                <label>z_cw — вертикальные холсты (м):</label>
+                                <input v-model.number="carbonForm.zCw" type="number" step="0.01" placeholder="0.60">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>z_ci — наклонные холсты (м):</label>
+                                <input v-model.number="carbonForm.zCi" type="number" step="0.01" placeholder="0.60">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ВЫНОСЛИВОСТЬ                                                  -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode === 'FATIGUE'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Параметры выносливости (ф. 13.19–13.28)
+                    </h3>
+                    <div class="form-container">
+                        <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                            R_bf и R_sf вычисляются по формулам 5.1 и 5.2 из асимметрии цикла.
+                            Если хотите задать их напрямую — введите ненулевые значения в двух правых полях.
+                        </p>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Асимметрия цикла бетона ρ_b:</label>
+                                <input v-model.number="carbonForm.rhoB" type="number" step="0.01" placeholder="0.30">
+                            </div>
+                            <div class="form-group">
+                                <label>Асимметрия цикла арматуры ρ_s:</label>
+                                <input v-model.number="carbonForm.rhoS" type="number" step="0.01" placeholder="0.30">
+                            </div>
+                            <div class="form-group">
+                                <label>Коэффициент Θ (ф. 13.19):</label>
+                                <input v-model.number="carbonForm.theta" type="number" step="0.01" placeholder="1.0">
+                            </div>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>R_bf напрямую (МПа), 0 — по ф. 5.1:</label>
+                                <input v-model.number="carbonForm.rbf" type="number" step="0.1" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>R_sf напрямую (МПа), 0 — по ф. 5.2:</label>
+                                <input v-model.number="carbonForm.rsf" type="number" step="0.1" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>n'_f = E_f/E_b, 0 — вычислить:</label>
+                                <input v-model.number="carbonForm.nPrimeFiber" type="number" step="0.1" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ТЕХНОЛОГИЯ УСИЛЕНИЯ                                           -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode === 'TECHNOLOGY'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        13.4. Учёт технологии усиления (ф. 13.29)
+                    </h3>
+                    <div class="form-container">
+                        <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">
+                            M и M_p берутся из расчёта балки (Раздел 7). M^y — предельный момент
+                            усиленного сечения: посчитайте его в режиме «Прочность по изгибающему
+                            моменту» и перенесите сюда.
+                        </p>
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Предельный момент усиленного сечения M^y (кН·м):</label>
+                                <input v-model.number="carbonForm.my" type="number" step="1" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Момент от временной нагрузки при усилении M_k (кН·м):</label>
+                                <input v-model.number="carbonForm.mk" type="number" step="1" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>M^y_k (кН·м):</label>
+                                <input v-model.number="carbonForm.myK" type="number" step="1" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- ЛИНИЯ ВЛИЯНИЯ                                                 -->
+                <!-- ============================================================ -->
+                <div v-if="carbonForm.mode !== 'TECHNOLOGY'">
+                    <h3 style="margin: 2rem 0 1rem; color: #2c3e50; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem;">
+                        Площадь линии влияния
+                    </h3>
+                    <div class="form-container">
+                        <div class="form-row-3">
+                            <div class="form-group">
+                                <label>Ω для момента (м), 0 — принять l²/8:</label>
+                                <input v-model.number="carbonForm.omegaM" type="number" step="0.01" placeholder="0">
+                            </div>
+                        </div>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Ω_к и Ω_p для поперечной силы берутся со страницы Раздела 7 (Балка):
+                            {{ formatNum(beamForm.omegaK, 2) }} и {{ formatNum(beamForm.omegaP, 2) }} м.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- КНОПКА РАСЧЁТА                                                -->
+                <!-- ============================================================ -->
+                <div class="form-container">
+                    <div class="form-row-3">
+                        <div class="form-group" style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <p style="color: #666; font-size: 0.95rem;">
+                                Предельные M и Q неусиленного сечения, доли ε и коэффициенты надёжности
+                                подставляются из Разделов 5, 6 и 7 автоматически.
+                            </p>
+                            <div v-if="carbonReadiness.missing.length > 0" style="font-size: 0.85rem; color: #c33;">
+                                ⚠️ Не готовы: {{ carbonReadiness.missing.join(', ') }}
+                            </div>
+                            <div v-else style="font-size: 0.85rem; color: #27ae60;">
+                                ✅ Все зависимости рассчитаны
+                            </div>
+                            <button @click="calculateCarbon" :disabled="isLoading" class="btn-create">
+                                {{ isLoading ? 'Расчёт...' : 'Рассчитать усиление' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- РЕЗУЛЬТАТЫ                                                    -->
+                <!-- ============================================================ -->
+                <div v-if="carbonResult" class="result-box">
+                    <h3>Результаты расчёта</h3>
+
+                    <!-- Прочность по моменту -->
+                    <div v-if="carbonResult.mode === 'STRENGTH_MOMENT'" class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Тип усиления (k_s = {{ formatNum(carbonResult.ks, 2) }}):</span>
+                            <span class="value" style="font-size: 0.95rem;">{{ carbonResult.reinfTypeTitle }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">σ_fu (ф. 13.2):</span>
+                            <span class="value">{{ formatNum(carbonResult.sigmaFu, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">σ_fu,2 (ф. 13.3):</span>
+                            <span class="value">{{ formatNum(carbonResult.sigmaFu2, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">ω = 0,85 − 0,008·R_b (ф. 7.13):</span>
+                            <span class="value">{{ formatNum(carbonResult.omega, 4) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">ξ_fy (ф. 13.4):</span>
+                            <span class="value">{{ formatNum(carbonResult.xiFy, 4) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Высота сжатой зоны x:</span>
+                            <span class="value">{{ formatNum(carbonResult.x, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Граница сжатой зоны:</span>
+                            <span class="value" style="font-size: 0.95rem;">
+                                {{ carbonResult.boundaryInWeb ? 'в ребре (13.8/13.9)' : 'в плите (13.6/13.7)' }}
+                            </span>
+                        </div>
+                        <div class="result-item" v-if="carbonResult.xiCapped" style="background: #f8d7da;">
+                            <span class="label">Ограничение ф. 13.5:</span>
+                            <span class="value" style="font-size: 0.95rem;">сработало, принято x = ξ_fy·h₀</span>
+                        </div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">M^y — предельный момент усиленного сечения:</span>
+                            <span class="value" style="font-size: 1.3rem; color: #856404;">{{ formatNum(carbonResult.my, 2) }} кН·м</span>
+                        </div>
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ДОПУСКАЕМАЯ НАГРУЗКА k (ф. 13.1):</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.kMoment, 2) }} кН/м</span>
+                        </div>
+                    </div>
+
+                    <!-- Поперечная сила -->
+                    <div v-else-if="carbonResult.mode === 'STRENGTH_SHEAR'" class="result-grid">
+                        <div class="result-item">
+                            <span class="label">Проекция наклонного сечения c:</span>
+                            <span class="value">{{ formatNum(carbonResult.c, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Q_b — воспринимает бетон (ф. 13.13):</span>
+                            <span class="value">{{ formatNum(carbonResult.qb, 2) }} кН</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Q неусиленного сечения (ф. 13.12):</span>
+                            <span class="value">{{ formatNum(carbonResult.qUnstrengthened, 2) }} кН</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Q^y по сжатому бетону (ф. 13.15):</span>
+                            <span class="value">{{ formatNum(carbonResult.qyConcrete, 2) }} кН</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Q^y по наклонной трещине (ф. 13.16):</span>
+                            <span class="value">{{ formatNum(carbonResult.qyCrack, 2) }} кН</span>
+                        </div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">Q^y = min(13.15, 13.16):</span>
+                            <span class="value" style="font-size: 1.3rem; color: #856404;">{{ formatNum(carbonResult.qy, 2) }} кН</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Q_p от постоянных нагрузок (ф. 13.11):</span>
+                            <span class="value">{{ formatNum(carbonResult.qpCalc, 2) }} кН</span>
+                        </div>
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ДОПУСКАЕМАЯ НАГРУЗКА k (ф. 13.10):</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.kShear, 2) }} кН/м</span>
+                        </div>
+                    </div>
+
+                    <!-- Наклонное сечение по моменту -->
+                    <div v-else-if="carbonResult.mode === 'INCLINED_MOMENT'" class="result-grid">
+                        <div class="result-item">
+                            <span class="label">σ_fu (ф. 13.2):</span>
+                            <span class="value">{{ formatNum(carbonResult.sigmaFu, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item" style="background: #fff3cd;">
+                            <span class="label">M^y наклонного сечения (ф. 13.18):</span>
+                            <span class="value" style="font-size: 1.3rem; color: #856404;">{{ formatNum(carbonResult.myInclined, 2) }} кН·м</span>
+                        </div>
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ДОПУСКАЕМАЯ НАГРУЗКА k (ф. 13.17):</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.kInclined, 2) }} кН/м</span>
+                        </div>
+                    </div>
+
+                    <!-- Выносливость -->
+                    <div v-else-if="carbonResult.mode === 'FATIGUE'" class="result-grid">
+                        <div class="result-item">
+                            <span class="label">R_bf, принятое в расчёте:</span>
+                            <span class="value">{{ formatNum(carbonResult.rbfUsed, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">R_sf, принятое в расчёте:</span>
+                            <span class="value">{{ formatNum(carbonResult.rsfUsed, 2) }} МПа</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Форма сечения:</span>
+                            <span class="value" style="font-size: 0.95rem;">
+                                {{ carbonResult.fatigueTee ? 'тавровое (ф. 13.22)' : 'прямоугольное (ф. 13.26)' }}
+                            </span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Высота сжатой зоны x'_y (ф. 13.23):</span>
+                            <span class="value">{{ formatNum(carbonResult.xyFatigue, 4) }} м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">I^y_red (ф. 13.22/13.26):</span>
+                            <span class="value">{{ formatNum(carbonResult.iRedFatigue, 6) }} м⁴</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Коэффициент e_s (табл. 13.5):</span>
+                            <span class="value">{{ formatNum(carbonResult.es, 4) }}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">M^y по выносливости бетона (ф. 13.20):</span>
+                            <span class="value">{{ formatNum(carbonResult.myConcrete, 2) }} кН·м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">M^y по выносливости арматуры (ф. 13.21):</span>
+                            <span class="value">{{ formatNum(carbonResult.myRebar, 2) }} кН·м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">k по выносливости бетона (ф. 13.19):</span>
+                            <span class="value">{{ formatNum(carbonResult.kFatigueConcrete, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">k по выносливости арматуры (ф. 13.19):</span>
+                            <span class="value">{{ formatNum(carbonResult.kFatigueRebar, 2) }} кН/м</span>
+                        </div>
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">ОПРЕДЕЛЯЮЩАЯ НАГРУЗКА k:</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.governingK, 2) }} кН/м</span>
+                        </div>
+                    </div>
+
+                    <!-- Технология -->
+                    <div v-else class="result-grid">
+                        <div class="result-item" style="background: #d4edda;">
+                            <span class="label">M^уб с учётом технологии (ф. 13.29):</span>
+                            <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.mub, 2) }} кН·м</span>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem; font-style: italic;">
+                        {{ carbonResult.note }}
+                    </p>
+
+                    <button @click="showCarbonReport = !showCarbonReport" class="btn-toggle-report">
+                        {{ showCarbonReport ? '▲ Скрыть' : '▼ Показать' }}
+                    </button>
+                    <div v-if="showCarbonReport" class="detailed-report" v-html="parseReport(carbonResult.detailedReport)"></div>
                 </div>
             </div>
         </section>

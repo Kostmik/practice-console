@@ -16,6 +16,10 @@ const app = createApp({
       { key: 'loads', title: '6. Нагрузки' },
       { key: 'slab', title: '7. Плита' },
       { key: 'beam', title: '7. Балка' },
+      { key: 'board', title: '10. Продольный борт' },
+      { key: 'curved', title: '11. Пролёт на кривой' },
+      { key: 'defect', title: '12. Дефекты' },
+      { key: 'carbon', title: '13. Усиление' },
       { key: 'strengthening', title: '14. Усиление' },
       { key: 'inspection', title: '15. Обследование' }
     ];
@@ -96,6 +100,7 @@ const app = createApp({
         'materialsResult', 'loadsPermResult', 'loadsDynBeamResult', 'loadsDynSlabResult',
         'loadsShareResult', 'slabStrengthResult', 'slabShearResult', 'slabFatigueResult',
         'beamMomentResult', 'beamShearResult', 'beamFatigueResult',
+        'boardResult', 'curvedResult', 'defectResult', 'carbonResult',
         'inspection153Result', 'inspection154Result', 'inspection155Result'
       ];
       keysToClear.forEach(key => localStorage.removeItem(key));
@@ -111,6 +116,10 @@ const app = createApp({
       beamMomentResult.value = null;
       beamShearResult.value = null;
       beamFatigueResult.value = null;
+      boardResult.value = null;
+      curvedResult.value = null;
+      defectResult.value = null;
+      carbonResult.value = null;
       inspection153Result.value = null;
       inspection154Result.value = null;
       inspection155Result.value = null;
@@ -564,6 +573,346 @@ const app = createApp({
     }
 
     // ==========================================================
+    // 8. РАЗДЕЛ 10: ПРОДОЛЬНЫЙ БОРТ
+    // ==========================================================
+    const boardForm = reactive({
+      // Геометрия борта и балластной призмы
+      hb: 0.55,
+      xShoulder: 0.30,
+      hbr: 0.60,
+      ls: 2.70,
+      b: 1.0,
+      phiFrictionDeg: 40,
+      // Сечение и арматура
+      h0: 0.25,
+      asArea: 0.000565,
+      asPrimeArea: 0.000283,
+      asPrimeDist: 0.04,
+      // Поперечная арматура
+      cShear: 0,
+      sStirrup: 0.20,
+      asw: 0,
+      sumAsiSinAlpha: 0,
+      // Постоянные нагрузки на борт
+      pt: 0,
+      yt: 0,
+      p0: 0,
+      lt: 0,
+      lk: 0,
+      // Участок пути
+      track: 1,
+      curveRadius: 0,
+      // Выносливость
+      epsilonDyn: 1.0,
+      rhoB: 0,
+      rhoS: 0,
+      // Класс
+      kc: 0
+    });
+    const boardResult = ref(null);
+    const showBoardReport = ref(false);
+
+    const boardReadiness = computed(() => {
+      const missing = [];
+      if (!materialsResult.value) missing.push('Материалы');
+      if (!loadsPermResult.value) missing.push('Пост. нагрузки');
+      return { missing, ready: missing.length === 0 };
+    });
+
+    function getBoardRequestData() {
+      return {
+        materials: materialsResult.value,
+        rsc: materialsResult.value ? materialsResult.value.Rs : null,
+        np: loadsPermResult.value ? loadsPermResult.value.np : null,
+        npPrime: loadsPermResult.value ? loadsPermResult.value.npPrime : null,
+        nk: loadsPermResult.value ? loadsPermResult.value.nk : null,
+        gammaBallast: loadsPermResult.value ? loadsPermResult.value.gammaBallastWithTrack : null,
+        dynamicCoeff: loadsDynSlabResult.value ? loadsDynSlabResult.value.dynamicCoeff : null,
+        ...boardForm
+      };
+    }
+
+    async function calculateBoard() {
+      if (!boardReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + boardReadiness.value.missing.join(', '));
+        return;
+      }
+      boardResult.value = null;
+      showBoardReport.value = false;
+      const data = await api('/api/v1/board/calculate', {
+        method: 'POST',
+        body: JSON.stringify(getBoardRequestData())
+      });
+      if (data) {
+        boardResult.value = data;
+        localStorage.setItem('boardResult', JSON.stringify(data));
+      }
+    }
+
+
+    // ==========================================================
+    // 8Б. РАЗДЕЛ 11: ПРОЛЁТ НА КРИВОЙ
+    // ==========================================================
+    const curvedForm = reactive({
+      // Геометрия поперечного сечения
+      b: 0.35,
+      h: 1.20,
+      h1: 0.26,
+      h2: 0.20,
+      lk: 0.60,
+      asDist: 0.07,
+      asArea: 0.003079,
+      // Верхнее строение пути
+      hp: 0.180,
+      hs: 0.193,
+      ls: 2.70,
+      ht: 2.2,
+      // Кривая
+      curveRadius: 600,
+      speed: 80,
+      cantElevation: 0.100,
+      b0: 1.60,
+      // Смещение оси пути
+      lPrime: 0.030,
+      lDoublePrime: 0.030,
+      // Прочее
+      theta: 1.0
+    });
+    const curvedResult = ref(null);
+    const showCurvedReport = ref(false);
+
+    const curvedReadiness = computed(() => {
+      const missing = [];
+      if (!materialsResult.value) missing.push('Материалы');
+      if (!loadsDynBeamResult.value) missing.push('Динамика балки');
+      return { missing, ready: missing.length === 0 };
+    });
+
+    function getCurvedRequestData() {
+      return {
+        commonData: getCommonData(),
+        materials: materialsResult.value,
+        mu0: loadsDynBeamResult.value ? loadsDynBeamResult.value.mu0 : null,
+        ...curvedForm
+      };
+    }
+
+    async function calculateCurved() {
+      if (!curvedReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + curvedReadiness.value.missing.join(', '));
+        return;
+      }
+      curvedResult.value = null;
+      showCurvedReport.value = false;
+      const data = await api('/api/v1/curved/calculate', {
+        method: 'POST',
+        body: JSON.stringify(getCurvedRequestData())
+      });
+      if (data) {
+        curvedResult.value = data;
+        localStorage.setItem('curvedResult', JSON.stringify(data));
+      }
+    }
+
+
+    // ==========================================================
+    // 8В. РАЗДЕЛ 12: УЧЁТ ДЕФЕКТОВ
+    // ==========================================================
+    const defectForm = reactive({
+      defectType: 'CORROSION',
+      // 12.2 — коррозия
+      nBars: 10,
+      faOne: 3.14,
+      nDisconnected: 0,
+      corrodedLoss: [0.30],
+      // Сечение и арматура
+      b: 0.35,
+      h0: 1.13,
+      asPrime: 0.05,
+      asArea: 0.003079,
+      asPrimeArea: 0.000942,
+      bfPrime: 2.40,
+      hfPrime: 0.26,
+      // 12.3 — трещина
+      xBarPhi: 0.180,
+      mBar: 800,
+      mUlt: 0,
+      // 12.4-12.7 — раковина/скол
+      a0Area: 0.0150,
+      a0Dist: 1.05,
+      // 12.5 — напрягаемая арматура
+      rp: 1000,
+      sigmaPc: 300,
+      apArea: 0.001200,
+      apPrimeArea: 0.000300,
+      apPrimeDist: 0.06
+    });
+    const defectResult = ref(null);
+    const showDefectReport = ref(false);
+
+    function addCorrodedBar() {
+      defectForm.corrodedLoss.push(0.30);
+    }
+
+    function removeCorrodedBar(index) {
+      defectForm.corrodedLoss.splice(index, 1);
+    }
+
+    // Коррозия по ф. 12.1 — чистое отношение площадей, материалы не нужны.
+    // Остальным видам дефектов нужны R_b и R_s из Раздела 5.
+    const defectReadiness = computed(() => {
+      const missing = [];
+      if (defectForm.defectType !== 'CORROSION' && !materialsResult.value) {
+        missing.push('Материалы');
+      }
+      return { missing, ready: missing.length === 0 };
+    });
+
+    function getDefectRequestData() {
+      return {
+        materials: materialsResult.value,
+        rsc: materialsResult.value ? materialsResult.value.Rs : null,
+        ...defectForm
+      };
+    }
+
+    async function calculateDefect() {
+      if (!defectReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + defectReadiness.value.missing.join(', '));
+        return;
+      }
+      defectResult.value = null;
+      showDefectReport.value = false;
+      const data = await api('/api/v1/defect/calculate', {
+        method: 'POST',
+        body: JSON.stringify(getDefectRequestData())
+      });
+      if (data) {
+        defectResult.value = data;
+        localStorage.setItem('defectResult', JSON.stringify(data));
+      }
+    }
+
+    // ==========================================================
+    // 8Г. РАЗДЕЛ 13: УСИЛЕНИЕ УГЛЕВОЛОКНОМ
+    // ==========================================================
+    const carbonForm = reactive({
+      mode: 'STRENGTH_MOMENT',
+      reinfType: 'U_JACKET_FREE',
+      // Материал усиления
+      ef: 240000,
+      rf: 2000,
+      tfLayerMm: 0.13,
+      nLayers: 2,
+      bUnitMm: 1,
+      epsBult: 0.0033,
+      // Геометрия сечения
+      b: 0.35,
+      bfPrime: 2.40,
+      hfPrime: 0.26,
+      h: 1.20,
+      h0: 1.13,
+      asPrimeDist: 0.05,
+      asDist: 0.07,
+      au: 0.07,
+      dJacket: 0.30,
+      // Арматура
+      asArea: 0.003079,
+      asPrimeArea: 0.000942,
+      asw: 0.000201,
+      sStirrup: 0.15,
+      rsw: 155,
+      sumAsiSinAlpha: 0.000889,
+      sumAsi: 0.001257,
+      cShear: 0,
+      // Площади материала усиления
+      af1: 0.000260,
+      af2: 0.000260,
+      afw: 0.000500,
+      afi: 0,
+      phiFiberDeg: 90,
+      afPrimeArea: 0.000260,
+      // Плечи z (наклонное сечение)
+      zS: 1.13,
+      zSw: 0.50,
+      zSi: 0.80,
+      zC1: 1.20,
+      zC2: 1.05,
+      zCw: 0.60,
+      zCi: 0.60,
+      // Выносливость
+      rhoB: 0.30,
+      rhoS: 0.30,
+      rbf: 0,
+      rsf: 0,
+      theta: 1.0,
+      nPrimeFiber: 0,
+      // Линия влияния
+      omegaM: 0,
+      // Технология
+      my: 0,
+      mk: 0,
+      myK: 0
+    });
+    const carbonResult = ref(null);
+    const showCarbonReport = ref(false);
+
+    // Режим по поперечной силе опирается на расчёт балки по Q,
+    // остальные режимы — на расчёт балки по моменту.
+    const carbonReadiness = computed(() => {
+      const missing = [];
+      if (!materialsResult.value) missing.push('Материалы');
+      if (!loadsPermResult.value) missing.push('Пост. нагрузки');
+      if (!loadsShareResult.value) missing.push('Доли нагрузки');
+      if (carbonForm.mode === 'STRENGTH_SHEAR') {
+        if (!beamShearResult.value) missing.push('Балка: поперечная сила');
+      } else if (!beamMomentResult.value) {
+        missing.push('Балка: момент');
+      }
+      return { missing, ready: missing.length === 0 };
+    });
+
+    function getCarbonRequestData() {
+      return {
+        commonData: getCommonData(),
+        materials: materialsResult.value,
+        rsc: materialsResult.value ? materialsResult.value.Rs : null,
+        nPrimeSteel: materialsResult.value ? materialsResult.value.nPrime : null,
+        np: loadsPermResult.value ? loadsPermResult.value.np : null,
+        npPrime: loadsPermResult.value ? loadsPermResult.value.npPrime : null,
+        nk: loadsPermResult.value ? loadsPermResult.value.nk : null,
+        pp: loadsPermResult.value ? loadsPermResult.value.ppBeam : null,
+        pb: loadsPermResult.value ? loadsPermResult.value.pbBeam : null,
+        epsM: loadsShareResult.value ? loadsShareResult.value.epsilonM_Beam1 : null,
+        epsQ: loadsShareResult.value ? loadsShareResult.value.epsilonQ_Beam1 : null,
+        mUlt: beamMomentResult.value ? beamMomentResult.value.mPredBeam : null,
+        mp: beamMomentResult.value ? beamMomentResult.value.mpBeam : null,
+        qUlt: beamShearResult.value ? beamShearResult.value.qUltimate : null,
+        qp: beamShearResult.value ? beamShearResult.value.qpShear : null,
+        omegaK: beamForm.omegaK,
+        omegaP: beamForm.omegaP,
+        ...carbonForm
+      };
+    }
+
+    async function calculateCarbon() {
+      if (!carbonReadiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты: ' + carbonReadiness.value.missing.join(', '));
+        return;
+      }
+      carbonResult.value = null;
+      showCarbonReport.value = false;
+      const data = await api('/api/v1/carbon/calculate', {
+        method: 'POST',
+        body: JSON.stringify(getCarbonRequestData())
+      });
+      if (data) {
+        carbonResult.value = data;
+        localStorage.setItem('carbonResult', JSON.stringify(data));
+      }
+    }
+
+    // ==========================================================
     // 8. РАЗДЕЛ 14: УСИЛЕНИЕ
     // ==========================================================
     const strengtheningSchemes = ref([
@@ -774,6 +1123,10 @@ const app = createApp({
       beamMomentResult.value = safeParse('beamMomentResult');
       beamShearResult.value = safeParse('beamShearResult');
       beamFatigueResult.value = safeParse('beamFatigueResult');
+      boardResult.value = safeParse('boardResult');
+      curvedResult.value = safeParse('curvedResult');
+      defectResult.value = safeParse('defectResult');
+      carbonResult.value = safeParse('carbonResult');
       inspection153Result.value = safeParse('inspection153Result');
       inspection154Result.value = safeParse('inspection154Result');
       inspection155Result.value = safeParse('inspection155Result');
@@ -806,6 +1159,15 @@ const app = createApp({
       beamMomentResult, showBeamMomentReport, calculateBeamMoment,
       beamShearResult, showBeamShearReport, calculateBeamShear,
       beamFatigueResult, showBeamFatigueReport, calculateBeamFatigue,
+      // Раздел 10
+      boardForm, boardReadiness, boardResult, showBoardReport, calculateBoard,
+      // Раздел 11
+      curvedForm, curvedReadiness, curvedResult, showCurvedReport, calculateCurved,
+      // Раздел 12
+      defectForm, defectReadiness, defectResult, showDefectReport, calculateDefect,
+      addCorrodedBar, removeCorrodedBar,
+      // Раздел 13
+      carbonForm, carbonReadiness, carbonResult, showCarbonReport, calculateCarbon,
       // Раздел 14
       strengtheningSchemes,
       // Раздел 15
