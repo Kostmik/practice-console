@@ -176,10 +176,4 @@ public final class InspectionCalculator {
             printReport155(in.deflections, in.inertias, in.targetBeamIndex, out.sumFiIi, out.fTargetITarget, out.epsilonM);
         }
     }
-
-    public static InspectionOutput calculateAndReport(InspectionInput in) {
-        InspectionOutput out = calculate(in);
-        printReport(in, out);
-        return out;
-    }
 }

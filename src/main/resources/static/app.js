@@ -16,6 +16,7 @@ const app = createApp({
       { key: 'loads', title: '6. Нагрузки' },
       { key: 'slab', title: '7. Плита' },
       { key: 'beam', title: '7. Балка' },
+      { key: 'section8', title: '8. Сопоставление норм' },
       { key: 'board', title: '10. Продольный борт' },
       { key: 'curved', title: '11. Пролёт на кривой' },
       { key: 'defect', title: '12. Дефекты' },
@@ -99,7 +100,7 @@ const app = createApp({
       const keysToClear = [
         'materialsResult', 'loadsPermResult', 'loadsDynBeamResult', 'loadsDynSlabResult',
         'loadsShareResult', 'slabStrengthResult', 'slabShearResult', 'slabFatigueResult',
-        'beamMomentResult', 'beamShearResult', 'beamFatigueResult',
+        'beamMomentResult', 'beamShearResult', 'beamFatigueResult', 'section8Result',
         'boardResult', 'curvedResult', 'defectResult', 'carbonResult',
         'inspection153Result', 'inspection154Result', 'inspection155Result'
       ];
@@ -116,6 +117,7 @@ const app = createApp({
       beamMomentResult.value = null;
       beamShearResult.value = null;
       beamFatigueResult.value = null;
+      section8Result.value = null;
       boardResult.value = null;
       curvedResult.value = null;
       defectResult.value = null;
@@ -573,7 +575,56 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 8. РАЗДЕЛ 10: ПРОДОЛЬНЫЙ БОРТ
+    // 8. РАЗДЕЛ 8: РАСЧЕТ ПО НОРМАМ ПРОЕКТИРОВАНИЯ
+    // ==========================================================
+    const section8Form = reactive({
+      slabHeight: 0.26, ls: 2.7, B: 2.4, lt: 1.25, lk: 1.25, P0: 0.7, j: 1.0, alpha: 0.5,
+      l0Cantilever: 3.4, etaMCantilever: 1.0, delta: 0.7, Z: 0.0, mpCantilever: 12.5,
+      l0Monolithic: 3.4, etaMMonolithic: 1.0
+      // epsilon, pp, pb УДАЛЕНЫ из формы, так как берутся из Раздела 6 автоматически
+    });
+    const section8Result = ref(null);
+    const showSection8Report = ref(false);
+
+    // Проверка готовности зависимостей из Раздела 6
+    const section8Readiness = computed(() => {
+      const missing = [];
+      if (!loadsPermResult.value) missing.push('Постоянные нагрузки (6.1-6.3)');
+      if (!loadsShareResult.value) missing.push('Доли нагрузки (6.6-6.7)');
+      return { missing, ready: missing.length === 0 };
+    });
+
+    async function calculateSection8() {
+      if (!section8Readiness.value.ready) {
+        alert(
+          '⚠️ Для расчёта необходимо сначала выполнить:\n\n' +
+          section8Readiness.value.missing.map(m => '• ' + m).join('\n') +
+          '\n\nПожалуйста, перейдите в Раздел 6 и выполните расчёты.'
+        );
+        return;
+      }
+
+      section8Result.value = null;
+      showSection8Report.value = false;
+
+      const data = await api('/api/v1/section8/calculate', {
+        method: 'POST',
+        body: JSON.stringify({
+          commonData: getCommonData(),
+          ...section8Form
+          // pp, pb, epsilon не передаются (будут null),
+          // и контроллер сам возьмёт их из BridgeContext!
+        })
+      });
+
+      if (data) {
+        section8Result.value = data;
+        localStorage.setItem('section8Result', JSON.stringify(data));
+      }
+    }
+
+    // ==========================================================
+    // 8А. РАЗДЕЛ 10: ПРОДОЛЬНЫЙ БОРТ
     // ==========================================================
     const boardForm = reactive({
       // Геометрия борта и балластной призмы
@@ -1123,6 +1174,7 @@ const app = createApp({
       beamMomentResult.value = safeParse('beamMomentResult');
       beamShearResult.value = safeParse('beamShearResult');
       beamFatigueResult.value = safeParse('beamFatigueResult');
+      section8Result.value = safeParse('section8Result');
       boardResult.value = safeParse('boardResult');
       curvedResult.value = safeParse('curvedResult');
       defectResult.value = safeParse('defectResult');
@@ -1159,6 +1211,8 @@ const app = createApp({
       beamMomentResult, showBeamMomentReport, calculateBeamMoment,
       beamShearResult, showBeamShearReport, calculateBeamShear,
       beamFatigueResult, showBeamFatigueReport, calculateBeamFatigue,
+      // Раздел 8
+      section8Form, section8Result, showSection8Report, calculateSection8, section8Readiness,
       // Раздел 10
       boardForm, boardReadiness, boardResult, showBoardReport, calculateBoard,
       // Раздел 11

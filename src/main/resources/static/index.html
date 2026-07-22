@@ -203,6 +203,10 @@
                     <h3>🏗️ Раздел 7 (Балка)</h3>
                     <p>Расчёт главной балки на прочность и выносливость</p>
                 </div>
+                <div class="card" @click="goToSection('section8')">
+                    <h3>📐 Раздел 8</h3>
+                    <p>Сопоставление расчётных норм</p>
+                </div>
                 <div class="card" @click="goToSection('board')">
                     <h3>🧱 Раздел 10</h3>
                     <p>Расчёт продольного борта балластного корыта</p>
@@ -1024,6 +1028,114 @@
                     </button>
                     <div v-if="showBeamFatigueReport" class="detailed-report" v-html="parseReport(beamFatigueResult.detailedReport)"></div>
                 </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- РАЗДЕЛ 8: РАСЧЕТ ПО НОРМАМ ПРОЕКТИРОВАНИЯ                   -->
+        <!-- ============================================================ -->
+        <section v-if="page === 'section8'" class="section">
+            <h2 class="section-title">📐 Раздел 8: Расчет по нормам проектирования</h2>
+            <p class="description">Определение грузоподъемности на основе сопоставления расчетных норм (формулы 8.1, 8.2, 8.4).</p>
+
+            <div v-if="!isPassportFilled" class="warning">⚠️ Сначала заполните и сохраните паспорт объекта.</div>
+
+            <div v-else>
+                <div class="form-container">
+                    <h3 style="margin-bottom: 1rem; color: #2c3e50;">📋 Общие параметры</h3>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>j (изм. площади арматуры):</label><input type="number" v-model.number="section8Form.j" step="0.001" min="0" max="1"></div>
+                        <div class="form-group"><label>α (положение вершины):</label>
+                            <select v-model.number="section8Form.alpha">
+                                <option :value="0.0">α = 0.0 (опора)</option>
+                                <option :value="0.5">α = 0.5 (середина)</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Толщина плиты h (м):</label><input type="number" v-model.number="section8Form.slabHeight" step="0.01" min="0"></div>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <h3 style="margin-bottom: 1rem; color: #2c3e50;">🔷 8.1 - Внешняя консоль плиты</h3>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>l₀ (длина распределения), м:</label><input type="number" v-model.number="section8Form.l0Cantilever" step="0.1"></div>
+                        <div class="form-group"><label>ηM (коэффициент):</label><input type="number" v-model.number="section8Form.etaMCantilever" step="0.01"></div>
+                        <div class="form-group"><label>Δ (расст. от ребра), м:</label><input type="number" v-model.number="section8Form.delta" step="0.01"></div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>Z (до сечения), м:</label><input type="number" v-model.number="section8Form.Z" step="0.01"></div>
+                        <div class="form-group"><label>lk (длина консоли), м:</label><input type="number" v-model.number="section8Form.lk" step="0.01"></div>
+                        <div class="form-group"><label>Mp (момент пост. нагр.), кН·м:</label><input type="number" v-model.number="section8Form.mpCantilever" step="0.1"></div>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <h3 style="margin-bottom: 1rem; color: #2c3e50;">🔷 8.2 - Монолитный участок плиты</h3>
+                    <div class="form-row-3">
+                        <div class="form-group"><label>l₀ (длина распределения), м:</label><input type="number" v-model.number="section8Form.l0Monolithic" step="0.1"></div>
+                        <div class="form-group"><label>ηM (коэффициент):</label><input type="number" v-model.number="section8Form.etaMMonolithic" step="0.01"></div>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <h3 style="margin-bottom: 1rem; color: #2c3e50;">🏗️ 8.4 - Главная балка</h3>
+                    <p style="color: #666; margin-bottom: 1rem; font-size: 0.95rem;">Данные (ε, pp, pb) автоматически подтягиваются из Раздела 6, если он был рассчитан.</p>
+                </div>
+
+                <!-- Предупреждение о зависимостях -->
+                <div v-if="!section8Readiness.ready" style="font-size: 0.85rem; color: #c33;">
+                    ⚠️ Не готовы: {{ section8Readiness.missing.join(', ') }}
+                </div>
+                <div v-else style="font-size: 0.85rem; color: #27ae60;">
+                    ✅ Все зависимости рассчитаны
+                </div>
+
+                <!-- Кнопка расчёта (автоматически блокируется, если зависимости не выполнены) -->
+                <button class="btn-create" @click="calculateSection8" :disabled="isLoading || !section8Readiness.ready">
+                    {{ isLoading ? 'Расчёт...' : 'Рассчитать раздел 8' }}
+                </button>
+
+
+
+                <!-- Результаты -->
+                <div v-if="section8Result" style="margin-top: 2rem;">
+                    <h3 style="color: #2c3e50; margin-bottom: 1rem;">📋 Результаты расчёта</h3>
+
+                    <div class="result-box" style="margin-bottom: 1rem;">
+                        <h4>Коэффициент β</h4>
+                        <div class="result-grid">
+                            <div class="result-item"><span class="label">β</span><span class="value">{{ formatNum(section8Result.beta, 3) }}</span></div>
+                        </div>
+                    </div>
+
+                    <div v-if="section8Result.kCantilever !== null" class="result-box" style="margin-bottom: 1rem;">
+                        <h4>8.1 - Внешняя консоль</h4>
+                        <div class="result-grid">
+                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(section8Result.kCantilever, 2) }} кН/м</span></div>
+                        </div>
+                    </div>
+
+                    <div v-if="section8Result.kMonolithic !== null" class="result-box" style="margin-bottom: 1rem;">
+                        <h4>8.2 - Монолитный участок</h4>
+                        <div class="result-grid">
+                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(section8Result.kMonolithic, 2) }} кН/м</span></div>
+                        </div>
+                    </div>
+
+                    <div v-if="section8Result.kBeam !== null" class="result-box">
+                        <h4>8.4 - Главная балка</h4>
+                        <div class="result-grid">
+                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(section8Result.kBeam, 2) }} кН/м</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button v-if="section8Result?.detailedReport" class="btn-toggle-report" @click="showSection8Report = !showSection8Report">
+                    {{ showSection8Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                </button>
+                <div v-if="showSection8Report && section8Result?.detailedReport" class="detailed-report" v-html="parseReport(section8Result.detailedReport)"></div>
+
+                <div v-if="error" class="error">{{ error }}</div>
             </div>
         </section>
 

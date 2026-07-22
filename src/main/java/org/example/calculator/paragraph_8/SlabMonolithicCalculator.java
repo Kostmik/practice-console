@@ -134,7 +134,7 @@ public class SlabMonolithicCalculator {
     }
 
     // =====================================================================
-    // МЕТОД ВЫВОДА ОТЧЕТА — ИСПРАВЛЕН!
+    // МЕТОД ВЫВОДА ОТЧЕТА
     // =====================================================================
 
     public static void printReport(
@@ -192,7 +192,7 @@ public class SlabMonolithicCalculator {
         System.out.println("   2.3. Класс нагрузки Kc (Приложение 9):");
         System.out.printf("        Kc = %.2f%n", Kc);
         System.out.println("   2.4. Динамический коэффициент (Приложение 10):");
-        System.out.printf("        (1+μ₁) = %.3f  ← ИСПРАВЛЕНО! (было 2.200)%n", mu1);  // ← mu1, а не 1+mu1!
+        System.out.printf("        (1+μ₁) = %.3f  %n", mu1);  // ← mu1, а не 1+mu1!
 
         System.out.println("\n[3. Постоянные нагрузки]");
         System.out.printf("   3.1. Вес плиты: pp = h_slab × γ_rc = %.2f × %.1f = %.2f кН/м%n",
@@ -212,7 +212,6 @@ public class SlabMonolithicCalculator {
         System.out.println("\n[5. Расчет по формуле 8.2]");
         System.out.println("   k = (0.95·l₀)/(ηM·nₖ·b) × [β·(8.75·Kc·(1+μ₁)·b + p₁) - nₚ·pₚ - n'ₚ·p_b]");
 
-        // ИСПРАВЛЕНО: используем mu1 как есть!
         double stepA = A * Kc * mu1 * b;
         double stepB = stepA + p1;
         double stepC = beta * stepB;
