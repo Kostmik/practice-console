@@ -141,10 +141,29 @@ public class Section9Controller {
             double Rpf = PrestressedBeamCalculator.calculateRpf(epsilonRo, Rp);
 
             // Отчет вызывается с новым порядком аргументов (синхронизировано)
-            PrestressedBeamCalculator.printReport(ctx, ctx.Rb, ctx.Rs, Rsc, Rp, Rpc, sigmaP2, sigmaP2s, As, Ap, As_s, Ap_s,
-                b, bf, hf, h, h01, as_s, ap_s, Mp, Mk, epsilonM, OmegaM, Theta, ctx.nPrime,
-                Ared, Ired, x, M, xiY, sigmaPc, k_moment, Q_pred, Qp, k_shear, k_result,
-                hc, xPrime, Rpf, rho, sigmaRebarMin, sigmaRebarMax, sigmaConcreteMin, sigmaConcreteMax);
+            // Отчет вызывается с обновленным порядком аргументов
+            PrestressedBeamCalculator.printReport(
+                ctx, ctx.Rb, Rp, Rpc,
+                sigmaP2, sigmaP2s,
+                As, Ap, As_s, Ap_s,
+                b, bf, hf,
+                h, h01,
+                as_s, ap_s,
+                Mp, Mk,
+                epsilonM, epsilonQ, // <-- ИСПРАВЛЕНО: передаем epsilonQ
+                OmegaM, OmegaQ,     // <-- ИСПРАВЛЕНО: передаем OmegaQ
+                Theta, ctx.nPrime,
+                Ared, Ired,
+                x, M,
+                xiY, sigmaPc,
+                k_result,
+                Q_pred,
+                hc,
+                sigmaRebarMin,
+                sigmaRebarMax,
+                sigmaConcreteMin,
+                sigmaConcreteMax
+            );
 
             double K_moment = k_moment / PrestressedBeamCalculator.getStandardLoad(ctx.spanLength, 0.5);
             double K_shear = k_shear / PrestressedBeamCalculator.getStandardLoad(ctx.spanLength, 0.5);

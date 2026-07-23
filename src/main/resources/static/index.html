@@ -1366,7 +1366,7 @@
 
                     <!-- ОТЧЕТ -->
                     <button v-if="section9Result.detailedReport" @click="showSection9Report = !showSection9Report" class="btn-toggle-report" style="margin-top: 1.5rem;">
-                        {{ showSection9Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт (все 15 формул)' }}
+                        {{ showSection9Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showSection9Report && section9Result.detailedReport" class="detailed-report" v-html="parseReport(section9Result.detailedReport)"></div>
                 </div>

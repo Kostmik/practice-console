@@ -104,12 +104,12 @@ public final class PrestressedBeamCalculator {
                                                      double h01, double xPrime, double ap_s,
                                                      double Ared, double Ired, double Mg) {
         double Np2 = sigmaP2 * Ap + sigmaP2s * Ap_s;
-        double Mp2 = sigmaP2 * Ap * (h01 - xPrime) - sigmaP2s * Ap_s * (xPrime - ap_s);
+        double Mp2 = sigmaP2 * Ap * (h01 - xPrime) + sigmaP2s * Ap_s * (xPrime - ap_s);
 
         double sigma_p = Np2 / Ared + (Mp2 / Ired) * xPrime;
         double sigma_g = (Mg / 1000.0) / Ired * xPrime;
 
-        return sigma_p - sigma_g;
+        return sigma_p + sigma_g;
     }
 
     // ФОРМУЛА 9.13: Максимальное напряжение в бетоне (МПа)
@@ -149,81 +149,224 @@ public final class PrestressedBeamCalculator {
         return Interpolation.linear(KC_X_POINTS, yPoints, spanLength);
     }
 
-    // ПОДРОБНЫЙ ОТЧЕТ СО ВСЕМИ 15 ФОРМУЛАМИ
-    public static void printReport(BridgeContext ctx, double Rb, double Rs, double Rsc, double Rp, double Rpc,
-                                   double sigmaP2, double sigmaP2s, double As, double Ap, double As_s, double Ap_s,
-                                   double b, double bf, double hf, double h, double h01, double as_s, double ap_s,
-                                   double Mp, double Mk, double epsilonM, double OmegaM, double Theta, double nPrime,
-                                   double Ared, double Ired, double x, double M, double xiY, double sigmaPc,
-                                   double k_moment, double Q_pred, double Qp, double k_shear, double k_result,
-                                   double hc, double xPrime, double Rpf, double rho,
-                                   double sigmaRebarMin, double sigmaRebarMax,
-                                   double sigmaConcreteMin, double sigmaConcreteMax) {
+    // =====================================================================
+    // МЕТОД ВЫВОДА ОТЧЕТА (Разделы 9.1, 9.2, 9.3 по методичке)
+    // =====================================================================
+    public static void printReport(
+        BridgeContext ctx,
+        double Rb, double Rp, double Rpc,
+        double sigmaP2, double sigmaP2s,
+        double As, double Ap, double As_s, double Ap_s,
+        double b, double bf, double hf,
+        double h, double h01,
+        double as_s, double ap_s,
+        double Mg, double Mk,
+        double epsilonM, double epsilonQ, // <-- ДОБАВЛЕНО: epsilonQ
+        double OmegaM, double OmegaQ,     // <-- ДОБАВЛЕНО: OmegaQ
+        double Theta, double nPrime,
+        double Ared, double Ired,
+        double x, double M,
+        double xiY, double sigmaPc,
+        double k,
+        double Q_pred,
+        double hc,
+        double sigmaRebarMin,
+        double sigmaRebarMax,
+        double sigmaConcreteMin,
+        double sigmaConcreteMax
+    ) {
+        double Rs = ctx.Rs;
+        double nk = ctx.nk;
+        double np = ctx.np;
+        double npPrime = ctx.npPrime;
+
+        double pp = (ctx.ppBeam != null) ? ctx.ppBeam : 34.0;
+        double pb = (ctx.pbBeam != null) ? ctx.pbBeam : 20.6;
+        double Mp_calc = (np * pp + npPrime * pb) * OmegaM;
+
+        boolean boundaryInFlange = (x <= hf);
+        double xPrime = h - hc;
+
+        // Вспомогательные расчеты
+        double Qp = (np * pp + npPrime * pb) * OmegaQ;
+        double k_moment = Math.max(0, (M - Mp_calc) / (nk * epsilonM * OmegaM));
+        // ИСПРАВЛЕНО: используем epsilonQ и OmegaQ для поперечной силы
+        double k_shear = Math.max(0, (Q_pred - Qp) / (nk * epsilonQ * OmegaQ));
+
+        // Промежуточные переменные для выносливости
+        double Np2 = sigmaP2 * Ap + sigmaP2s * Ap_s;
+        double Mp2 = sigmaP2 * Ap * (h01 - xPrime) + sigmaP2s * Ap_s * (xPrime - ap_s);
+        double rho = (sigmaRebarMax != 0) ? sigmaRebarMin / sigmaRebarMax : 0;
+        double epsilonRo = getEpsilonRo(Math.abs(rho));
+        double Rpf = epsilonRo * Rp;
+        double ap = h - h01;
 
         System.out.println("================================================================================");
-        System.out.println(" РАСЧЕТ ГРУЗОПОДЪЕМНОСТИ БАЛКИ С НАПРЯГАЕМОЙ АРМАТУРОЙ (РАЗДЕЛ 9)");
+        System.out.println(" РАЗДЕЛ 9. ОПРЕДЕЛЕНИЕ ГРУЗОПОДЪЕМНОСТИ ПРОЛЕТНЫХ СТРОЕНИЙ");
+        System.out.println(" С НАПРЯГАЕМОЙ АРМАТУРОЙ");
         System.out.println("================================================================================");
 
-        System.out.println("\n[1. Исходные параметры]");
-        System.out.printf("   Пролет l = %.2f м, h = %.2f м, b = %.2f м, bf = %.2f м, hf = %.2f м, h01 = %.3f м%n", ctx.spanLength, h, b, bf, hf, h01);
+        // =====================================================================
+        // ПОДРАЗДЕЛ 9.1. РАСЧЕТ НОРМАЛЬНОГО СЕЧЕНИЯ ПО ИЗГИБАЮЩЕМУ МОМЕНТУ
+        // =====================================================================
+        System.out.println("\n9.1. РАСЧЕТ НОРМАЛЬНОГО СЕЧЕНИЯ ПО ИЗГИБАЮЩЕМУ МОМЕНТУ");
+        System.out.println("────────────────────────────────────────────────────────────────────────────");
+
+        System.out.println("\n1. Исходные данные");
+        System.out.printf("   Высота балки h = %.3f м%n", h);
+        System.out.printf("   Ширина ребра b = %.2f м%n", b);
+        System.out.printf("   Расчетная ширина плиты bf = %.2f м%n", bf);
+        System.out.printf("   Приведенная толщина плиты hf = %.3f м%n", hf);
+        System.out.printf("   Площадь растянутой арматуры As = %.4f м²%n", As);
+        System.out.printf("   Площадь сжатой арматуры As' = %.4f м²%n", As_s);
+        System.out.printf("   Площадь напрягаемой арматуры Ap = %.4f м²%n", Ap);
+        System.out.printf("   Площадь сжатой напрягаемой арматуры Ap' = %.4f м²%n", Ap_s);
+        System.out.printf("   Рабочая высота h01 = h - ap = %.3f - %.2f = %.3f м%n", h, ap, h01);
         System.out.printf("   Rb = %.1f МПа, Rs = %.1f МПа, Rp = %.1f МПа, Rpc = %.1f МПа%n", Rb, Rs, Rp, Rpc);
-        System.out.printf("   As = %.4f м², Ap = %.4f м², As' = %.4f м², Ap' = %.4f м²%n", As, Ap, As_s, Ap_s);
-        System.out.printf("   Преднапряжение: σp2 = %.1f МПа, σ'p2 = %.1f МПа%n", sigmaP2, sigmaP2s);
+        System.out.printf("   σp2 = %.1f МПа, σ'p2 = %.1f МПа%n", sigmaP2, sigmaP2s);
         System.out.printf("   Ared = %.4f м², Ired = %.6f м⁴, n' = %.1f%n", Ared, Ired, nPrime);
 
-        System.out.println("\n[Формула 9.1] Граничная высота сжатой зоны (ξ_y)");
-        System.out.printf("   ξ_y = %.4f%n", xiY);
+        System.out.println("\n2. Граничная высота сжатой зоны (ф. 9.1)");
+        System.out.println("   ξ_y = (0.85 - 0.008·Rb) / (1 + (Rp + 500 - σp2)/Rpc · (1 - (0.85 - 0.008·Rb)/1.1))");
+        double numXi = 0.85 - 0.008 * Rb;
+        double ratio1 = (Rp + 500 - sigmaP2) / Rpc;
+        double ratio2 = 1 - numXi / 1.1;
+        double denXi = 1 + ratio1 * ratio2;
+        System.out.printf("   ξ_y = (%.4f) / (1 + %.4f · %.4f) = %.4f / %.4f = %.3f%n", numXi, ratio1, ratio2, numXi, denXi, xiY);
 
-        System.out.println("\n[Формула 9.4] Напряжение в сжатой напрягаемой арматуре (σ_pc)");
-        System.out.printf("   σ_pc = %.1f МПа%n", sigmaPc);
+        System.out.println("\n3. Напряжение в арматуре сжатой зоны (ф. 9.4)");
+        System.out.println("   σ_pc = Rpc - σ'p2");
+        System.out.printf("   σ_pc = %.1f - %.1f = %.1f МПа%n", Rpc, sigmaP2s, sigmaPc);
 
-        System.out.println("\n[Формулы 9.3 / 9.6] Высота сжатой зоны бетона (x)");
-        System.out.printf("   Рассчитанное x = %.4f м (Предельное x_lim = %.4f м)%n", x, xiY * h01);
+        System.out.println("\n4. Высота сжатой зоны бетона");
+        if (boundaryInFlange) {
+            System.out.println("   Проверяем положение границы сжатой зоны:");
+            System.out.println("   x = (Rs·As + Rp·Ap - Rsc·As' - σ_pc·Ap') / (Rb·bf)");
+            double numX = Rs * As + Rp * Ap - Rs * As_s - sigmaPc * Ap_s;
+            double denX = Rb * bf;
+            System.out.printf("   x = (%.1f·%.4f + %.1f·%.4f - %.1f·%.4f - %.1f·%.4f) / (%.1f·%.2f) = %.4f м%n",
+                Rs, As, Rp, Ap, Rs, As_s, sigmaPc, Ap_s, Rb, bf, numX/denX);
+            System.out.printf("   Так как x (%.4f) ≤ hf (%.3f), граница сжатой зоны проходит в плите%n", x, hf);
+            System.out.println("   Используем формулу для прямоугольного сечения (ф. 9.5)");
+        } else {
+            System.out.println("   Проверяем положение границы сжатой зоны:");
+            System.out.println("   x = (Rs·As + Rp·Ap - Rsc·As' - σ_pc·Ap' - Rb·(bf-b)·hf) / (Rb·b)");
+            double numX = Rs * As + Rp * Ap - Rs * As_s - sigmaPc * Ap_s - Rb * (bf - b) * hf;
+            double denX = Rb * b;
+            System.out.printf("   x = (%.1f·%.4f + %.1f·%.4f - %.1f·%.4f - %.1f·%.4f - %.1f·(%.2f-%.2f)·%.2f) / (%.1f·%.2f) = %.4f м%n",
+                Rs, As, Rp, Ap, Rs, As_s, sigmaPc, Ap_s, Rb, bf, b, hf, Rb, b, numX/denX);
+            System.out.printf("   Так как x (%.4f) > hf (%.3f), граница сжатой зоны проходит в ребре%n", x, hf);
+            System.out.println("   Используем формулу для таврового сечения (ф. 9.2)");
+        }
+        System.out.printf("   Рассчитанное x = %.4f м (Предельное x_lim = ξ_y·h01 = %.3f · %.3f = %.4f м)%n", x, xiY, h01, xiY * h01);
 
-        System.out.println("\n[Формулы 9.2 / 9.5] Предельный изгибающий момент (M)");
-        System.out.printf("   M_pred = %.2f кН·м%n", M);
+        System.out.println("\n5. Предельный изгибающий момент");
+        if (boundaryInFlange) {
+            System.out.println("   M = Rb·bf·x·(h01 - 0.5x) + Rsc·As'·(h01 - as') + σ_pc·Ap'·(h01 - ap')");
+            double t1 = Rb * 1000 * bf * x * (h01 - 0.5 * x);
+            double t2 = Rs * 1000 * As_s * (h01 - as_s);
+            double t3 = sigmaPc * 1000 * Ap_s * (h01 - ap_s);
+            System.out.printf("   M = %.1f·1000·%.2f·%.4f·(%.3f - 0.5·%.4f) + %.1f·1000·%.4f·(%.3f - %.2f) + %.1f·1000·%.4f·(%.3f - %.2f)%n",
+                Rb, bf, x, h01, x, Rs, As_s, h01, as_s, sigmaPc, Ap_s, h01, ap_s);
+            System.out.printf("   Предельный момент M = %.2f кН·м%n", M);
+        } else {
+            System.out.println("   M = Rb·b·x·(h01 - 0.5x) + Rb·(bf-b)·hf·(h01 - 0.5hf) + Rsc·As'·(h01 - as') + σ_pc·Ap'·(h01 - ap')");
+            double t1 = Rb * 1000 * b * x * (h01 - 0.5 * x);
+            double t2 = Rb * 1000 * (bf - b) * hf * (h01 - 0.5 * hf);
+            double t3 = Rs * 1000 * As_s * (h01 - as_s);
+            double t4 = sigmaPc * 1000 * Ap_s * (h01 - ap_s);
+            System.out.printf("   M = %.1f·1000·%.2f·%.4f·(%.3f - 0.5·%.4f) + %.1f·1000·(%.2f-%.2f)·%.2f·(%.3f - 0.5·%.2f) + %.1f·1000·%.4f·(%.3f - %.2f) + %.1f·1000·%.4f·(%.3f - %.2f)%n",
+                Rb, b, x, h01, x, Rb, bf, b, hf, h01, hf, Rs, As_s, h01, as_s, sigmaPc, Ap_s, h01, ap_s);
+            System.out.printf("   Предельный момент M = %.2f кН·м%n", M);
+        }
 
-        System.out.println("\n[Формула 7.21] Изгибающий момент от постоянных нагрузок (Mp)");
-        System.out.printf("   Mp = %.2f кН·м%n", Mp);
+        System.out.println("\n6. Момент от постоянных нагрузок (ф. 7.21)");
+        System.out.printf("   Площадь линии влияния Ω = l²/8 = %.2f²/8 = %.2f м²%n", ctx.spanLength, OmegaM);
+        System.out.println("   Mp = (np·pp + np'·pb)·Ω");
+        System.out.printf("   Mp = (%.2f·%.2f + %.2f·%.2f)·%.2f = %.2f кН·м%n", np, pp, npPrime, pb, OmegaM, Mp_calc);
 
-        System.out.println("\n[Формула 7.20] Допускаемая нагрузка по изгибающему моменту (k_moment)");
-        System.out.printf("   k_moment = %.2f кН/м%n", k_moment);
+        System.out.println("\n7. Допускаемая временная нагрузка по моменту (ф. 7.20)");
+        System.out.println("   k_moment = (M - Mp) / (nk·εM·Ω)");
+        System.out.printf("   k_moment = (%.2f - %.2f) / (%.2f·%.3f·%.2f) = %.2f кН/м%n", M, Mp_calc, nk, epsilonM, OmegaM, k_moment);
 
-        System.out.println("\n[Формула 9.7] Предельная поперечная сила (Q_pred)");
-        System.out.printf("   Q_pred = %.2f кН%n", Q_pred);
+        // =====================================================================
+        // ПОДРАЗДЕЛ 9.2. РАСЧЕТ НАКЛОННОГО СЕЧЕНИЯ ПО ПОПЕРЕЧНОЙ СИЛЕ
+        // =====================================================================
+        System.out.println("\n9.2. РАСЧЕТ НАКЛОННОГО СЕЧЕНИЯ ПО ПОПЕРЕЧНОЙ СИЛЕ");
+        System.out.println("────────────────────────────────────────────────────────────────────────────");
 
-        System.out.println("\n[Формула 7.25] Допускаемая нагрузка по поперечной силе (k_shear)");
-        System.out.printf("   k_shear = %.2f кН/м%n", k_shear);
+        System.out.println("\n1. Предельная поперечная сила (ф. 9.7)");
+        System.out.println("   Q_pred = 0.7·Rp·ΣApi·sinα + 0.8·Rs·Asw·c/s + Qb");
+        System.out.printf("   Q_pred = 0.7·%.1f·ΣApi·sinα + 0.8·%.1f·Asw·c/s + Qb = %.2f кН%n", Rp, Rs, Q_pred);
 
-        System.out.println("\n[Итоговая нагрузка для расчета выносливости]");
-        System.out.printf("   k_result = min(k_moment, k_shear) = %.2f кН/м%n", k_result);
+        System.out.println("\n2. Поперечная сила от постоянных нагрузок (ф. 7.26)");
+        System.out.printf("   Площадь линии влияния Ω_Q = l/2 = %.2f/2 = %.2f м²%n", ctx.spanLength, OmegaQ);
+        System.out.println("   Qp = (np·pp + np'·pb)·Ω_Q");
+        System.out.printf("   Qp = (%.2f·%.2f + %.2f·%.2f)·%.2f = %.2f кН%n", np, pp, npPrime, pb, OmegaQ, Qp);
 
-        System.out.println("\n[Формула 9.15] Момент от временной нагрузки (Mk)");
-        System.out.printf("   Mk = Ω_M · εM · k_result · Θ = %.2f кН·м%n", Mk);
+        System.out.println("\n3. Допускаемая нагрузка по поперечной силе (ф. 7.25)");
+        System.out.println("   k_shear = (Q_pred - Qp) / (nk·εQ·Ω_Q)");
+        // ИСПРАВЛЕНО: выводим epsilonQ и OmegaQ
+        System.out.printf("   k_shear = (%.2f - %.2f) / (%.2f·%.3f·%.2f) = %.2f кН/м%n", Q_pred, Qp, nk, epsilonQ, OmegaQ, k_shear);
 
-        System.out.println("\n[Формула 9.14] Высота сжатой зоны при расчете на выносливость (x')");
-        System.out.printf("   x' = %.3f м%n", xPrime);
+        System.out.println("\n4. Итоговая допускаемая нагрузка");
+        System.out.printf("   k = min(k_moment, k_shear) = min(%.2f, %.2f) = %.2f кН/м%n", k_moment, k_shear, k);
 
-        System.out.println("\n[Формула 9.10] Минимальное напряжение в растянутой арматуре (σ_s,min)");
-        System.out.printf("   σ_s,min = %.2f МПа%n", sigmaRebarMin);
+        // =====================================================================
+        // ПОДРАЗДЕЛ 9.3. РАСЧЕТ ПО ВЫНОСЛИВОСТИ
+        // =====================================================================
+        System.out.println("\n9.3. РАСЧЕТ ПО ВЫНОСЛИВОСТИ");
+        System.out.println("────────────────────────────────────────────────────────────────────────────");
 
-        System.out.println("\n[Формула 9.11] Максимальное напряжение в растянутой арматуре (σ_s,max)");
-        System.out.printf("   σ_s,max = %.2f МПа%n", sigmaRebarMax);
+        System.out.println("\n1. Момент от временной нагрузки (ф. 9.15)");
+        System.out.println("   Mk = Ω·εM·k·Θ");
+        System.out.printf("   Mk = %.2f · %.3f · %.2f · %.3f = %.2f кН·м%n", OmegaM, epsilonM, k, Theta, Mk);
 
-        System.out.println("\n[Формула 9.12] Минимальное напряжение в бетоне сжатой зоны (σ_b,min)");
-        System.out.printf("   σ_b,min = %.2f МПа%n", sigmaConcreteMin);
+        System.out.println("\n2. Высота сжатой зоны для выносливости (ф. 9.14)");
+        System.out.println("   x' = h - hc");
+        System.out.printf("   x' = %.2f - %.2f = %.3f м%n", h, hc, xPrime);
 
-        System.out.println("\n[Формула 9.13] Максимальное напряжение в бетоне сжатой зоны (σ_b,max)");
-        System.out.printf("   σ_b,max = %.2f МПа%n", sigmaConcreteMax);
+        System.out.println("\n3. Минимальное напряжение в арматуре (ф. 9.10)");
+        System.out.println("   σ_s,min = σp2 - n'·[Np2/Ared + (Mp2/Ired)·(h01-x')] + n'·(Mp·1000/Ired)·(h01-x')/10⁶");
+        System.out.printf("   Np2 = σp2·Ap + σ'p2·Ap' = %.1f·%.4f + %.1f·%.4f = %.4f МПа·м²%n", sigmaP2, Ap, sigmaP2s, Ap_s, Np2);
+        System.out.printf("   Mp2 = σp2·Ap·(h01-x') + σ'p2·Ap'·(x'-ap') = %.4f МПа·м³%n", Mp2);
+        double term1_rebar = sigmaP2 - nPrime * (Np2 / Ared + (Mp2 / Ired) * (h01 - xPrime));
+        double term2_rebar = nPrime * (Mg * 1000.0) / Ired * (h01 - xPrime) / 1_000_000.0;
+        System.out.printf("   σ_s,min = %.2f + %.2f = %.2f МПа%n", term1_rebar, term2_rebar, sigmaRebarMin);
 
-        System.out.println("\n[Формула 9.9] Коэффициент асимметрии цикла (ρ)");
-        System.out.printf("   ρ = %.3f%n", rho);
+        System.out.println("\n4. Максимальное напряжение в арматуре (ф. 9.11)");
+        System.out.println("   σ_s,max = σ_s,min + n'·(Mk·1000/Ired)·(h01-x')/10⁶");
+        double term_extra_rebar = nPrime * (Mk * 1000.0) / Ired * (h01 - xPrime) / 1_000_000.0;
+        System.out.printf("   σ_s,max = %.2f + %.2f = %.2f МПа%n", sigmaRebarMin, term_extra_rebar, sigmaRebarMax);
 
-        System.out.println("\n[Формула 9.8] Сопротивление арматуры на выносливость (R_pf)");
-        System.out.printf("   R_pf = %.1f МПа%n", Rpf);
+        System.out.println("\n5. Минимальное напряжение в бетоне (ф. 9.12)");
+        System.out.println("   σ_b,min = Np2/Ared + (Mp2/Ired)·x' + (Mp·1000/Ired)·x'/10⁶");
+        double term1_conc = Np2 / Ared;
+        double term2_conc = (Mp2 / Ired) * xPrime;
+        double term3_conc = (Mg * 1000.0) / Ired * xPrime / 1_000_000.0;
+        System.out.printf("   σ_b,min = %.2f + %.2f + %.2f = %.2f МПа%n", term1_conc, term2_conc, term3_conc, sigmaConcreteMin);
+
+        System.out.println("\n6. Максимальное напряжение в бетоне (ф. 9.13)");
+        System.out.println("   σ_b,max = σ_b,min + (Mk·1000/Ired)·x'/10⁶");
+        double term_extra_conc = (Mk * 1000.0) / Ired * xPrime / 1_000_000.0;
+        System.out.printf("   σ_b,max = %.2f + %.2f = %.2f МПа%n", sigmaConcreteMin, term_extra_conc, sigmaConcreteMax);
+
+        System.out.println("\n7. Асимметрия цикла напряжений (ф. 9.9)");
+        System.out.println("   ρ = σ_s,min / σ_s,max");
+        System.out.printf("   ρ = %.2f / %.2f = %.3f%n", sigmaRebarMin, sigmaRebarMax, rho);
+
+        System.out.println("\n8. Сопротивление арматуры на выносливость (ф. 9.8)");
+        System.out.println("   R_pf = ε_ρ · Rp");
+        System.out.printf("   По таблице 5.3 для |ρ| = %.3f принимаем ε_ρ = %.2f%n", Math.abs(rho), epsilonRo);
+        System.out.printf("   R_pf = %.2f · %.1f = %.1f МПа%n", epsilonRo, Rp, Rpf);
 
         System.out.println("\n================================================================================");
-        System.out.printf(" ИТОГОВАЯ ДОПУСКАЕМАЯ НАГРУЗКА: k = %.2f кН/м%n", k_result);
+        System.out.println(" ИТОГОВЫЙ РЕЗУЛЬТАТ");
+        System.out.println("================================================================================");
+        System.out.printf("   Допускаемая временная нагрузка: k = %.2f кН/м%n", k);
+        System.out.printf("   Предельный момент: M = %.2f кН·м%n", M);
+        System.out.printf("   Предельная поперечная сила: Q = %.2f кН%n", Q_pred);
+        System.out.printf("   Расчетное сопротивление выносливости: R_pf = %.1f МПа%n", Rpf);
         System.out.println("================================================================================\n");
     }
 }
