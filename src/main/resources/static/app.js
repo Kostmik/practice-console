@@ -17,6 +17,7 @@ const app = createApp({
       { key: 'slab', title: '7. Плита' },
       { key: 'beam', title: '7. Балка' },
       { key: 'section8', title: '8. Сопоставление норм' },
+      { key: 'section9', title: '9. Напрягаемая арматура' },
       { key: 'board', title: '10. Продольный борт' },
       { key: 'curved', title: '11. Пролёт на кривой' },
       { key: 'defect', title: '12. Дефекты' },
@@ -118,6 +119,7 @@ const app = createApp({
       beamShearResult.value = null;
       beamFatigueResult.value = null;
       section8Result.value = null;
+      section9Result.value = null;
       boardResult.value = null;
       curvedResult.value = null;
       defectResult.value = null;
@@ -582,7 +584,6 @@ const app = createApp({
       l0Cantilever: 3.4, etaMCantilever: 1.0, delta: 0.7, Z: 0.0, mpCantilever: 12.5,
       l0Monolithic: 3.4, etaMMonolithic: 1.0,
       epsilon: 0.5, pp: 0.0, pb: 0.0
-      // Убрали j отсюда, теперь оно вычисляется динамически
     });
 
     // Вычисляемое свойство: берем j из Раздела 12, если он рассчитан, иначе 1.0
@@ -590,7 +591,7 @@ const app = createApp({
       if (defectResult.value && defectResult.value.j !== undefined && defectResult.value.j !== null) {
         return defectResult.value.j;
         }
-      return null; // По умолчанию, если дефекты не учитывались
+      return null;
     });
 
     const section8Result = ref(null);
@@ -630,6 +631,96 @@ const app = createApp({
       if (data) {
         section8Result.value = data;
         localStorage.setItem('section8Result', JSON.stringify(data));
+      }
+    }
+
+    // ==========================================================
+    // 9. РАЗДЕЛ 9: НАПРЯГАЕМАЯ АРМАТУРА
+    // ==========================================================
+    const section9Form = reactive({
+      // Прочность по моменту (9.1, 9.2)
+      Rp: 1100,
+      Rpc: 1100,
+      sigmaP2: 800,
+      sigmaP2s: 0,
+      Ap: 0.00658,
+      Ap_s: 0.0,
+      ap: 0.05,
+      ap_s: 0.05,
+      Ared: 0.5,
+      Ired: 0.1,
+      Theta: 0.9,
+      // Поперечная сила (9.3)
+      sumApi: 0.001257,
+      sinAlpha: 0.7071,
+      Asw: 0.000201,
+      c: 0.35,
+      s: 0.15,
+      Qb: null,
+      // Выносливость (9.4)
+      hc: 0.7
+    });
+
+    const section9Result = ref(null);
+    const showSection9Report = ref(false);
+
+    const section9Readiness = computed(() => {
+      const missing = [];
+      if (!materialsResult.value) missing.push('Материалы');
+      if (!loadsPermResult.value) missing.push('Пост. нагрузки');
+      if (!loadsShareResult.value) missing.push('Доли нагрузки');
+      return { missing, ready: missing.length === 0 };
+    });
+
+    async function calculateSection9() {
+      if (!section9Readiness.value.ready) {
+        alert('⚠️ Сначала выполните расчеты:\n\n' +
+              section9Readiness.value.missing.map(m => '• ' + m).join('\n') +
+              '\n\nПожалуйста, завершите предыдущие разделы.');
+        return;
+      }
+
+      section9Result.value = null;
+      showSection9Report.value = false;
+
+      const payload = {
+        commonData: getCommonData(),
+
+        // Данные из Раздела 5 и 7
+        Rb: materialsResult.value.Rb,
+        Rs: materialsResult.value.Rs,
+        nPrime: materialsResult.value.nPrime,
+        beamHeight: beamForm.beamHeight,
+        beamWidth: beamForm.beamWidth,
+        bf: beamForm.bf,
+        hf: beamForm.hf,
+        As_tensile: beamForm.asBeamTensileArea,
+        As_compressive: beamForm.asBeamCompressiveArea,
+        as_tensile: beamForm.asBeamTensile,
+        as_compressive: beamForm.asBeamCompressive,
+
+        // Нагрузки из Раздела 6
+        ppBeam: loadsPermResult.value.ppBeam,
+        pbBeam: loadsPermResult.value.pbBeam,
+        epsilonM: loadsShareResult.value.epsilonM_Beam1,
+        epsilonQ: loadsShareResult.value.epsilonQ_Beam1,
+
+        // Специфичные параметры Раздела 9
+        ...section9Form
+      };
+
+      const data = await api('/api/v1/section9/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (data) {
+        section9Result.value = data;
+        localStorage.setItem('section9Result', JSON.stringify(data));
+        showSection9Report.value = true;
       }
     }
 
@@ -1185,6 +1276,7 @@ const app = createApp({
       beamShearResult.value = safeParse('beamShearResult');
       beamFatigueResult.value = safeParse('beamFatigueResult');
       section8Result.value = safeParse('section8Result');
+      section9Result.value = safeParse('section9Result');
       boardResult.value = safeParse('boardResult');
       curvedResult.value = safeParse('curvedResult');
       defectResult.value = safeParse('defectResult');
@@ -1223,6 +1315,8 @@ const app = createApp({
       beamFatigueResult, showBeamFatigueReport, calculateBeamFatigue,
       // Раздел 8
       section8Form, effectiveJ, section8Result, showSection8Report, calculateSection8, section8Readiness,
+      // Раздел 9
+      section9Form, section9Result, showSection9Report, calculateSection9, section9Readiness,
       // Раздел 10
       boardForm, boardReadiness, boardResult, showBoardReport, calculateBoard,
       // Раздел 11

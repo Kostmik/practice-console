@@ -1,314 +1,229 @@
 package org.example.calculator.paragraph_9;
 
 import org.example.context.BridgeContext;
-import org.example.model.TrackType;
 import org.example.util.Interpolation;
 
 /**
- * Класс для расчета грузоподъемности пролетных строений
- * с напрягаемой арматурой (Раздел 9 Руководства)
+ * Калькулятор Раздела 9 "Определение грузоподъемности пролетных строений с напрягаемой арматурой"
+ * Реализует формулы 9.1 – 9.15 Руководства ОАО "РЖД" № 249/р.
  */
-public class PrestressedBeamCalculator {
-
-    // =====================================================================
-    // КОНСТАНТЫ
-    // =====================================================================
-
+public final class PrestressedBeamCalculator {
     private static final double EPSILON_B = 0.85;
-    private static final double SIGMA_P2_LOSS = 500.0;
-    private static final double GAMMA_RC = 24.5;
-    private static final double GAMMA_BALLAST = 20.0;
 
-    // Табличные данные для Приложения 1 (эталонная нагрузка kc)
+    // Эталонная нагрузка C1 (Приложение 1)
     private static final double[] KC_X_POINTS = {1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 25.0, 30.0};
     private static final double[] KC_ALPHA05 = {49.03, 34.25, 26.73, 21.14, 18.99, 17.82, 17.06, 16.48, 16.02, 15.63, 15.28, 14.68, 14.16, 13.71, 13.30, 12.92, 12.12, 11.46};
     private static final double[] KC_ALPHA00 = {49.03, 39.15, 30.55, 24.16, 21.69, 20.37, 19.50, 18.84, 18.32, 17.87, 17.47, 16.78, 16.19, 15.66, 15.19, 14.76, 13.85, 13.10};
 
-    // =====================================================================
-    // 9.1.1 - ГРАНИЧНАЯ ВЫСОТА СЖАТОЙ ЗОНЫ (Формула 9.1)
-    // =====================================================================
+    private PrestressedBeamCalculator() {}
 
+    // ФОРМУЛА 9.1: Граничная высота сжатой зоны
     public static double calculateXiY(double Rb, double Rp, double sigmaP2, double Rpc) {
-        double numerator = EPSILON_B - 0.008 * Rb;
-        double denominator = 1 + (Rp + 500 - sigmaP2) / Rpc * (1 - (EPSILON_B - 0.008 * Rb) / 1.1);
-        return numerator / denominator;
+        double omega = EPSILON_B - 0.008 * Rb;
+        double sigmaP = Rp + 500.0 - sigmaP2;
+        return omega / (1.0 + (sigmaP / Rpc) * (1.0 - omega / 1.1));
     }
 
-    // =====================================================================
-// 9.2 - ПРЕДЕЛЬНЫЙ МОМЕНТ (граница в ребре) - Формула 9.2
-// =====================================================================
-    public static double calculateMomentWithWeb(
-        double Rb, double b, double x, double h0,
-        double bf, double hf,
-        double Rsc, double As, double as,
-        double sigmaPc, double Ap, double ap
-    ) {
-        double Rb_kPa = Rb * 1000;
-        double Rsc_kPa = Rsc * 1000;
-        double sigmaPc_kPa = sigmaPc * 1000;
-
-        double term1 = Rb_kPa * b * x * (h0 - 0.5 * x);
-        double term2 = Rb_kPa * (bf - b) * hf * (h0 - 0.5 * hf);
-        double term3 = Rsc_kPa * As * (h0 - as);
-        double term4 = sigmaPc_kPa * Ap * (h0 - ap);
-
-        // ИСПРАВЛЕНО: убрано деление на 1000.0, результат сразу в кН*м
-        return (term1 + term2 + term3 + term4);
+    // ФОРМУЛА 9.4: Напряжение в сжатой напрягаемой арматуре
+    public static double calculateSigmaPc(double Rpc, double sigmaP2s) {
+        return Rpc - sigmaP2s;
     }
 
-    // =====================================================================
-    // 9.3 - ВЫСОТА СЖАТОЙ ЗОНЫ (граница в ребре) - Формула 9.3
-    // =====================================================================
-
-    public static double calculateXWithWeb(
-        double Rs, double As, double Rp, double Ap,
-        double Rsc, double As_s, double sigmaPx, double Ap_s,
-        double Rb, double bf, double b, double hf
-    ) {
-        double Rs_kPa = Rs * 1000;
-        double Rp_kPa = Rp * 1000;
-        double Rsc_kPa = Rsc * 1000;
-        double sigmaPx_kPa = sigmaPx * 1000;
-        double Rb_kPa = Rb * 1000;
-
-        double numerator = Rs_kPa * As + Rp_kPa * Ap - Rsc_kPa * As_s - sigmaPx_kPa * Ap_s
-            - Rb_kPa * (bf - b) * hf;
-        double denominator = Rb_kPa * b;
-
-        return numerator / denominator;
+    // ФОРМУЛА 9.6: Высота сжатой зоны (граница в плите x <= hf)
+    public static double calculateXWithFlange(double Rs, double As, double Rp, double Ap,
+                                              double Rsc, double As_s, double sigmaPc, double Ap_s,
+                                              double Rb, double bf) {
+        return (Rs * As + Rp * Ap - Rsc * As_s - sigmaPc * Ap_s) / (Rb * bf);
     }
 
-    // =====================================================================
-    // 9.4 - НАПРЯЖЕНИЕ В АРМАТУРЕ СЖАТОЙ ЗОНЫ - Формула 9.4
-    // =====================================================================
-
-    public static double calculateSigmaPc(double Rpc, double sigmaP2) {
-        return Rpc - sigmaP2;
+    // ФОРМУЛА 9.3: Высота сжатой зоны (граница в ребре x > hf)
+    public static double calculateXWithWeb(double Rs, double As, double Rp, double Ap,
+                                           double Rsc, double As_s, double sigmaPc, double Ap_s,
+                                           double Rb, double bf, double b, double hf) {
+        return (Rs * As + Rp * Ap - Rsc * As_s - sigmaPc * Ap_s - Rb * (bf - b) * hf) / (Rb * b);
     }
 
-    // =====================================================================
-    // 9.5 - ПРЕДЕЛЬНЫЙ МОМЕНТ (граница в плите) - Формула 9.5
-    // =====================================================================
-    public static double calculateMomentWithFlange(
-        double Rb, double bf, double x, double h0,
-        double Rsc, double As, double as,
-        double sigmaPc, double Ap, double ap
-    ) {
-        double Rb_kPa = Rb * 1000;
-        double Rsc_kPa = Rsc * 1000;
-        double sigmaPc_kPa = sigmaPc * 1000;
-
-        double term1 = Rb_kPa * bf * x * (h0 - 0.5 * x);
-        double term2 = Rsc_kPa * As * (h0 - as);
-        double term3 = sigmaPc_kPa * Ap * (h0 - ap);
-
-        // ИСПРАВЛЕНО: убрано деление на 1000.0, результат сразу в кН*м
-        return (term1 + term2 + term3);
+    // ФОРМУЛА 9.5: Предельный изгибающий момент (граница в плите, кН·м)
+    public static double calculateMomentWithFlange(double Rb, double bf, double x, double h01,
+                                                   double Rsc, double As_s, double as_s,
+                                                   double sigmaPc, double Ap_s, double ap_s) {
+        double M_b = Rb * 1000.0 * bf * x * (h01 - 0.5 * x);
+        double M_s = Rsc * 1000.0 * As_s * (h01 - as_s);
+        double M_p = sigmaPc * 1000.0 * Ap_s * (h01 - ap_s);
+        return M_b + M_s + M_p;
     }
 
-    // =====================================================================
-    // 9.6 - ВЫСОТА СЖАТОЙ ЗОНЫ (граница в плите) - Формула 9.6
-    // =====================================================================
-
-    public static double calculateXWithFlange(
-        double Rs, double As, double Rp, double Ap,
-        double Rsc, double As_s, double sigmaPc, double Ap_s,
-        double Rb, double bf
-    ) {
-        double Rs_kPa = Rs * 1000;
-        double Rp_kPa = Rp * 1000;
-        double Rsc_kPa = Rsc * 1000;
-        double sigmaPc_kPa = sigmaPc * 1000;
-        double Rb_kPa = Rb * 1000;
-
-        double numerator = Rs_kPa * As + Rp_kPa * Ap - Rsc_kPa * As_s - sigmaPc_kPa * Ap_s;
-        double denominator = Rb_kPa * bf;
-
-        return numerator / denominator;
+    // ФОРМУЛА 9.2: Предельный изгибающий момент (граница в ребре, кН·м)
+    public static double calculateMomentWithWeb(double Rb, double b, double x, double h01,
+                                                double bf, double hf,
+                                                double Rsc, double As_s, double as_s,
+                                                double sigmaPc, double Ap_s, double ap_s) {
+        double M_b_web = Rb * 1000.0 * b * x * (h01 - 0.5 * x);
+        double M_b_flange = Rb * 1000.0 * (bf - b) * hf * (h01 - 0.5 * hf);
+        double M_s = Rsc * 1000.0 * As_s * (h01 - as_s);
+        double M_p = sigmaPc * 1000.0 * Ap_s * (h01 - ap_s);
+        return M_b_web + M_b_flange + M_s + M_p;
     }
 
-    // =====================================================================
-    // 9.7 - ПОПЕРЕЧНАЯ СИЛА ПО НАКЛОННОЙ ТРЕЩИНЕ - Формула 9.7
-    // =====================================================================
-    public static double calculateShearForce(
-        double Rp, double sumApi, double sinAlpha,
-        double Rs, double Asw, double c, double s,
-        double Qb
-    ) {
-        double Rp_kPa = Rp * 1000;
-        double Rs_kPa = Rs * 1000;
-
-        double term1 = 0.7 * Rp_kPa * sumApi * sinAlpha;
-        double term2 = 0.8 * Rs_kPa * Asw * c / s;
-
-        // ИСПРАВЛЕНО: убрано деление на 1000.0, результат сразу в кН
-        return (term1 + term2 + Qb);
+    // ФОРМУЛА 9.7: Предельная поперечная сила (кН)
+    public static double calculateShearForce(double Rp, double sumApi, double sinAlpha,
+                                             double Rs, double Asw, double c, double s,
+                                             double Qb) {
+        double Q_p = 0.7 * Rp * 1000.0 * sumApi * sinAlpha;
+        double Q_sw = 0.8 * Rs * 1000.0 * Asw * c / s;
+        return Q_p + Q_sw + Qb;
     }
 
-    // =====================================================================
-    // 9.8 - СОПРОТИВЛЕНИЕ НА ВЫНОСЛИВОСТЬ - Формула 9.8
-    // =====================================================================
-
-    public static double calculateRpf(double epsilonRo, double Rb) {
-        return epsilonRo * Rb;
+    // ФОРМУЛА 9.14: Высота сжатой зоны для выносливости
+    public static double calculateXForFatigue(double h, double hc) {
+        return Math.max(0, h - hc);
     }
 
-    // =====================================================================
-    // 9.9 - АСИММЕТРИЯ ЦИКЛА НАПРЯЖЕНИЙ - Формула 9.9
-    // =====================================================================
+    // ФОРМУЛА 9.10: Минимальное напряжение в арматуре (МПа)
+    public static double calculateSigmaInRebarMin(double sigmaP2, double sigmaP2s, double nPrime,
+                                                  double Ap, double Ap_s, double h01, double xPrime, double ap_s,
+                                                  double Ared, double Ired, double Mg) {
+        double Np2 = sigmaP2 * Ap + sigmaP2s * Ap_s; // МПа·м²
+        double Mp2 = sigmaP2 * Ap * (h01 - xPrime) - sigmaP2s * Ap_s * (xPrime - ap_s); // МПа·м³
 
+        double sigma_p_loss = nPrime * (Np2 / Ared + (Mp2 / Ired) * (h01 - xPrime));
+        double sigma_g = nPrime * (Mg / 1000.0) / Ired * (h01 - xPrime); // Mg в кН·м -> МН·м
+
+        return sigmaP2 - sigma_p_loss + sigma_g;
+    }
+
+    // ФОРМУЛА 9.11: Максимальное напряжение в арматуре (МПа)
+    public static double calculateSigmaInRebarMax(double sigmaMin, double nPrime,
+                                                  double Mk, double Ired, double h01, double xPrime) {
+        double sigma_k = nPrime * (Mk / 1000.0) / Ired * (h01 - xPrime);
+        return sigmaMin + sigma_k;
+    }
+
+    // ФОРМУЛА 9.12: Минимальное напряжение в бетоне (МПа)
+    public static double calculateSigmaInConcreteMin(double sigmaP2, double Ap, double sigmaP2s, double Ap_s,
+                                                     double h01, double xPrime, double ap_s,
+                                                     double Ared, double Ired, double Mg) {
+        double Np2 = sigmaP2 * Ap + sigmaP2s * Ap_s;
+        double Mp2 = sigmaP2 * Ap * (h01 - xPrime) - sigmaP2s * Ap_s * (xPrime - ap_s);
+
+        double sigma_p = Np2 / Ared + (Mp2 / Ired) * xPrime;
+        double sigma_g = (Mg / 1000.0) / Ired * xPrime;
+
+        return sigma_p - sigma_g;
+    }
+
+    // ФОРМУЛА 9.13: Максимальное напряжение в бетоне (МПа)
+    public static double calculateSigmaInConcreteMax(double sigmaConcreteMin, double Mk, double Ired, double xPrime) {
+        double sigma_k = (Mk / 1000.0) / Ired * xPrime;
+        return sigmaConcreteMin + sigma_k;
+    }
+
+    // ФОРМУЛА 9.9: Асимметрия цикла
     public static double calculateRho(double sigmaMin, double sigmaMax) {
-        if (sigmaMax == 0) return 0;
+        if (Math.abs(sigmaMax) < 1e-6) return 0.0;
         return sigmaMin / sigmaMax;
     }
 
-    // =====================================================================
-    // 9.10-9.11 - НАПРЯЖЕНИЯ В АРМАТУРЕ
-    // =====================================================================
-
-    public static double calculateSigmaInRebar(
-        double sigmaP2, double nPrime,
-        double Ap, double h01, double x,
-        double Ared, double Ired,
-        double Mg, double Mk,
-        boolean isMax
-    ) {
-        double term1 = sigmaP2 - nPrime * (sigmaP2 * Ap + sigmaP2 * Ap * Math.pow(h01 - x, 2) / Ared);
-        double term2 = nPrime * (Mg * 1000) / Ired * (h01 - x);
-
-        double term3 = 0;
-        if (isMax) {
-            term3 = nPrime * (Mk * 1000) / Ired * (h01 - x);
-        }
-
-        return term1 + term2 + term3;
+    // ФОРМУЛА 9.8: Расчетное сопротивление на выносливость
+    public static double calculateRpf(double epsilonRo, double Rp) {
+        return epsilonRo * Rp;
     }
 
-    // =====================================================================
-    // 9.12-9.13 - НАПРЯЖЕНИЯ В БЕТОНЕ
-    // =====================================================================
-
-    public static double calculateSigmaInConcrete(
-        double sigmaP2, double Ap, double sigmaP2s, double Aps,
-        double h01, double x, double ap,
-        double Ared, double Ired,
-        double Mg, double Mk,
-        boolean isMax
-    ) {
-        double term1 = (sigmaP2 * Ap + sigmaP2s * Aps) / Ared;
-        double term2 = (sigmaP2 * Ap * (h01 - x) + sigmaP2s * Aps * (x - ap)) / Ired * x;
-        double term3 = (Mg * 1000) / Ired * x;
-
-        double term4 = 0;
-        if (isMax) {
-            term4 = (Mk * 1000) / Ired * x;
-        }
-
-        return term1 + term2 + term3 + term4;
-    }
-
-    // =====================================================================
-    // 9.14 - ВЫСОТА СЖАТОЙ ЗОНЫ ДЛЯ ВЫНОСЛИВОСТИ - Формула 9.14
-    // =====================================================================
-
-    public static double calculateXForFatigue(double h, double hc) {
-        return h - hc;
-    }
-
-    // =====================================================================
-    // 9.15 - МОМЕНТ ОТ ВРЕМЕННОЙ НАГРУЗКИ - Формула 9.15
-    // =====================================================================
-
+    // ФОРМУЛА 9.15: Момент от временной нагрузки (кН·м)
     public static double calculateMk(double Omega, double epsilon, double k, double Theta) {
         return Omega * epsilon * k * Theta;
     }
 
-    // =====================================================================
-    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД - ЗНАЧЕНИЯ КОЭФФИЦИЕНТА ε_ρ
-    // =====================================================================
-
     public static double getEpsilonRo(double rho) {
-        if (rho <= 0.1) return 1.00;
-        if (rho <= 0.2) return 1.06;
-        if (rho <= 0.3) return 1.10;
-        if (rho <= 0.4) return 1.15;
-        if (rho <= 0.5) return 1.20;
+        double absRho = Math.abs(rho);
+        if (absRho <= 0.1) return 1.00;
+        if (absRho <= 0.2) return 1.06;
+        if (absRho <= 0.3) return 1.10;
+        if (absRho <= 0.4) return 1.15;
+        if (absRho <= 0.5) return 1.20;
         return 1.24;
     }
 
-    /**
-     * @param spanLength длина загружения (м)
-     * @param alpha положение вершины линии влияния (0.0 или 0.5)
-     * @return эталонная нагрузка (кН/м)
-     */
     public static double getStandardLoad(double spanLength, double alpha) {
         double[] yPoints = (alpha >= 0.5) ? KC_ALPHA05 : KC_ALPHA00;
         return Interpolation.linear(KC_X_POINTS, yPoints, spanLength);
     }
 
-    // =====================================================================
-    // МЕТОД ВЫВОДА ОТЧЕТА
-    // =====================================================================
+    // ПОДРОБНЫЙ ОТЧЕТ СО ВСЕМИ 15 ФОРМУЛАМИ
+    public static void printReport(BridgeContext ctx, double Rb, double Rs, double Rsc, double Rp, double Rpc,
+                                   double sigmaP2, double sigmaP2s, double As, double Ap, double As_s, double Ap_s,
+                                   double b, double bf, double hf, double h, double h01, double as_s, double ap_s,
+                                   double Mp, double Mk, double epsilonM, double OmegaM, double Theta, double nPrime,
+                                   double Ared, double Ired, double x, double M, double xiY, double sigmaPc,
+                                   double k_moment, double Q_pred, double Qp, double k_shear, double k_result,
+                                   double hc, double xPrime, double Rpf, double rho,
+                                   double sigmaRebarMin, double sigmaRebarMax,
+                                   double sigmaConcreteMin, double sigmaConcreteMax) {
 
-    public static void printReport(
-        BridgeContext ctx,
-        double Rb, double Rp, double Rpc,
-        double sigmaP2, double sigmaP2s,
-        double As, double Ap, double As_s, double Ap_s,
-        double b, double bf, double hf,
-        double h, double h0, double h01,
-        double as, double ap,
-        double Mg, double Mk,
-        double epsilon, double Omega,
-        double Theta, double nPrime,
-        double Ared, double Ired,
-        double k
-    ) {
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ ПРОЛЕТНОГО СТРОЕНИЯ С НАПРЯГАЕМОЙ АРМАТУРОЙ");
-        System.out.println(" РАЗДЕЛ 9");
-        System.out.println("============================================================");
+        System.out.println("================================================================================");
+        System.out.println(" РАСЧЕТ ГРУЗОПОДЪЕМНОСТИ БАЛКИ С НАПРЯГАЕМОЙ АРМАТУРОЙ (РАЗДЕЛ 9)");
+        System.out.println("================================================================================");
 
-        System.out.println("\n[1. Исходные данные]");
-        System.out.printf("   Расчетный пролет: %.2f м%n", ctx.spanLength);
-        System.out.printf("   Толщина балласта: %.2f м%n", ctx.ballastThickness);
-        System.out.printf("   Прочность бетона R: %.1f МПа%n", ctx.concreteStrengthR);
-        System.out.printf("   Rb (сжатие): %.1f МПа%n", Rb);
-        System.out.printf("   Rp (напрягаемая арматура): %.1f МПа%n", Rp);
-        System.out.printf("   Rpc (напрягаемая арматура сжатие): %.1f МПа%n", Rpc);
-        System.out.printf("   sigma_p2 (предв. напряжение): %.1f МПа%n", sigmaP2);
-        System.out.printf("   sigma'_p2 (предв. напряжение сжатой зоны): %.1f МПа%n", sigmaP2s);
-        System.out.printf("   As (ненапрягаемая арматура): %.4f м²%n", As);
-        System.out.printf("   Ap (напрягаемая арматура): %.4f м²%n", Ap);
-        System.out.printf("   As' (сжатая ненапрягаемая): %.4f м²%n", As_s);
-        System.out.printf("   Ap' (сжатая напрягаемая): %.4f м²%n", Ap_s);
-        System.out.printf("   b (ширина ребра): %.2f м%n", b);
-        System.out.printf("   bf (ширина плиты): %.2f м%n", bf);
-        System.out.printf("   hf (толщина плиты): %.2f м%n", hf);
-        System.out.printf("   h (высота балки): %.2f м%n", h);
-        System.out.printf("   h0 (рабочая высота): %.2f м%n", h0);
-        System.out.printf("   h01 (рабочая высота для напрягаемой): %.2f м%n", h01);
-        System.out.printf("   as (расстояние до сжатой арматуры): %.2f м%n", as);
-        System.out.printf("   ap (расстояние до напрягаемой арматуры): %.2f м%n", ap);
-        System.out.printf("   Mg (момент от пост. нагрузок): %.2f кН·м%n", Mg);
-        System.out.printf("   Mk (момент от временной нагрузки): %.2f кН·м%n", Mk);
-        System.out.printf("   εM (доля нагрузки): %.3f%n", epsilon);
-        System.out.printf("   Ω (площадь линии влияния): %.2f м²%n", Omega);
-        System.out.printf("   Θ (коэф. уменьшения динамики): %.3f%n", Theta);
-        System.out.printf("   n' (отношение модулей): %.1f%n", nPrime);
-        System.out.printf("   A_red (приведенная площадь): %.4f м²%n", Ared);
-        System.out.printf("   I_red (приведенный момент инерции): %.4f м⁴%n", Ired);
+        System.out.println("\n[1. Исходные параметры]");
+        System.out.printf("   Пролет l = %.2f м, h = %.2f м, b = %.2f м, bf = %.2f м, hf = %.2f м, h01 = %.3f м%n", ctx.spanLength, h, b, bf, hf, h01);
+        System.out.printf("   Rb = %.1f МПа, Rs = %.1f МПа, Rp = %.1f МПа, Rpc = %.1f МПа%n", Rb, Rs, Rp, Rpc);
+        System.out.printf("   As = %.4f м², Ap = %.4f м², As' = %.4f м², Ap' = %.4f м²%n", As, Ap, As_s, Ap_s);
+        System.out.printf("   Преднапряжение: σp2 = %.1f МПа, σ'p2 = %.1f МПа%n", sigmaP2, sigmaP2s);
+        System.out.printf("   Ared = %.4f м², Ired = %.6f м⁴, n' = %.1f%n", Ared, Ired, nPrime);
 
-        System.out.println("\n[2. Расчет по формуле 9.1 (граничная высота сжатой зоны)]");
-        double xiY = calculateXiY(Rb, Rp, sigmaP2, Rpc);
-        System.out.printf("   ξ_y = %.3f%n", xiY);
+        System.out.println("\n[Формула 9.1] Граничная высота сжатой зоны (ξ_y)");
+        System.out.printf("   ξ_y = %.4f%n", xiY);
 
-        System.out.println("\n[3. Расчет по формуле 9.4 (напряжение в арматуре сжатой зоны)]");
-        double sigmaPc = calculateSigmaPc(Rpc, sigmaP2s);
-        System.out.printf("   σ_pc = R_pc - σ'_p2 = %.1f - %.1f = %.1f МПа%n", Rpc, sigmaP2s, sigmaPc);
+        System.out.println("\n[Формула 9.4] Напряжение в сжатой напрягаемой арматуре (σ_pc)");
+        System.out.printf("   σ_pc = %.1f МПа%n", sigmaPc);
 
-        System.out.println("\n[4. Результат]");
-        System.out.printf("   >>> k = %.2f кН/м <<<%n", k);
-        System.out.println("============================================================\n");
+        System.out.println("\n[Формулы 9.3 / 9.6] Высота сжатой зоны бетона (x)");
+        System.out.printf("   Рассчитанное x = %.4f м (Предельное x_lim = %.4f м)%n", x, xiY * h01);
+
+        System.out.println("\n[Формулы 9.2 / 9.5] Предельный изгибающий момент (M)");
+        System.out.printf("   M_pred = %.2f кН·м%n", M);
+
+        System.out.println("\n[Формула 7.21] Изгибающий момент от постоянных нагрузок (Mp)");
+        System.out.printf("   Mp = %.2f кН·м%n", Mp);
+
+        System.out.println("\n[Формула 7.20] Допускаемая нагрузка по изгибающему моменту (k_moment)");
+        System.out.printf("   k_moment = %.2f кН/м%n", k_moment);
+
+        System.out.println("\n[Формула 9.7] Предельная поперечная сила (Q_pred)");
+        System.out.printf("   Q_pred = %.2f кН%n", Q_pred);
+
+        System.out.println("\n[Формула 7.25] Допускаемая нагрузка по поперечной силе (k_shear)");
+        System.out.printf("   k_shear = %.2f кН/м%n", k_shear);
+
+        System.out.println("\n[Итоговая нагрузка для расчета выносливости]");
+        System.out.printf("   k_result = min(k_moment, k_shear) = %.2f кН/м%n", k_result);
+
+        System.out.println("\n[Формула 9.15] Момент от временной нагрузки (Mk)");
+        System.out.printf("   Mk = Ω_M · εM · k_result · Θ = %.2f кН·м%n", Mk);
+
+        System.out.println("\n[Формула 9.14] Высота сжатой зоны при расчете на выносливость (x')");
+        System.out.printf("   x' = %.3f м%n", xPrime);
+
+        System.out.println("\n[Формула 9.10] Минимальное напряжение в растянутой арматуре (σ_s,min)");
+        System.out.printf("   σ_s,min = %.2f МПа%n", sigmaRebarMin);
+
+        System.out.println("\n[Формула 9.11] Максимальное напряжение в растянутой арматуре (σ_s,max)");
+        System.out.printf("   σ_s,max = %.2f МПа%n", sigmaRebarMax);
+
+        System.out.println("\n[Формула 9.12] Минимальное напряжение в бетоне сжатой зоны (σ_b,min)");
+        System.out.printf("   σ_b,min = %.2f МПа%n", sigmaConcreteMin);
+
+        System.out.println("\n[Формула 9.13] Максимальное напряжение в бетоне сжатой зоны (σ_b,max)");
+        System.out.printf("   σ_b,max = %.2f МПа%n", sigmaConcreteMax);
+
+        System.out.println("\n[Формула 9.9] Коэффициент асимметрии цикла (ρ)");
+        System.out.printf("   ρ = %.3f%n", rho);
+
+        System.out.println("\n[Формула 9.8] Сопротивление арматуры на выносливость (R_pf)");
+        System.out.printf("   R_pf = %.1f МПа%n", Rpf);
+
+        System.out.println("\n================================================================================");
+        System.out.printf(" ИТОГОВАЯ ДОПУСКАЕМАЯ НАГРУЗКА: k = %.2f кН/м%n", k_result);
+        System.out.println("================================================================================\n");
     }
 }

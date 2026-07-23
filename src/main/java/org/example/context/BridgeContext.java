@@ -118,7 +118,7 @@ public class BridgeContext {
     // Результаты расчета балки
     public double M_pred_beam;          // Предельный момент балки, кН·м
     public double Mp_beam;              // Момент от пост. нагрузок, кН·м
-    public double Omega_M;              // Площадь линии влияния момента, м²
+    public Double Omega_M;              // Площадь линии влияния момента, м²
     public double k_beam_moment;        // Допускаемая нагрузка по моменту, кН/м
     public double K_beam_moment;        // Класс балки по моменту
     public double kc_beam;              // Эталонная нагрузка для балки, кН/м
@@ -128,7 +128,7 @@ public class BridgeContext {
     public double s_stirrups;     // Шаг хомутов s, м
     public double sum_Asi;        // Сумма площадей отогнутых стержней, м²
     public double alpha_bent;     // Угол наклона отогнутых стержней, град
-    public double Omega_k;        // Площадь линии влияния поперечной силы (временная), м²
+    public Double Omega_k;        // Площадь линии влияния поперечной силы (временная), м²
     public double Omega_p;        // Площадь линии влияния поперечной силы (постоянная), м²
 
     // Результаты расчета
