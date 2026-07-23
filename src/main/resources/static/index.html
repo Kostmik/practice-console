@@ -890,7 +890,7 @@
                             <span class="value">{{ formatNum(beamMomentResult.kcBeam, 2) }} кН/м</span>
                         </div>
                         <div class="result-item" style="background: #fff3cd;">
-                            <span class="label">КЛАСС БАЛКИ K:</span>
+                            <span class="label">Класс балки K:</span>
                             <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(beamMomentResult.KBeamMoment, 2) }}</span>
                         </div>
                     </div>
@@ -965,7 +965,7 @@
                             <span class="value">{{ formatNum(beamShearResult.kBeamShear, 2) }} кН/м</span>
                         </div>
                         <div class="result-item" style="background: #fff3cd;">
-                            <span class="label">КЛАСС БАЛКИ K:</span>
+                            <span class="label">Класс балки K:</span>
                             <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(beamShearResult.KBeamShear, 2) }}</span>
                         </div>
                     </div>
@@ -1044,7 +1044,7 @@
                 <div class="form-container">
                     <h3 style="margin-bottom: 1rem; color: #2c3e50;">📋 Общие параметры</h3>
                     <div class="form-row-3">
-                        <div class="form-group"><label>j (изм. площади арматуры):</label><input type="number" v-model.number="section8Form.j" step="0.001" min="0" max="1"></div>
+
                         <div class="form-group"><label>α (положение вершины):</label>
                             <select v-model.number="section8Form.alpha">
                                 <option :value="0.0">α = 0.0 (опора)</option>
@@ -1422,7 +1422,7 @@
                             <span class="value">{{ formatNum(boardResult.kFatigueRebar, 2) }} кН/м</span>
                         </div>
                         <div class="result-item" style="background: #d4edda;">
-                            <span class="label">ОПРЕДЕЛЯЮЩАЯ НАГРУЗКА k:</span>
+                            <span class="label">Определяющая нагрузка k:</span>
                             <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(boardResult.kGoverning, 2) }} кН/м</span>
                         </div>
                         <div class="result-item">
@@ -1716,11 +1716,11 @@
 
                     <div class="result-grid" style="margin-top: 1rem;">
                         <div class="result-item" style="background: #d4edda;">
-                            <span class="label">ОПРЕДЕЛЯЮЩАЯ ДОЛЯ ε_M:</span>
+                            <span class="label">Определяющая доля ε_M:</span>
                             <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(curvedResult.epsMDesign, 4) }}</span>
                         </div>
                         <div class="result-item" style="background: #d4edda;">
-                            <span class="label">ОПРЕДЕЛЯЮЩАЯ ДОЛЯ ε_Q:</span>
+                            <span class="label">Определяющая доля ε_Q:</span>
                             <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(curvedResult.epsQDesign, 4) }}</span>
                         </div>
                     </div>
@@ -1996,7 +1996,7 @@
                             <span class="value">{{ formatNum(defectResult.asActual, 4) }}</span>
                         </div>
                         <div class="result-item" style="background: #fff3cd;">
-                            <span class="label">КОЭФФИЦИЕНТ j = A_si / A_s:</span>
+                            <span class="label">Коэффициент j = A_si / A_s:</span>
                             <span class="value" style="font-size: 1.5rem; color: #856404;">{{ formatNum(defectResult.j, 4) }}</span>
                         </div>
                     </div>
@@ -2502,7 +2502,7 @@
                             <span class="value" style="font-size: 1.3rem; color: #856404;">{{ formatNum(carbonResult.my, 2) }} кН·м</span>
                         </div>
                         <div class="result-item" style="background: #d4edda;">
-                            <span class="label">ДОПУСКАЕМАЯ НАГРУЗКА k (ф. 13.1):</span>
+                            <span class="label">Допускаемая нагрузка k (ф. 13.1):</span>
                             <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.kMoment, 2) }} кН/м</span>
                         </div>
                     </div>
@@ -2604,7 +2604,7 @@
                             <span class="value">{{ formatNum(carbonResult.kFatigueRebar, 2) }} кН/м</span>
                         </div>
                         <div class="result-item" style="background: #d4edda;">
-                            <span class="label">ОПРЕДЕЛЯЮЩАЯ НАГРУЗКА k:</span>
+                            <span class="label">Определяющая нагрузка k:</span>
                             <span class="value" style="font-size: 1.5rem; color: #27ae60;">{{ formatNum(carbonResult.governingK, 2) }} кН/м</span>
                         </div>
                     </div>

@@ -21,7 +21,7 @@ const app = createApp({
       { key: 'curved', title: '11. Пролёт на кривой' },
       { key: 'defect', title: '12. Дефекты' },
       { key: 'carbon', title: '13. Усиление' },
-      { key: 'strengthening', title: '14. Усиление' },
+      { key: 'strengthening', title: '14. Рекомендации' },
       { key: 'inspection', title: '15. Обследование' }
     ];
 
@@ -575,46 +575,56 @@ const app = createApp({
     }
 
     // ==========================================================
-    // 8. РАЗДЕЛ 8: РАСЧЕТ ПО НОРМАМ ПРОЕКТИРОВАНИЯ
+    // 8. РАЗДЕЛ 8: ГРУЗОПОДЪЕМНОСТЬ ПО НОРМАМ
     // ==========================================================
     const section8Form = reactive({
-      slabHeight: 0.26, ls: 2.7, B: 2.4, lt: 1.25, lk: 1.25, P0: 0.7, j: 1.0, alpha: 0.5,
+      slabHeight: 0.26, ls: 2.7, B: 2.4, lt: 1.25, lk: 1.25, P0: 0.7, alpha: 0.5,
       l0Cantilever: 3.4, etaMCantilever: 1.0, delta: 0.7, Z: 0.0, mpCantilever: 12.5,
-      l0Monolithic: 3.4, etaMMonolithic: 1.0
-      // epsilon, pp, pb УДАЛЕНЫ из формы, так как берутся из Раздела 6 автоматически
+      l0Monolithic: 3.4, etaMMonolithic: 1.0,
+      epsilon: 0.5, pp: 0.0, pb: 0.0
+      // Убрали j отсюда, теперь оно вычисляется динамически
     });
+
+    // Вычисляемое свойство: берем j из Раздела 12, если он рассчитан, иначе 1.0
+    const effectiveJ = computed(() => {
+      if (defectResult.value && defectResult.value.j !== undefined && defectResult.value.j !== null) {
+        return defectResult.value.j;
+        }
+      return null; // По умолчанию, если дефекты не учитывались
+    });
+
     const section8Result = ref(null);
     const showSection8Report = ref(false);
 
-    // Проверка готовности зависимостей из Раздела 6
     const section8Readiness = computed(() => {
       const missing = [];
-      if (!loadsPermResult.value) missing.push('Постоянные нагрузки (6.1-6.3)');
+      if (!loadsPermResult.value) missing.push('Пост. нагрузки (6.1-6.3)');
       if (!loadsShareResult.value) missing.push('Доли нагрузки (6.6-6.7)');
+      if (!effectiveJ.value) missing.push('Отн. изм. площади (12.1)')
       return { missing, ready: missing.length === 0 };
     });
 
     async function calculateSection8() {
       if (!section8Readiness.value.ready) {
-        alert(
-          '⚠️ Для расчёта необходимо сначала выполнить:\n\n' +
-          section8Readiness.value.missing.map(m => '• ' + m).join('\n') +
-          '\n\nПожалуйста, перейдите в Раздел 6 и выполните расчёты.'
-        );
+        alert('⚠️ Для расчёта необходимо сначала выполнить:\n\n' +
+              section8Readiness.value.missing.map(m => '• ' + m).join('\n') +
+              '\n\nПожалуйста, перейдите в Раздел 6 и выполните расчёты.');
         return;
       }
 
       section8Result.value = null;
       showSection8Report.value = false;
 
+      // Формируем payload, явно подставляя актуальное значение j
+      const payload = {
+        commonData: getCommonData(),
+        ...section8Form,
+        j: effectiveJ.value // <-- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: подставляем j из Раздела 12
+      };
+
       const data = await api('/api/v1/section8/calculate', {
         method: 'POST',
-        body: JSON.stringify({
-          commonData: getCommonData(),
-          ...section8Form
-          // pp, pb, epsilon не передаются (будут null),
-          // и контроллер сам возьмёт их из BridgeContext!
-        })
+        body: JSON.stringify(payload)
       });
 
       if (data) {
@@ -1212,7 +1222,7 @@ const app = createApp({
       beamShearResult, showBeamShearReport, calculateBeamShear,
       beamFatigueResult, showBeamFatigueReport, calculateBeamFatigue,
       // Раздел 8
-      section8Form, section8Result, showSection8Report, calculateSection8, section8Readiness,
+      section8Form, effectiveJ, section8Result, showSection8Report, calculateSection8, section8Readiness,
       // Раздел 10
       boardForm, boardReadiness, boardResult, showBoardReport, calculateBoard,
       // Раздел 11
