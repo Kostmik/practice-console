@@ -1096,7 +1096,7 @@
 
                 <!-- Кнопка расчёта (автоматически блокируется, если зависимости не выполнены) -->
                 <button class="btn-create" @click="calculateSection8" :disabled="isLoading || !section8Readiness.ready">
-                    {{ isLoading ? 'Расчёт...' : 'Рассчитать раздел 8' }}
+                    {{ isLoading ? 'Расчёт...' : 'Рассчитать с ненапрягаемой арматурой' }}
                 </button>
 
 
@@ -1271,7 +1271,7 @@
                             ✅ Все зависимости рассчитаны
                         </div>
                         <button @click="calculateSection9" :disabled="isLoading || !section9Readiness.ready" class="btn-create">
-                            {{ isLoading ? 'Расчёт...' : 'Рассчитать Раздел 9' }}
+                            {{ isLoading ? 'Расчёт...' : 'Рассчитать с напрягаемой арматурой' }}
                         </button>
                     </div>
                 </div>
