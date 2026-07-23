@@ -1,9 +1,9 @@
-package org.example.dto.paragraph9;
+package org.example.dto.prestressed_beam;
 
 import jakarta.validation.constraints.NotNull;
 import org.example.dto.common.BridgeCommonData;
 
-public record Section9Request(
+public record PrestressedBeamRequest(
     @NotNull BridgeCommonData commonData,
 
     // Прочностные характеристики материалов (Раздел 5)

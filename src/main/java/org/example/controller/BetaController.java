@@ -6,8 +6,8 @@ import org.example.calculator.paragraph_8.SlabCantileverCalculator;
 import org.example.calculator.paragraph_8.SlabMonolithicCalculator;
 import org.example.context.BridgeContext;
 import org.example.dto.common.BridgeCommonData;
-import org.example.dto.paragraph8.Section8Request;
-import org.example.dto.paragraph8.Section8Response;
+import org.example.dto.beta.BetaRequest;
+import org.example.dto.beta.BetaResponse;
 import org.example.model.RebarType;
 import org.example.model.TrackType;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +17,12 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-@RequestMapping("/api/v1/section8")
+@RequestMapping("/api/v1/beta")
 @CrossOrigin(origins = "*")
-public class Section8Controller {
+public class BetaController {
 
     @PostMapping("/calculate")
-    public Section8Response calculate(@RequestBody Section8Request request) {
+    public BetaResponse calculate(@RequestBody BetaRequest request) {
         BridgeCommonData common = request.commonData();
 
         // 1. Собираем BridgeContext из доступных полей
@@ -157,7 +157,7 @@ public class Section8Controller {
             ctx.pbBeam = pb;
             ctx.epsilonM_Beam1 = epsilon;
 
-            return new Section8Response(
+            return new BetaResponse(
                 kCantilever,
                 kMonolithic,
                 kBeam,

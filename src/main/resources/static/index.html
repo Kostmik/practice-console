@@ -203,11 +203,11 @@
                     <h3>🏗️ Раздел 7 (Балка)</h3>
                     <p>Расчёт главной балки на прочность и выносливость</p>
                 </div>
-                <div class="card" @click="goToSection('section8')">
+                <div class="card" @click="goToSection('beta')">
                     <h3>📐 Раздел 8</h3>
-                    <p>Сопоставление расчётных норм</p>
+                    <p>Расчёт по нормам проектирования (ненапрягаемая арматура)</p>
                 </div>
-                <div class="card" @click="goToSection('section9')">
+                <div class="card" @click="goToSection('prestressedBeam')">
                     <h3>🔗 Раздел 9</h3>
                     <p>Расчет балок с напрягаемой арматурой</p>
                 </div>
@@ -1038,7 +1038,7 @@
         <!-- ============================================================ -->
         <!-- РАЗДЕЛ 8: РАСЧЕТ ПО НОРМАМ ПРОЕКТИРОВАНИЯ                   -->
         <!-- ============================================================ -->
-        <section v-if="page === 'section8'" class="section">
+        <section v-if="page === 'beta'" class="section">
             <h2 class="section-title">📐 Раздел 8: Расчет по нормам проектирования</h2>
             <p class="description">Определение грузоподъемности на основе сопоставления расчетных норм (формулы 8.1, 8.2, 8.4).</p>
 
@@ -1050,34 +1050,34 @@
                     <div class="form-row-3">
 
                         <div class="form-group"><label>α (положение вершины):</label>
-                            <select v-model.number="section8Form.alpha">
+                            <select v-model.number="betaForm.alpha">
                                 <option :value="0.0">α = 0.0 (опора)</option>
                                 <option :value="0.5">α = 0.5 (середина)</option>
                             </select>
                         </div>
-                        <div class="form-group"><label>Толщина плиты h (м):</label><input type="number" v-model.number="section8Form.slabHeight" step="0.01" min="0"></div>
+                        <div class="form-group"><label>Толщина плиты h (м):</label><input type="number" v-model.number="betaForm.slabHeight" step="0.01" min="0"></div>
                     </div>
                 </div>
 
                 <div class="form-container">
                     <h3 style="margin-bottom: 1rem; color: #2c3e50;">🔷 8.1 - Внешняя консоль плиты</h3>
                     <div class="form-row-3">
-                        <div class="form-group"><label>l₀ (длина распределения), м:</label><input type="number" v-model.number="section8Form.l0Cantilever" step="0.1"></div>
-                        <div class="form-group"><label>ηM (коэффициент):</label><input type="number" v-model.number="section8Form.etaMCantilever" step="0.01"></div>
-                        <div class="form-group"><label>Δ (расст. от ребра), м:</label><input type="number" v-model.number="section8Form.delta" step="0.01"></div>
+                        <div class="form-group"><label>l₀ (длина распределения), м:</label><input type="number" v-model.number="betaForm.l0Cantilever" step="0.1"></div>
+                        <div class="form-group"><label>ηM (коэффициент):</label><input type="number" v-model.number="betaForm.etaMCantilever" step="0.01"></div>
+                        <div class="form-group"><label>Δ (расст. от ребра), м:</label><input type="number" v-model.number="betaForm.delta" step="0.01"></div>
                     </div>
                     <div class="form-row-3">
-                        <div class="form-group"><label>Z (до сечения), м:</label><input type="number" v-model.number="section8Form.Z" step="0.01"></div>
-                        <div class="form-group"><label>lk (длина консоли), м:</label><input type="number" v-model.number="section8Form.lk" step="0.01"></div>
-                        <div class="form-group"><label>Mp (момент пост. нагр.), кН·м:</label><input type="number" v-model.number="section8Form.mpCantilever" step="0.1"></div>
+                        <div class="form-group"><label>Z (до сечения), м:</label><input type="number" v-model.number="betaForm.Z" step="0.01"></div>
+                        <div class="form-group"><label>lk (длина консоли), м:</label><input type="number" v-model.number="betaForm.lk" step="0.01"></div>
+                        <div class="form-group"><label>Mp (момент пост. нагр.), кН·м:</label><input type="number" v-model.number="betaForm.mpCantilever" step="0.1"></div>
                     </div>
                 </div>
 
                 <div class="form-container">
                     <h3 style="margin-bottom: 1rem; color: #2c3e50;">🔷 8.2 - Монолитный участок плиты</h3>
                     <div class="form-row-3">
-                        <div class="form-group"><label>l₀ (длина распределения), м:</label><input type="number" v-model.number="section8Form.l0Monolithic" step="0.1"></div>
-                        <div class="form-group"><label>ηM (коэффициент):</label><input type="number" v-model.number="section8Form.etaMMonolithic" step="0.01"></div>
+                        <div class="form-group"><label>l₀ (длина распределения), м:</label><input type="number" v-model.number="betaForm.l0Monolithic" step="0.1"></div>
+                        <div class="form-group"><label>ηM (коэффициент):</label><input type="number" v-model.number="betaForm.etaMMonolithic" step="0.01"></div>
                     </div>
                 </div>
 
@@ -1087,57 +1087,57 @@
                 </div>
 
                 <!-- Предупреждение о зависимостях -->
-                <div v-if="!section8Readiness.ready" style="font-size: 0.85rem; color: #c33;">
-                    ⚠️ Не готовы: {{ section8Readiness.missing.join(', ') }}
+                <div v-if="!betaReadiness.ready" style="font-size: 0.85rem; color: #c33;">
+                    ⚠️ Не готовы: {{ betaReadiness.missing.join(', ') }}
                 </div>
                 <div v-else style="font-size: 0.85rem; color: #27ae60;">
                     ✅ Все зависимости рассчитаны
                 </div>
 
                 <!-- Кнопка расчёта (автоматически блокируется, если зависимости не выполнены) -->
-                <button class="btn-create" @click="calculateSection8" :disabled="isLoading || !section8Readiness.ready">
+                <button class="btn-create" @click="calculateBeta" :disabled="isLoading || !betaReadiness.ready">
                     {{ isLoading ? 'Расчёт...' : 'Рассчитать с ненапрягаемой арматурой' }}
                 </button>
 
 
 
                 <!-- Результаты -->
-                <div v-if="section8Result" style="margin-top: 2rem;">
+                <div v-if="betaResult" style="margin-top: 2rem;">
                     <h3 style="color: #2c3e50; margin-bottom: 1rem;">📋 Результаты расчёта</h3>
 
                     <div class="result-box" style="margin-bottom: 1rem;">
                         <h4>Коэффициент β</h4>
                         <div class="result-grid">
-                            <div class="result-item"><span class="label">β</span><span class="value">{{ formatNum(section8Result.beta, 3) }}</span></div>
+                            <div class="result-item"><span class="label">β</span><span class="value">{{ formatNum(betaResult.beta, 3) }}</span></div>
                         </div>
                     </div>
 
-                    <div v-if="section8Result.kCantilever !== null" class="result-box" style="margin-bottom: 1rem;">
+                    <div v-if="betaResult.kCantilever !== null" class="result-box" style="margin-bottom: 1rem;">
                         <h4>8.1 - Внешняя консоль</h4>
                         <div class="result-grid">
-                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(section8Result.kCantilever, 2) }} кН/м</span></div>
+                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(betaResult.kCantilever, 2) }} кН/м</span></div>
                         </div>
                     </div>
 
-                    <div v-if="section8Result.kMonolithic !== null" class="result-box" style="margin-bottom: 1rem;">
+                    <div v-if="betaResult.kMonolithic !== null" class="result-box" style="margin-bottom: 1rem;">
                         <h4>8.2 - Монолитный участок</h4>
                         <div class="result-grid">
-                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(section8Result.kMonolithic, 2) }} кН/м</span></div>
+                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(betaResult.kMonolithic, 2) }} кН/м</span></div>
                         </div>
                     </div>
 
-                    <div v-if="section8Result.kBeam !== null" class="result-box">
+                    <div v-if="betaResult.kBeam !== null" class="result-box">
                         <h4>8.4 - Главная балка</h4>
                         <div class="result-grid">
-                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(section8Result.kBeam, 2) }} кН/м</span></div>
+                            <div class="result-item"><span class="label">Допускаемая нагрузка k</span><span class="value">{{ formatNum(betaResult.kBeam, 2) }} кН/м</span></div>
                         </div>
                     </div>
                 </div>
 
-                <button v-if="section8Result?.detailedReport" class="btn-toggle-report" @click="showSection8Report = !showSection8Report">
-                    {{ showSection8Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                <button v-if="betaResult?.detailedReport" class="btn-toggle-report" @click="showBetaReport = !showBetaReport">
+                    {{ showBetaReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                 </button>
-                <div v-if="showSection8Report && section8Result?.detailedReport" class="detailed-report" v-html="parseReport(section8Result.detailedReport)"></div>
+                <div v-if="showBetaReport && betaResult?.detailedReport" class="detailed-report" v-html="parseReport(betaResult.detailedReport)"></div>
 
                 <div v-if="error" class="error">{{ error }}</div>
             </div>
@@ -1146,7 +1146,7 @@
         <!-- ============================================================ -->
         <!-- РАЗДЕЛ 9: НАПРЯГАЕМАЯ АРМАТУРА                               -->
         <!-- ============================================================ -->
-        <section v-if="page==='section9'" class="section">
+        <section v-if="page==='prestressedBeam'" class="section">
             <h2 class="section-title">🔗 Раздел 9: Балки с напрягаемой арматурой</h2>
             <p class="description">
                 Расчёт грузоподъёмности железобетонных балок с преднапряжённой арматурой по моменту, поперечной силе и выносливости.
@@ -1166,25 +1166,25 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Расчётное сопротивление Rp (МПа):</label>
-                            <input v-model.number="section9Form.Rp" type="number" step="10" placeholder="1100">
+                            <input v-model.number="prestressedBeamForm.Rp" type="number" step="10" placeholder="1100">
                         </div>
                         <div class="form-group">
                             <label>Сопротивление сжатию Rpc (МПа):</label>
-                            <input v-model.number="section9Form.Rpc" type="number" step="10" placeholder="1100">
+                            <input v-model.number="prestressedBeamForm.Rpc" type="number" step="10" placeholder="1100">
                         </div>
                         <div class="form-group">
                             <label>Предварительное напряжение σp2 (МПа):</label>
-                            <input v-model.number="section9Form.sigmaP2" type="number" step="10" placeholder="800">
+                            <input v-model.number="prestressedBeamForm.sigmaP2" type="number" step="10" placeholder="800">
                         </div>
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Напряжение в сжатой зоне σ'p2 (МПа):</label>
-                            <input v-model.number="section9Form.sigmaP2s" type="number" step="10" placeholder="0">
+                            <input v-model.number="prestressedBeamForm.sigmaP2s" type="number" step="10" placeholder="0">
                         </div>
                         <div class="form-group">
                             <label>Коэффициент точности натяжения Θ:</label>
-                            <input v-model.number="section9Form.Theta" type="number" step="0.05" placeholder="0.9">
+                            <input v-model.number="prestressedBeamForm.Theta" type="number" step="0.05" placeholder="0.9">
                         </div>
                         <div class="form-group"></div>
                     </div>
@@ -1194,21 +1194,21 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Площадь растянутой арм. Ap (м²):</label>
-                            <input v-model.number="section9Form.Ap" type="number" step="0.000001" placeholder="0.00658">
+                            <input v-model.number="prestressedBeamForm.Ap" type="number" step="0.000001" placeholder="0.00658">
                         </div>
                         <div class="form-group">
                             <label>Площадь сжатой арм. Ap' (м²):</label>
-                            <input v-model.number="section9Form.Ap_s" type="number" step="0.000001" placeholder="0.0">
+                            <input v-model.number="prestressedBeamForm.Ap_s" type="number" step="0.000001" placeholder="0.0">
                         </div>
                         <div class="form-group">
                             <label>Расстояние ap до центра Ap (м):</label>
-                            <input v-model.number="section9Form.ap" type="number" step="0.001" placeholder="0.05">
+                            <input v-model.number="prestressedBeamForm.ap" type="number" step="0.001" placeholder="0.05">
                         </div>
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Расстояние ap' до центра Ap' (м):</label>
-                            <input v-model.number="section9Form.ap_s" type="number" step="0.001" placeholder="0.05">
+                            <input v-model.number="prestressedBeamForm.ap_s" type="number" step="0.001" placeholder="0.05">
                         </div>
                         <div class="form-group"></div>
                         <div class="form-group"></div>
@@ -1219,15 +1219,15 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Приведённая площадь Ared (м²):</label>
-                            <input v-model.number="section9Form.Ared" type="number" step="0.01" placeholder="0.5">
+                            <input v-model.number="prestressedBeamForm.Ared" type="number" step="0.01" placeholder="0.5">
                         </div>
                         <div class="form-group">
                             <label>Приведённый момент инерции Ired (м⁴):</label>
-                            <input v-model.number="section9Form.Ired" type="number" step="0.001" placeholder="0.1">
+                            <input v-model.number="prestressedBeamForm.Ired" type="number" step="0.001" placeholder="0.1">
                         </div>
                         <div class="form-group">
                             <label>Высота сжатой зоны бетона hc (м):</label>
-                            <input v-model.number="section9Form.hc" type="number" step="0.01" placeholder="0.7">
+                            <input v-model.number="prestressedBeamForm.hc" type="number" step="0.01" placeholder="0.7">
                         </div>
                     </div>
 
@@ -1236,48 +1236,48 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Сумма площадей отгибов ΣApi (м²):</label>
-                            <input v-model.number="section9Form.sumApi" type="number" step="0.000001" placeholder="0.001257">
+                            <input v-model.number="prestressedBeamForm.sumApi" type="number" step="0.000001" placeholder="0.001257">
                         </div>
                         <div class="form-group">
                             <label>Синус угла наклона sin(α):</label>
-                            <input v-model.number="section9Form.sinAlpha" type="number" step="0.01" placeholder="0.7071">
+                            <input v-model.number="prestressedBeamForm.sinAlpha" type="number" step="0.01" placeholder="0.7071">
                         </div>
                         <div class="form-group">
                             <label>Площадь хомутов Asw (м²):</label>
-                            <input v-model.number="section9Form.Asw" type="number" step="0.000001" placeholder="0.000201">
+                            <input v-model.number="prestressedBeamForm.Asw" type="number" step="0.000001" placeholder="0.000201">
                         </div>
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Длина проекции наклонной трещины c (м):</label>
-                            <input v-model.number="section9Form.c" type="number" step="0.01" placeholder="0.35">
+                            <input v-model.number="prestressedBeamForm.c" type="number" step="0.01" placeholder="0.35">
                         </div>
                         <div class="form-group">
                             <label>Шаг хомутов s (м):</label>
-                            <input v-model.number="section9Form.s" type="number" step="0.01" placeholder="0.15">
+                            <input v-model.number="prestressedBeamForm.s" type="number" step="0.01" placeholder="0.15">
                         </div>
                         <div class="form-group">
                             <label>Поперечная сила, воспр. бетоном Qb (кН):</label>
-                            <input v-model.number="section9Form.Qb" type="number" step="1" placeholder="100">
+                            <input v-model.number="prestressedBeamForm.Qb" type="number" step="1" placeholder="100">
                         </div>
                     </div>
 
                     <!-- Кнопка расчёта и статус готовности -->
                     <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                        <div v-if="!section9Readiness.ready" style="font-size: 0.9rem; color: #c33;">
-                            ⚠️ Не готовы: {{ section9Readiness.missing.join(', ') }}
+                        <div v-if="!prestressedBeamReadiness.ready" style="font-size: 0.9rem; color: #c33;">
+                            ⚠️ Не готовы: {{ prestressedBeamReadiness.missing.join(', ') }}
                         </div>
                         <div v-else style="font-size: 0.9rem; color: #27ae60;">
                             ✅ Все зависимости рассчитаны
                         </div>
-                        <button @click="calculateSection9" :disabled="isLoading || !section9Readiness.ready" class="btn-create">
+                        <button @click="calculatePrestressedBeam" :disabled="isLoading || !prestressedBeamReadiness.ready" class="btn-create">
                             {{ isLoading ? 'Расчёт...' : 'Рассчитать с напрягаемой арматурой' }}
                         </button>
                     </div>
                 </div>
 
                 <!-- БЛОК РЕЗУЛЬТАТОВ -->
-                <div v-if="section9Result" class="result-box" style="margin-top: 1.5rem;">
+                <div v-if="prestressedBeamResult" class="result-box" style="margin-top: 1.5rem;">
                     <h3>📊 Краткие результаты расчёта</h3>
 
                     <!-- Группа 1: Грузоподъемность и предельные усилия -->
@@ -1285,15 +1285,15 @@
                     <div class="result-grid">
                         <div class="result-item" style="background: #e8f8f5; border-left: 4px solid #1abc9c;">
                             <span class="label">Допускаемая нагрузка (k):</span>
-                            <span class="value" style="font-size: 1.3rem; color: #16a085; font-weight: bold;">{{ formatNum(section9Result.k ?? 0, 2) }} кН/м</span>
+                            <span class="value" style="font-size: 1.3rem; color: #16a085; font-weight: bold;">{{ formatNum(prestressedBeamResult.k ?? 0, 2) }} кН/м</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Предельный момент (M):</span>
-                            <span class="value">{{ formatNum(section9Result.M ?? 0, 2) }} кН·м</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.M ?? 0, 2) }} кН·м</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Предельная поперечная сила (Q_pred):</span>
-                            <span class="value">{{ formatNum(section9Result.Q_pred ?? 0, 2) }} кН</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.Q_pred ?? 0, 2) }} кН</span>
                         </div>
                     </div>
 
@@ -1302,19 +1302,19 @@
                     <div class="result-grid">
                         <div class="result-item">
                             <span class="label">Высота сжатой зоны (x):</span>
-                            <span class="value">{{ formatNum(section9Result.x ?? 0, 4) }} м</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.x ?? 0, 4) }} м</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Граничная высота (ξ_y):</span>
-                            <span class="value">{{ formatNum(section9Result.xiY ?? 0, 3) }}</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.xiY ?? 0, 3) }}</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Высота для выносливости (x'):</span>
-                            <span class="value">{{ formatNum(section9Result.xPrime ?? 0, 3) }} м</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.xPrime ?? 0, 3) }} м</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Напряжение в сжатой зоне (σ_pc):</span>
-                            <span class="value">{{ formatNum(section9Result.sigmaPc ?? 0, 2) }} МПа</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.sigmaPc ?? 0, 2) }} МПа</span>
                         </div>
                     </div>
 
@@ -1323,27 +1323,27 @@
                     <div class="result-grid">
                         <div class="result-item">
                             <span class="label">σ_min (арматура):</span>
-                            <span class="value">{{ formatNum(section9Result.sigmaRebarMin ?? 0, 2) }} МПа</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.sigmaRebarMin ?? 0, 2) }} МПа</span>
                         </div>
                         <div class="result-item">
                             <span class="label">σ_max (арматура):</span>
-                            <span class="value">{{ formatNum(section9Result.sigmaRebarMax ?? 0, 2) }} МПа</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.sigmaRebarMax ?? 0, 2) }} МПа</span>
                         </div>
                         <div class="result-item">
                             <span class="label">σ_b,min (бетон):</span>
-                            <span class="value">{{ formatNum(section9Result.sigmaConcreteMin ?? 0, 2) }} МПа</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.sigmaConcreteMin ?? 0, 2) }} МПа</span>
                         </div>
                         <div class="result-item">
                             <span class="label">σ_b,max (бетон):</span>
-                            <span class="value">{{ formatNum(section9Result.sigmaConcreteMax ?? 0, 2) }} МПа</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.sigmaConcreteMax ?? 0, 2) }} МПа</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Асимметрия цикла (ρ):</span>
-                            <span class="value">{{ formatNum(section9Result.rho ?? 0, 3) }}</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.rho ?? 0, 3) }}</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Сопротивление выносливости (R_pf):</span>
-                            <span class="value">{{ formatNum(section9Result.Rpf ?? 0, 2) }} МПа</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.Rpf ?? 0, 2) }} МПа</span>
                         </div>
                     </div>
 
@@ -1352,23 +1352,23 @@
                     <div class="result-grid">
                         <div class="result-item">
                             <span class="label">Момент от пост. нагрузок (M_p):</span>
-                            <span class="value">{{ formatNum(section9Result.Mp ?? 0, 2) }} кН·м</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.Mp ?? 0, 2) }} кН·м</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Момент от врем. нагрузок (M_k):</span>
-                            <span class="value">{{ formatNum(section9Result.Mk ?? 0, 2) }} кН·м</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.Mk ?? 0, 2) }} кН·м</span>
                         </div>
                         <div class="result-item">
                             <span class="label">Площадь линии влияния (Ω):</span>
-                            <span class="value">{{ formatNum(section9Result.Omega ?? 0, 2) }} м²</span>
+                            <span class="value">{{ formatNum(prestressedBeamResult.Omega ?? 0, 2) }} м²</span>
                         </div>
                     </div>
 
                     <!-- ОТЧЕТ -->
-                    <button v-if="section9Result.detailedReport" @click="showSection9Report = !showSection9Report" class="btn-toggle-report" style="margin-top: 1.5rem;">
-                        {{ showSection9Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
+                    <button v-if="prestressedBeamResult.detailedReport" @click="showPrestressedBeamReport = !showPrestressedBeamReport" class="btn-toggle-report" style="margin-top: 1.5rem;">
+                        {{ showPrestressedBeamReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
-                    <div v-if="showSection9Report && section9Result.detailedReport" class="detailed-report" v-html="parseReport(section9Result.detailedReport)"></div>
+                    <div v-if="showPrestressedBeamReport && prestressedBeamResult.detailedReport" class="detailed-report" v-html="parseReport(prestressedBeamResult.detailedReport)"></div>
                 </div>
 
                 <div v-if="error" class="error" style="margin-top: 1rem;">{{ error }}</div>

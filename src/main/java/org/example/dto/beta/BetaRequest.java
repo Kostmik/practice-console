@@ -1,9 +1,9 @@
-package org.example.dto.paragraph8;
+package org.example.dto.beta;
 
 import jakarta.validation.constraints.NotNull;
 import org.example.dto.common.BridgeCommonData;
 
-public record Section8Request(
+public record BetaRequest(
     @NotNull BridgeCommonData commonData, // <-- Паспортные данные приходят здесь
 
     // Геометрия и параметры

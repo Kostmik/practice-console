@@ -3,8 +3,8 @@ package org.example.controller;
 import org.example.calculator.paragraph_9.PrestressedBeamCalculator;
 import org.example.context.BridgeContext;
 import org.example.dto.common.BridgeCommonData;
-import org.example.dto.paragraph9.Section9Request;
-import org.example.dto.paragraph9.Section9Response;
+import org.example.dto.prestressed_beam.PrestressedBeamRequest;
+import org.example.dto.prestressed_beam.PrestressedBeamResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
@@ -12,12 +12,12 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-@RequestMapping("/api/v1/section9")
+@RequestMapping("/api/v1/prestressedBeam")
 @CrossOrigin(origins = "*")
-public class Section9Controller {
+public class PrestressedBeamController {
 
     @PostMapping("/calculate")
-    public Section9Response calculate(@RequestBody Section9Request request) {
+    public PrestressedBeamResponse calculate(@RequestBody PrestressedBeamRequest request) {
         BridgeCommonData common = request.commonData();
 
         BridgeContext ctx = new BridgeContext();
@@ -186,7 +186,7 @@ public class Section9Controller {
             // =================================================================
             // ШАГ 17: Возврат результата (СТРОГО по порядку полей в Section9Response)
             // =================================================================
-            return new Section9Response(
+            return new PrestressedBeamResponse(
                 k_result,                      // 1. Double k
                 xiY,                           // 2. Double xiY
                 sigmaPc,                       // 3. Double sigmaPc

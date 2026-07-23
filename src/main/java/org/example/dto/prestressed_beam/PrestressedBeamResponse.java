@@ -1,6 +1,6 @@
-package org.example.dto.paragraph9;
+package org.example.dto.prestressed_beam;
 
-public record Section9Response(
+public record PrestressedBeamResponse(
     Double k,
     Double xiY,
     Double sigmaPc,

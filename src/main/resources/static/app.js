@@ -16,8 +16,8 @@ const app = createApp({
       { key: 'loads', title: '6. Нагрузки' },
       { key: 'slab', title: '7. Плита' },
       { key: 'beam', title: '7. Балка' },
-      { key: 'section8', title: '8. Сопоставление норм' },
-      { key: 'section9', title: '9. Напрягаемая арматура' },
+      { key: 'beta', title: '8. Ненапрягаемая арматура' },
+      { key: 'prestressedBeam', title: '9. Напрягаемая арматура' },
       { key: 'board', title: '10. Продольный борт' },
       { key: 'curved', title: '11. Пролёт на кривой' },
       { key: 'defect', title: '12. Дефекты' },
@@ -101,7 +101,7 @@ const app = createApp({
       const keysToClear = [
         'materialsResult', 'loadsPermResult', 'loadsDynBeamResult', 'loadsDynSlabResult',
         'loadsShareResult', 'slabStrengthResult', 'slabShearResult', 'slabFatigueResult',
-        'beamMomentResult', 'beamShearResult', 'beamFatigueResult', 'section8Result',
+        'beamMomentResult', 'beamShearResult', 'beamFatigueResult', 'betaResult',
         'boardResult', 'curvedResult', 'defectResult', 'carbonResult',
         'inspection153Result', 'inspection154Result', 'inspection155Result'
       ];
@@ -118,8 +118,8 @@ const app = createApp({
       beamMomentResult.value = null;
       beamShearResult.value = null;
       beamFatigueResult.value = null;
-      section8Result.value = null;
-      section9Result.value = null;
+      betaResult.value = null;
+      prestressedBeamResult.value = null;
       boardResult.value = null;
       curvedResult.value = null;
       defectResult.value = null;
@@ -579,7 +579,7 @@ const app = createApp({
     // ==========================================================
     // 8. РАЗДЕЛ 8: ГРУЗОПОДЪЕМНОСТЬ ПО НОРМАМ
     // ==========================================================
-    const section8Form = reactive({
+    const betaForm = reactive({
       slabHeight: 0.26, ls: 2.7, B: 2.4, lt: 1.25, lk: 1.25, P0: 0.7, alpha: 0.5,
       l0Cantilever: 3.4, etaMCantilever: 1.0, delta: 0.7, Z: 0.0, mpCantilever: 12.5,
       l0Monolithic: 3.4, etaMMonolithic: 1.0,
@@ -594,10 +594,10 @@ const app = createApp({
       return null;
     });
 
-    const section8Result = ref(null);
-    const showSection8Report = ref(false);
+    const betaResult = ref(null);
+    const showBetaReport = ref(false);
 
-    const section8Readiness = computed(() => {
+    const betaReadiness = computed(() => {
       const missing = [];
       if (!loadsPermResult.value) missing.push('Пост. нагрузки (6.1-6.3)');
       if (!loadsShareResult.value) missing.push('Доли нагрузки (6.6-6.7)');
@@ -605,39 +605,38 @@ const app = createApp({
       return { missing, ready: missing.length === 0 };
     });
 
-    async function calculateSection8() {
-      if (!section8Readiness.value.ready) {
+    async function calculateBeta() {
+      if (!betaReadiness.value.ready) {
         alert('⚠️ Для расчёта необходимо сначала выполнить:\n\n' +
-              section8Readiness.value.missing.map(m => '• ' + m).join('\n') +
+              betaReadiness.value.missing.map(m => '• ' + m).join('\n') +
               '\n\nПожалуйста, перейдите в Раздел 6 и выполните расчёты.');
         return;
       }
 
-      section8Result.value = null;
-      showSection8Report.value = false;
+      betaResult.value = null;
+      showBetaReport.value = false;
 
-      // Формируем payload, явно подставляя актуальное значение j
       const payload = {
         commonData: getCommonData(),
-        ...section8Form,
-        j: effectiveJ.value // <-- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: подставляем j из Раздела 12
+        ...betaForm,
+        j: effectiveJ.value
       };
 
-      const data = await api('/api/v1/section8/calculate', {
+      const data = await api('/api/v1/beta/calculate', {
         method: 'POST',
         body: JSON.stringify(payload)
       });
 
       if (data) {
-        section8Result.value = data;
-        localStorage.setItem('section8Result', JSON.stringify(data));
+        betaResult.value = data;
+        localStorage.setItem('betaResult', JSON.stringify(data));
       }
     }
 
     // ==========================================================
     // 9. РАЗДЕЛ 9: НАПРЯГАЕМАЯ АРМАТУРА
     // ==========================================================
-    const section9Form = reactive({
+    const prestressedBeamForm = reactive({
       // Прочность по моменту (9.1, 9.2)
       Rp: 1100,
       Rpc: 1100,
@@ -661,10 +660,10 @@ const app = createApp({
       hc: 0.7
     });
 
-    const section9Result = ref(null);
-    const showSection9Report = ref(false);
+    const prestressedBeamResult = ref(null);
+    const showPrestressedBeamReport = ref(false);
 
-    const section9Readiness = computed(() => {
+    const prestressedBeamReadiness = computed(() => {
       const missing = [];
       if (!materialsResult.value) missing.push('Материалы');
       if (!loadsPermResult.value) missing.push('Пост. нагрузки');
@@ -672,16 +671,16 @@ const app = createApp({
       return { missing, ready: missing.length === 0 };
     });
 
-    async function calculateSection9() {
-      if (!section9Readiness.value.ready) {
+    async function calculatePrestressedBeam() {
+      if (!prestressedBeamReadiness.value.ready) {
         alert('⚠️ Сначала выполните расчеты:\n\n' +
-              section9Readiness.value.missing.map(m => '• ' + m).join('\n') +
+              prestressedBeamReadiness.value.missing.map(m => '• ' + m).join('\n') +
               '\n\nПожалуйста, завершите предыдущие разделы.');
         return;
       }
 
-      section9Result.value = null;
-      showSection9Report.value = false;
+      prestressedBeamResult.value = null;
+      showPrestressedBeamReport.value = false;
 
       const payload = {
         commonData: getCommonData(),
@@ -706,10 +705,10 @@ const app = createApp({
         epsilonQ: loadsShareResult.value.epsilonQ_Beam1,
 
         // Специфичные параметры Раздела 9
-        ...section9Form
+        ...prestressedBeamForm
       };
 
-      const data = await api('/api/v1/section9/calculate', {
+      const data = await api('/api/v1/prestressedBeam/calculate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -718,9 +717,9 @@ const app = createApp({
       });
 
       if (data) {
-        section9Result.value = data;
-        localStorage.setItem('section9Result', JSON.stringify(data));
-        showSection9Report.value = true;
+        prestressedBeamResult.value = data;
+        localStorage.setItem('prestressedBeamResult', JSON.stringify(data));
+        showPrestressedBeamReport.value = true;
       }
     }
 
@@ -1275,8 +1274,8 @@ const app = createApp({
       beamMomentResult.value = safeParse('beamMomentResult');
       beamShearResult.value = safeParse('beamShearResult');
       beamFatigueResult.value = safeParse('beamFatigueResult');
-      section8Result.value = safeParse('section8Result');
-      section9Result.value = safeParse('section9Result');
+      betaResult.value = safeParse('betaResult');
+      prestressedBeamResult.value = safeParse('prestressedBeamResult');
       boardResult.value = safeParse('boardResult');
       curvedResult.value = safeParse('curvedResult');
       defectResult.value = safeParse('defectResult');
@@ -1314,9 +1313,9 @@ const app = createApp({
       beamShearResult, showBeamShearReport, calculateBeamShear,
       beamFatigueResult, showBeamFatigueReport, calculateBeamFatigue,
       // Раздел 8
-      section8Form, effectiveJ, section8Result, showSection8Report, calculateSection8, section8Readiness,
+      betaForm, effectiveJ, betaResult, showBetaReport, calculateBeta, betaReadiness,
       // Раздел 9
-      section9Form, section9Result, showSection9Report, calculateSection9, section9Readiness,
+      prestressedBeamForm, prestressedBeamResult, showPrestressedBeamReport, calculatePrestressedBeam, prestressedBeamReadiness,
       // Раздел 10
       boardForm, boardReadiness, boardResult, showBoardReport, calculateBoard,
       // Раздел 11

@@ -1,6 +1,6 @@
-package org.example.dto.paragraph8;
+package org.example.dto.beta;
 
-public record Section8Response(
+public record BetaResponse(
     Double kCantilever,
     Double kMonolithic,
     Double kBeam,
