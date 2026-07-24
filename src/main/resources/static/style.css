@@ -416,7 +416,7 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   font-weight: bold;
   cursor: default;
   padding: 0.6rem 1.5rem;
-  min-width: 160px;
+  min-width: 256px;
   text-align: center;
 }
 
