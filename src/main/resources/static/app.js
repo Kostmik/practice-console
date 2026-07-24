@@ -12,18 +12,18 @@ const app = createApp({
     // 1. НАВИГАЦИЯ ПО РАЗДЕЛАМ
     // ==========================================================
     const sections = [
-      { key: 'materials', title: '5. Материалы' },
-      { key: 'loads', title: '6. Нагрузки' },
-      { key: 'slab', title: '7. Плита' },
-      { key: 'beam', title: '7. Балка' },
-      { key: 'beta', title: '8. Ненапрягаемая арматура' },
-      { key: 'prestressedBeam', title: '9. Напрягаемая арматура' },
-      { key: 'board', title: '10. Продольный борт' },
-      { key: 'curved', title: '11. Пролёт на кривой' },
-      { key: 'defect', title: '12. Дефекты' },
-      { key: 'carbon', title: '13. Усиление' },
-      { key: 'strengthening', title: '14. Рекомендации' },
-      { key: 'inspection', title: '15. Обследование' }
+      { key: 'materials', title: 'Материалы' },
+      { key: 'loads', title: 'Нагрузки' },
+      { key: 'slab', title: 'Плита' },
+      { key: 'beam', title: 'Балка' },
+      { key: 'beta', title: 'Ненапр. арматура' },
+      { key: 'prestressedBeam', title: 'Напр. арматура' },
+      { key: 'board', title: 'Продольный борт' },
+      { key: 'curved', title: 'Пролёт на кривой' },
+      { key: 'defect', title: 'Дефекты' },
+      { key: 'carbon', title: 'Усиление' },
+      { key: 'strengthening', title: 'Усиление' },
+      { key: 'inspection', title: 'Обследование' }
     ];
 
     const currentSectionIndex = computed(() => {

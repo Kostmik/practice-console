@@ -409,6 +409,22 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   /* просто отступ */
 }
 
+/* Контейнер навигации */
+.nav {
+  display: flex;
+  flex-wrap: nowrap;          /* Запрещаем перенос */
+  gap: 0.5rem;                /* Отступы между кнопками */
+  align-items: center;        /* Выравнивание по вертикали */
+  overflow-x: auto;           /* Горизонтальная прокрутка если нужно */
+  -webkit-overflow-scrolling: touch; /* Плавная прокрутка на мобильных */
+}
+
+/* Скрываем скроллбар для красоты */
+.nav::-webkit-scrollbar {
+  height: 0px;
+  background: transparent;
+}
+
 /* Кнопка текущего раздела */
 .btn-nav-current {
   background: #3498db !important;
@@ -416,8 +432,10 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   font-weight: bold;
   cursor: default;
   padding: 0.6rem 1.5rem;
-  min-width: 256px;
+  min-width: 181px;
   text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Стрелки навигации */
@@ -427,6 +445,8 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   font-size: 1.1rem;
   padding: 0.6rem 0.9rem;
   line-height: 1;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btn-nav-arrow:hover:not(:disabled) {
