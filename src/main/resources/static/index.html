@@ -662,7 +662,7 @@
                         </div>
                     </div>
                     <button @click="showSlabStrengthReport = !showSlabStrengthReport" class="btn-toggle-report">
-                        {{ showSlabStrengthReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showSlabStrengthReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showSlabStrengthReport" class="detailed-report" v-html="parseReport(slabStrengthResult.detailedReport)"></div>
                 </div>
@@ -731,7 +731,7 @@
                         </div>
                     </div>
                     <button @click="showSlabShearReport = !showSlabShearReport" class="btn-toggle-report">
-                        {{ showSlabShearReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showSlabShearReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showSlabShearReport" class="detailed-report" v-html="parseReport(slabShearResult.detailedReport)"></div>
                 </div>
@@ -785,7 +785,7 @@
                         </div>
                     </div>
                     <button @click="showSlabFatigueReport = !showSlabFatigueReport" class="btn-toggle-report">
-                        {{ showSlabFatigueReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showSlabFatigueReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showSlabFatigueReport" class="detailed-report" v-html="parseReport(slabFatigueResult.detailedReport)"></div>
                 </div>
@@ -899,7 +899,7 @@
                         </div>
                     </div>
                     <button @click="showBeamMomentReport = !showBeamMomentReport" class="btn-toggle-report">
-                        {{ showBeamMomentReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showBeamMomentReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showBeamMomentReport" class="detailed-report" v-html="parseReport(beamMomentResult.detailedReport)"></div>
                 </div>
@@ -974,7 +974,7 @@
                         </div>
                     </div>
                     <button @click="showBeamShearReport = !showBeamShearReport" class="btn-toggle-report">
-                        {{ showBeamShearReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showBeamShearReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showBeamShearReport" class="detailed-report" v-html="parseReport(beamShearResult.detailedReport)"></div>
                 </div>
@@ -1028,7 +1028,7 @@
                         </div>
                     </div>
                     <button @click="showBeamFatigueReport = !showBeamFatigueReport" class="btn-toggle-report">
-                        {{ showBeamFatigueReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showBeamFatigueReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showBeamFatigueReport" class="detailed-report" v-html="parseReport(beamFatigueResult.detailedReport)"></div>
                 </div>
@@ -1673,7 +1673,7 @@
                     </div>
 
                     <button @click="showBoardReport = !showBoardReport" class="btn-toggle-report">
-                        {{ showBoardReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showBoardReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showBoardReport" class="detailed-report" v-html="parseReport(boardResult.detailedReport)"></div>
                 </div>
@@ -1966,7 +1966,7 @@
                     </p>
 
                     <button @click="showCurvedReport = !showCurvedReport" class="btn-toggle-report">
-                        {{ showCurvedReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showCurvedReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showCurvedReport" class="detailed-report" v-html="parseReport(curvedResult.detailedReport)"></div>
                 </div>
@@ -2286,7 +2286,7 @@
                     </p>
 
                     <button @click="showDefectReport = !showDefectReport" class="btn-toggle-report">
-                        {{ showDefectReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showDefectReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showDefectReport" class="detailed-report" v-html="parseReport(defectResult.detailedReport)"></div>
                 </div>
@@ -2858,7 +2858,7 @@
                     </p>
 
                     <button @click="showCarbonReport = !showCarbonReport" class="btn-toggle-report">
-                        {{ showCarbonReport ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showCarbonReport ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showCarbonReport" class="detailed-report" v-html="parseReport(carbonResult.detailedReport)"></div>
                 </div>
@@ -2923,7 +2923,7 @@
                         </div>
                     </div>
                     <button v-if="inspection153Result.detailedReport" @click="showInspection153Report = !showInspection153Report" class="btn-toggle-report">
-                        {{ showInspection153Report ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showInspection153Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showInspection153Report" class="detailed-report" v-html="parseReport(inspection153Result.detailedReport)"></div>
                 </div>
@@ -2971,7 +2971,7 @@
                         </div>
                     </div>
                     <button v-if="inspection154Result.detailedReport" @click="showInspection154Report = !showInspection154Report" class="btn-toggle-report">
-                        {{ showInspection154Report ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showInspection154Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showInspection154Report" class="detailed-report" v-html="parseReport(inspection154Result.detailedReport)"></div>
                 </div>
@@ -3035,7 +3035,7 @@
                         </div>
                     </div>
                     <button v-if="inspection155Result.detailedReport" @click="showInspection155Report = !showInspection155Report" class="btn-toggle-report">
-                        {{ showInspection155Report ? '▲ Скрыть' : '▼ Показать' }}
+                        {{ showInspection155Report ? '▲ Скрыть подробный расчёт' : '▼ Показать подробный расчёт' }}
                     </button>
                     <div v-if="showInspection155Report" class="detailed-report" v-html="parseReport(inspection155Result.detailedReport)"></div>
                 </div>
