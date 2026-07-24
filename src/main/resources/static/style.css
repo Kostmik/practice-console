@@ -412,11 +412,11 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 /* Контейнер навигации */
 .nav {
   display: flex;
-  flex-wrap: nowrap;          /* Запрещаем перенос */
-  gap: 0.5rem;                /* Отступы между кнопками */
-  align-items: center;        /* Выравнивание по вертикали */
-  overflow-x: auto;           /* Горизонтальная прокрутка если нужно */
-  -webkit-overflow-scrolling: touch; /* Плавная прокрутка на мобильных */
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Скрываем скроллбар для красоты */
