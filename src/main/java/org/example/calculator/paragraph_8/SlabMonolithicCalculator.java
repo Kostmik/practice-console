@@ -222,12 +222,12 @@ public class SlabMonolithicCalculator {
 
         System.out.println("\n   Пошаговый расчет:");
         System.out.printf("   1) 8.75·Kc·(1+μ₁)·b = 8.75 × %.2f × %.3f × %.1f = %.2f%n",
-            Kc, mu1, b, stepA);  // ← mu1, а не 1+mu1!
-        System.out.printf("   2) + p₁ = %.2f + %.2f = %.2f%n", stepA, p1, stepB);
-        System.out.printf("   3) β × (...) = %.3f × %.2f = %.2f%n", beta, stepB, stepC);
+            Kc, mu1, b, stepA);
+        System.out.printf("   2) [8.75·Kc·(1+μ₁)·b] + p₁ = %.2f + %.2f = %.2f%n", stepA, p1, stepB);
+        System.out.printf("   3) β × [(8.75·Kc·(1+μ₁)·b) + p₁] = %.3f × %.2f = %.2f%n", beta, stepB, stepC);
         System.out.printf("   4) nₚ·pₚ + n'ₚ·p_b = %.1f × %.2f + %.1f × %.2f = %.2f%n",
             np, pp, npPrime, pb, stepD);
-        System.out.printf("   5) [...] = %.2f - %.2f = %.2f%n", stepC, stepD, stepE);
+        System.out.printf("   5) [β × ((8.75·Kc·(1+μ₁)·b) + p₁)] - [nₚ·pₚ + n'ₚ·p_b] = %.2f - %.2f = %.2f%n", stepC, stepD, stepE);
         System.out.printf("   6) (0.95·l₀)/(ηM·nₖ·b) = (0.95 × %.2f) / (%.2f × %.2f × %.1f) = %.4f%n",
             l0, etaM, nk, b, stepF);
         System.out.printf("   7) k = %.4f × %.2f = %.2f кН/м%n", stepF, stepE, result);

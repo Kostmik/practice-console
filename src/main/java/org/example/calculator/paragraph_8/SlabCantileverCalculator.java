@@ -275,13 +275,13 @@ public class SlabCantileverCalculator {
         System.out.printf("   1) (0.5·ls+hb-0.5·B) = (0.5×%.2f + %.2f - 0.5×%.2f) = %.3f м%n",
             ctx.ls, ctx.ballastThickness, ctx.B,
             0.5 * ctx.ls + ctx.ballastThickness - 0.5 * ctx.B);
-        System.out.printf("   2) A·Kc·(1+μ₁)·b·(...)² = %.1f × %.2f × %.3f × %.1f × %.3f² = %.2f%n",
+        System.out.printf("   2) A·Kc·(1+μ₁)·b·[1]² = %.1f × %.2f × %.3f × %.1f × %.3f² = %.2f%n",
             A, Kc, mu1, b, 0.5 * ctx.ls + ctx.ballastThickness - 0.5 * ctx.B, step1);
         System.out.printf("   3) p₁·lk² = %.2f × %.2f² = %.2f%n", p1, lk, step2);
         System.out.printf("   4) 2·P₀·lt = 2 × %.2f × %.2f = %.2f%n", P0, lt, step3);
-        System.out.printf("   5) β·(...) = %.3f × (%.2f + %.2f + %.2f) = %.2f%n",
+        System.out.printf("   5) β·[2·P₀·lt] = %.3f × (%.2f + %.2f + %.2f) = %.2f%n",
             beta, step1, step2, step3, step4);
-        System.out.printf("   6) - 2·Mp = %.2f - 2×%.2f = %.2f%n", step4, Mp, step5);
+        System.out.printf("   6) [β·(2·P₀·lt)] - 2·Mp = %.2f - 2×%.2f = %.2f%n", step4, Mp, step5);
         System.out.printf("   7) (0.95·l₀)/(ηM·nₖ·b·(Δ-Z)²) = (0.95×%.2f)/(%.2f×%.2f×%.1f×(%.2f-%.2f)²) = %.4f%n",
             l0, etaM, nk, b, delta, Z, step6);
         System.out.printf("   8) k = %.4f × %.2f = %.2f кН/м%n", step6, step5, result);

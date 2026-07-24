@@ -256,7 +256,7 @@ public class BeamCalculator {
         System.out.printf("   n'_p = %.2f (для балласта, п. 6.3)%n", npPrime);
 
         System.out.println("\n[5. Расчет по формуле 8.4]");
-        System.out.println("   k = 0.85/(εM·nₖ) × [β·(kc/m)·Kc·(1+μ₁) + β·p₁ - nₚ·pₚ - n'ₚ·p_b]");
+        System.out.println("   k = 0.85/(εM·nₖ) × [β·(kc/m)·Kc·(1+μ₁) + β·p₁ - (nₚ·pₚ + n'ₚ·p_b)]");
 
         double step1 = (kc / m) * Kc * mu1;
         double step2 = beta * step1;
@@ -269,11 +269,11 @@ public class BeamCalculator {
         System.out.println("\n   Пошаговый расчет:");
         System.out.printf("   1) (kc/m)·Kc·(1+μ₁) = (%.2f/%d) × %.2f × %.3f = %.2f%n",
             kc, m, Kc, mu1, step1);
-        System.out.printf("   2) β × (...) = %.3f × %.2f = %.2f%n", beta, step1, step2);
+        System.out.printf("   2) β×[(kc/m)·Kc·(1+μ₁)] = %.3f × %.2f = %.2f%n", beta, step1, step2);
         System.out.printf("   3) β·p₁ = %.3f × %.2f = %.2f%n", beta, p1, step3);
         System.out.printf("   4) nₚ·pₚ + n'ₚ·p_b = %.1f×%.2f + %.1f×%.2f = %.2f%n",
             np, pp, npPrime, pb, step4);
-        System.out.printf("   5) [...] = %.2f + %.2f - %.2f = %.2f%n", step2, step3, step4, step5);
+        System.out.printf("   5) β×[(kc/m)·Kc·(1+μ₁)] + [β·p₁] - [nₚ·pₚ + n'ₚ·p_b] = %.2f + %.2f - %.2f = %.2f%n", step2, step3, step4, step5);
         System.out.printf("   6) 0.85/(εM·nₖ) = 0.85/(%.3f×%.2f) = %.4f%n", epsilon, nk, step6);
         System.out.printf("   7) k = %.4f × %.2f = %.2f кН/м%n", step6, step5, result);
 

@@ -90,36 +90,4 @@ public class BetaCalculator {
             return 800;
         }
     }
-
-    /**
-     * Вывод подробного отчета о расчете β
-     */
-    public static void printBetaReport(int designYear, RebarType rebarType, double j) {
-        double Rs = rebarType.getRs();
-        double Ra = getAllowedStress(designYear);
-        double RaKgscm2 = getAllowedStressKgscm2(designYear);
-        double beta = (Rs / Ra) * j;
-
-        System.out.println("============================================================");
-        System.out.println(" РАСЧЕТ КОЭФФИЦИЕНТА β (ФОРМУЛА 8.3)");
-        System.out.println("============================================================");
-
-        System.out.println("\n[1. Исходные данные]");
-        System.out.printf("   Год выпуска норм: %d%n", designYear);
-        System.out.printf("   Тип арматуры: %s%n", rebarType.getDisplayName());
-        System.out.printf("   Расчетное сопротивление арматуры Rₛ: %.1f МПа%n", Rs);
-        System.out.printf("   Допускаемое напряжение по нормам %d года: %d кгс/см² = %.1f МПа%n",
-            designYear, (int)RaKgscm2, Ra);
-        System.out.printf("   Относительное изменение площади j: %.3f%n", j);
-
-        System.out.println("\n[2. Расчет по формуле 8.3]");
-        System.out.println("   β = (Rₛ / Rₐ) × j");
-        System.out.printf("   β = (%.1f / %.1f) × %.3f%n", Rs, Ra, j);
-        System.out.printf("   β = %.3f × %.3f%n", (Rs / Ra), j);
-        System.out.printf("   β = %.3f%n", beta);
-
-        System.out.println("\n[3. Результат]");
-        System.out.printf("   >>> β = %.3f <<<%n", beta);
-        System.out.println("============================================================\n");
-    }
 }
